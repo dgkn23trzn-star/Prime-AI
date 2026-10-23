@@ -6,7 +6,7 @@ Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü
 
 ## Kurulum (Windows .exe)
 
-`dist/PRIME-AI-Setup-1.27.0.exe` dosyasına çift tıklayın ve kurulumu izleyin. Masaüstü ve başlangıç menüsüne **PRIME AI** kısayolu eklenir; exe simgesi uygulamanın logosudur.
+`dist/PRIME-AI-Setup-1.28.0.exe` dosyasına çift tıklayın ve kurulumu izleyin. Masaüstü ve başlangıç menüsüne **PRIME AI** kısayolu eklenir; exe simgesi uygulamanın logosudur.
 
 Masaüstündeki kısayol **uygulamayı** açar (tarayıcıyı değil): kurulum masaüstüne `.lnk` kısayolu koyar.
 

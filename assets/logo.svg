@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="PRIME AI">
+  <defs>
+    <mask id="primeAiGap">
+      <rect x="0" y="0" width="200" height="200" fill="#fff"/>
+      <rect x="69" y="140" width="62" height="48" rx="10" fill="#000"/>
+    </mask>
+    <path id="primeAiArc" d="M 44 100 A 56 56 0 0 1 156 100" />
+  </defs>
+
+  <!-- koyu zemin: favicon açık/koyu tarayıcı çubuğunda görünür kalsın -->
+  <circle cx="100" cy="100" r="100" fill="#0d0d0f" />
+
+  <g mask="url(#primeAiGap)" fill="none" stroke="#e9e9ec" stroke-width="11">
+    <circle cx="100" cy="100" r="79" />
+  </g>
+  <g mask="url(#primeAiGap)" fill="none" stroke="#e9e9ec" stroke-width="3.4" opacity=".5">
+    <circle cx="100" cy="100" r="64" />
+  </g>
+
+  <text font-family="Helvetica Neue, Arial, sans-serif" font-size="17" font-weight="700"
+        letter-spacing="3.4" fill="#e9e9ec">
+    <textPath href="#primeAiArc" startOffset="50%" text-anchor="middle">PRIME</textPath>
+  </text>
+
+  <text x="100" y="124" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="70" font-weight="800" letter-spacing="-1" fill="#e9e9ec">PR</text>
+
+  <text x="100" y="172" text-anchor="middle" font-family="Helvetica Neue, Arial, sans-serif"
+        font-size="29" font-weight="800" letter-spacing="1.5" fill="#ff3b30">AI</text>
+</svg>
