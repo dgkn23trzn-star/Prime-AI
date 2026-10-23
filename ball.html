@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'none'; base-uri 'none'; form-action 'none'; object-src 'none'" />
+<title>PRIME AI · Top</title>
+<link rel="stylesheet" href="ball.css" />
+</head>
+<body data-state="ball" data-color="gri" data-acc="yok">
+  <div id="stage">
+    <!-- Yazma yeri: yalnızca metin girişi (geçmiş yok, renk yok) -->
+    <section class="orb-panel orb-ask" id="ask" hidden aria-label="PRIME AI · yaz">
+      <form class="orb-form" id="askForm" autocomplete="off">
+        <input type="text" id="askInput" placeholder="Bir şey yaz…" maxlength="2000"
+               spellcheck="false" aria-label="Topa yaz" />
+        <!-- Sesle konuş: konuşurken yazıya çevrilir, susunca kendiliğinden gönderilir. -->
+        <button type="button" class="orb-mic" id="askMic" aria-label="Sesle konuş" title="Sesle konuş">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </button>
+        <button type="submit" class="orb-send" id="askSend" aria-label="Gönder">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 8 6 8-16-8z" fill="currentColor" stroke="none"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <!-- Cevap: ayrı, kuyruklu konuşma balonu -->
+    <section class="orb-panel orb-speech" id="speech" hidden aria-live="polite" aria-label="PRIME AI · yanıt">
+      <div class="orb-reply" id="reply"></div>
+      <div class="orb-live" id="live" hidden aria-live="polite"></div>
+      <span class="orb-tail" aria-hidden="true"></span>
+    </section>
+
+    <!-- Sağ tık menüsü: renkler + iki basışla uygulamaya dönüş -->
+    <section class="orb-panel orb-menu" id="menu" hidden aria-label="Top menüsü">
+      <button type="button" class="orb-back" id="menuReturn">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V5h5M20 14v5h-5"/><path d="M5.5 5.5A8 8 0 0 1 19 9M18.5 18.5A8 8 0 0 1 5 15"/></svg>
+        <span id="menuReturnText">Uygulamaya dön</span>
+      </button>
+      <div class="orb-colors" id="orbColors" role="group" aria-label="Top rengi"></div>
+      <span class="orb-menu-label" id="orbAccLabel">Aksesuarlar</span>
+      <div class="orb-accs" id="orbAccs" role="group" aria-label="Aksesuarlar"></div>
+    </section>
+
+    <div class="orb-wrap">
+      <button type="button" class="orb-close" id="orbClose" aria-label="Kapat" title="Kapat (tepside çalışmaya devam eder)">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+      </button>
+      <button type="button" class="orb-listen" id="orbListen" aria-label="Dinlemeyi durdur" title="Dinlemeyi durdur">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7.5" y="7.5" width="9" height="9" rx="1.8" fill="currentColor"/></svg>
+      </button>
+      <!-- Topun köşesindeki mikrofon: kutu açmadan sesli sohbeti başlatır. -->
+      <button type="button" class="orb-mic orb-mic-float" id="orbMic" aria-label="Sesle konuş" title="Sesle konuş">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M6 11a6 6 0 0 0 12 0M12 17v4M9 21h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <div class="orb-zzz" id="orbZzz" aria-hidden="true"></div>
+      <!-- Uyku yatağı: top yatmadan önce görünür, uyanınca kaybolur. -->
+      <div class="orb-bed" id="orbBed" aria-hidden="true">
+        <span class="bed-pillow"></span>
+        <span class="bed-duvet"></span>
+      </div>
+      <div class="orb" id="orb" role="button" tabindex="0" aria-label="PRIME AI topu" title="Sol tık: yaz · Sağ tık: menü · Sürükle: taşı">
+        <span class="orb-shine" aria-hidden="true"></span>
+        <span class="orb-features" aria-hidden="true">
+          <span class="orb-brows" id="orbBrows"><i></i><i></i></span>
+          <span class="orb-face"><i></i><i></i></span>
+          <span class="orb-mouth"></span>
+        </span>
+        <span class="orb-acc" aria-hidden="true"><i class="acc-1"></i><i class="acc-2"></i><i class="acc-3"></i></span>
+        <span class="orb-sheet" aria-hidden="true"></span>
+        <span class="orb-ring" aria-hidden="true"></span>
+      </div>
+    </div>
+  </div>
+  <script src="ball.js"></script>
+</body>
+</html>

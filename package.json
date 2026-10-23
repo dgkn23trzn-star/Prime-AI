@@ -1,0 +1,62 @@
+{
+  "name": "prime-ai",
+  "productName": "PRIME AI",
+  "version": "1.27.0",
+  "description": "Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması",
+  "main": "electron/main.js",
+  "author": "PRIME AI",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "web": "python -m http.server 5173",
+    "dist": "electron-builder --win",
+    "icon": "node scripts/make-icon.js"
+  },
+  "build": {
+    "appId": "com.primeai.app",
+    "productName": "PRIME AI",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "index.html",
+      "styles.css",
+      "theme-boot.js",
+      "i18n.js",
+      "app.js",
+      "ball.html",
+      "ball.css",
+      "ball.js",
+      "assets/**/*",
+      "build/icon.png",
+      "electron/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "PRIME AI",
+      "artifactName": "PRIME-AI-Setup-${version}.${ext}"
+    }
+  },
+  "devDependencies": {
+    "electron": "^44.7.2",
+    "electron-builder": "^26.15.3",
+    "sharp": "^0.35.5"
+  }
+}

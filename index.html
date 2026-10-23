@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" data-accent="alev">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PRIME AI</title>
+<meta name="theme-color" content="#000000" id="metaThemeColor" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https: http://localhost:11434 http://127.0.0.1:11434; frame-src https://www.youtube.com https://www.youtube-nocookie.com http://127.0.0.1:*; font-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'" />
+<link rel="icon" href="assets/logo.svg" type="image/svg+xml" />
+<link rel="stylesheet" href="styles.css" />
+<script src="theme-boot.js"></script>
+</head>
+<body>
+
+<!-- =========================================================
+     AÇILIŞ ANİMASYONU
+     ========================================================= -->
+<div class="intro" id="introScreen">
+  <div class="intro-halo" aria-hidden="true"></div>
+  <div class="intro-core">
+    <div class="intro-logo" id="introLogo"></div>
+    <div class="intro-word" aria-label="PRIME AI">
+      <span>P</span><span>R</span><span>I</span><span>M</span><span>E</span><b>AI</b>
+    </div>
+    <p class="intro-tag">Kendi API anahtarınızla çalışır · verileriniz cihazınızda kalır</p>
+    <div class="intro-bar"><i></i></div>
+    <p class="intro-hint">Başlamak için tıklayın ya da bir tuşa basın</p>
+  </div>
+</div>
+
+<!-- =========================================================
+     DİL SEÇİMİ — yalnızca ilk açılışta, giriş ekranından önce açılır.
+     Her dil kendi adıyla listelenir; seçim anında uygulanır ve dil
+     cihazda saklanır, bir daha sorulmaz. Ayarlar'dan değiştirilebilir.
+     ========================================================= -->
+<div class="langpick" id="langScreen" hidden>
+  <div class="langpick-glow" aria-hidden="true"></div>
+  <div class="langpick-card">
+    <div class="langpick-logo" id="langLogoSlot"></div>
+    <h1 class="langpick-title">Dil seçin</h1>
+    <p class="langpick-sub" data-no-i18n>Choose your language · Dil seçin · Sprache wählen · Выберите язык · 言語を選択</p>
+
+    <div class="langpick-grid" id="langPickGrid" role="group" aria-label="Dil seçimi">
+      <button type="button" class="langpick-item" data-lang-pick="tr">
+        <span class="langpick-native" data-no-i18n>Türkçe</span>
+        <span class="langpick-english" data-no-i18n>Turkish</span>
+      </button>
+      <button type="button" class="langpick-item" data-lang-pick="en">
+        <span class="langpick-native" data-no-i18n>English</span>
+        <span class="langpick-english" data-no-i18n>English</span>
+      </button>
+      <button type="button" class="langpick-item" data-lang-pick="de">
+        <span class="langpick-native" data-no-i18n>Deutsch</span>
+        <span class="langpick-english" data-no-i18n>German</span>
+      </button>
+      <button type="button" class="langpick-item" data-lang-pick="ru">
+        <span class="langpick-native" data-no-i18n>Русский</span>
+        <span class="langpick-english" data-no-i18n>Russian</span>
+      </button>
+      <button type="button" class="langpick-item" data-lang-pick="ja">
+        <span class="langpick-native" data-no-i18n>日本語</span>
+        <span class="langpick-english" data-no-i18n>Japanese</span>
+      </button>
+    </div>
+
+    <p class="langpick-note">Dili daha sonra Ayarlar bölümünden değiştirebilirsiniz.</p>
+  </div>
+</div>
+
+<!-- =========================================================
+     GİRİŞ EKRANI
+     ========================================================= -->
+<div class="auth" id="authScreen">
+  <div class="auth-glow" aria-hidden="true"></div>
+  <div class="auth-card">
+    <div class="auth-switch" id="authSwitchBar" hidden>
+      <span id="authSwitchText">Hesap değiştir</span>
+      <button type="button" class="btn ghost" id="authSwitchCancel">Vazgeç</button>
+    </div>
+    <div class="auth-logo" id="authLogoSlot"></div>
+    <h1 class="auth-title">PRIME<span class="auth-accent">AI</span></h1>
+    <p class="auth-sub">Kendi API anahtarınızla çalışan yapay zeka sohbeti</p>
+
+    <div class="auth-tabs" role="tablist">
+      <button type="button" class="auth-tab active" data-auth-tab="login">Giriş yap</button>
+      <button type="button" class="auth-tab" data-auth-tab="register">Hesap oluştur</button>
+    </div>
+
+    <form class="auth-form" id="authForm" autocomplete="on">
+      <label class="field">
+        <span class="field-label">Kullanıcı adı</span>
+        <input type="text" id="authName" placeholder="En az 3 karakter" spellcheck="false" autocomplete="username" />
+      </label>
+      <label class="field">
+        <span class="field-label">Şifre</span>
+        <div class="key-row">
+          <input type="password" id="authPass" placeholder="••••••" autocomplete="current-password" />
+          <button type="button" class="icon-btn ghost" id="authEye" title="Göster / gizle">
+            <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg>
+          </button>
+        </div>
+      </label>
+      <label class="field" id="authPass2Field" hidden>
+        <span class="field-label">Şifre (tekrar)</span>
+        <input type="password" id="authPass2" placeholder="••••••" autocomplete="new-password" />
+      </label>
+
+      <p class="auth-error" id="authError" hidden></p>
+
+      <button type="submit" class="btn btn-primary auth-submit" id="authSubmit">Giriş yap</button>
+      <label class="check auth-remember">
+        <input type="checkbox" id="authRemember" checked />
+        <span>Bu cihazda oturumumu açık tut</span>
+      </label>
+    </form>
+
+    <p class="auth-note">
+      Hesaplar yalnızca bu cihazda saklanır; sunucuya hiçbir şey gönderilmez.
+      Her hesabın sohbetleri ve API anahtarları birbirinden ayrıdır.
+    </p>
+  </div>
+</div>
+
+<!-- =========================================================
+     GÜVENLİK UYARISI (tanınmayan kişi)
+     ========================================================= -->
+<!-- =========================================================
+     KAMERA İZNİ (beta) — kamera açılmadan önce sorulur.
+     3 saniye içinde yanıt verilmezse kendiliğinden kapanır.
+     ========================================================= -->
+<div class="cam-permit" id="camPermit" hidden>
+  <div class="cam-permit-card" role="dialog" aria-modal="true" aria-labelledby="camPermitTitle">
+    <div class="cam-permit-icon">
+      <svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="13" height="11" rx="2.5"/><path d="M15.5 11l6-3.4v8.8l-6-3.4z"/><circle cx="9" cy="12" r="2.4"/></svg>
+    </div>
+    <h2 class="cam-permit-title" id="camPermitTitle">Kamera izni</h2>
+    <p class="cam-permit-text" id="camPermitText">Kamera kullanılacak. İzin veriyor musunuz?</p>
+    <div class="cam-permit-count" id="camPermitCount">3</div>
+    <p class="cam-permit-hint" id="camPermitHint">Yanıt vermezseniz kamera açılmaz. Kalan süre: 3 sn.</p>
+    <div class="cam-permit-actions">
+      <button type="button" class="btn ghost" id="camPermitNo">Hayır</button>
+      <button type="button" class="btn btn-primary" id="camPermitYes">İzin ver</button>
+    </div>
+  </div>
+</div>
+
+<div class="cam-alarm" id="camAlarm" hidden>
+  <div class="cam-alarm-inner">
+    <div class="cam-alarm-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 3l9.5 17H2.5z"/><path d="M12 9v5M12 17.2v.1"/></svg>
+    </div>
+    <h2 class="cam-alarm-title">Sen şüpelisin!</h2>
+    <p class="cam-alarm-sub" id="camAlarmSub">Bellekteki yaratıcıya benzemeyen bir kişi algılandı.</p>
+    <div class="cam-alarm-count" id="camAlarmCount">5</div>
+    <p class="cam-alarm-hint">Uygulama kapanıyor…</p>
+    <button type="button" class="btn ghost" id="camAlarmStop">Ben yaratıcıyım, durdur</button>
+  </div>
+</div>
+
+<!-- =========================================================
+     UYGULAMA
+     ========================================================= -->
+<div class="app" id="app" hidden>
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-head">
+      <button class="icon-btn" id="collapseBtn" title="Menüyü daralt" aria-label="Menüyü daralt">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <a class="brand" href="#" id="brandHome">
+        <span class="brand-logo" id="brandLogoSlot"></span>
+        <span class="brand-name">PRIME<span class="brand-accent">AI</span></span>
+      </a>
+    </div>
+
+    <button class="new-chat" id="newChatBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      <span>Yeni sohbet</span>
+    </button>
+
+    <div class="history-label">Son sohbetler</div>
+    <nav class="history" id="history" aria-label="Sohbet geçmişi"></nav>
+
+    <div class="sidebar-foot">
+      <button class="nav-item cam-nav" id="cameraNavBtn" title="Kamerayı aç" aria-label="Kamerayı aç">
+        <span class="cam-nav-thumb">
+          <video id="camMiniVideo" autoplay playsinline muted hidden></video>
+          <span class="cam-nav-placeholder" id="camMiniEmpty">
+            <svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="13" height="11" rx="2.5"/><path d="M15.5 11l6-3.4v8.8l-6-3.4z"/><circle cx="9" cy="12" r="2.4"/></svg>
+          </span>
+          <i class="cam-nav-dot" id="camMiniDot" hidden></i>
+        </span>
+        <span>Kamera <i class="beta-tag">BETA</i></span>
+      </button>
+      <button class="nav-item" id="settingsBtn">
+        <svg viewBox="0 0 24 24"><path d="M4 7h6M14 7h6M4 17h10M18 17h2"/><circle cx="12" cy="7" r="2.4"/><circle cx="16" cy="17" r="2.4"/></svg>
+        <span>Ayarlar</span>
+      </button>
+      <div class="user-chip">
+        <span class="user-avatar" id="userAvatar">?</span>
+        <span class="user-info">
+          <strong id="userName">Kullanıcı</strong>
+          <small id="userMeta">yerel hesap</small>
+        </span>
+        <button class="icon-btn ghost" id="accountsBtn" title="Hesap değiştir" aria-label="Hesap değiştir">
+          <svg viewBox="0 0 24 24"><path d="M4 8h13l-3.2-3.2M20 16H7l3.2 3.2"/><circle cx="7.5" cy="5.5" r="2"/><circle cx="16.5" cy="18.5" r="2"/></svg>
+        </button>
+        <button class="icon-btn ghost" id="logoutBtn" title="Çıkış yap" aria-label="Çıkış yap">
+          <svg viewBox="0 0 24 24"><path d="M15 17l5-5-5-5M20 12H9M12 20H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h6"/></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <div class="scrim" id="scrim"></div>
+
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn" id="menuBtn" title="Menü" aria-label="Menü">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <button class="model-chip" id="modelChip" title="API ve model seç">
+        <span class="dot" id="chipDot"></span>
+        <span id="chipText">API eklenmedi</span>
+        <svg viewBox="0 0 24 24" class="chev"><path d="M6 9l6 6 6-6"/></svg>
+      </button>
+      <div class="topbar-right">
+        <button class="icon-btn has-badge" id="consoleBtn" title="Konsol — hatalar ve yapılan işler" aria-label="Konsolu aç">
+          <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7.5 10l2.5 2-2.5 2M12.5 14.5h4"/></svg>
+          <span class="btn-badge" id="consoleBadge" hidden>0</span>
+        </button>
+      </div>
+    </header>
+
+    <section class="chat" id="chat">
+      <div class="welcome" id="welcome">
+        <div class="glow" id="welcomeGlow"></div>
+        <div class="welcome-logo" id="welcomeLogoSlot" role="button" tabindex="0" aria-label="PRIME AI" title="PRIME AI"></div>
+        <h1 class="greeting">
+          <span class="grad">Merhaba <span id="greetName"></span></span><br />
+          Size nasıl yardımcı olabilirim?
+        </h1>
+        <p class="welcome-sub">Sohbete başlamak için bir anahtar ekleyin, sonra ne istediğinizi yazın — konuyu yazdıklarınızdan ben anlarım. Bir şey çalışmazsa size “video ile mi anlatayım, yazıyla mı?” diye sorarım.</p>
+
+        <div class="key-banner" id="keyBanner">
+          <div class="key-banner-text">
+            <strong id="bannerTitle">Henüz yapay zekâ bağlanmadı</strong>
+            <span id="bannerText">Çalışması için tek gereken bir anahtar.</span>
+          </div>
+          <button class="btn btn-primary" id="keyBannerBtn">
+            <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.4 3.95L10 12.5H8v2H6v2H3v-3.1l4.6-4.6A4 4 0 0 1 15 7z"/></svg>
+            Anahtar ekle
+          </button>
+        </div>
+
+      </div>
+
+      <div class="messages" id="messages"></div>
+    </section>
+
+    <footer class="composer-wrap">
+      <form class="composer" id="composer">
+        <div class="attach-strip" id="attachStrip" hidden>
+          <div class="attach-list" id="attachList"></div>
+          <p class="attach-hint" id="attachHint"></p>
+        </div>
+        <button type="button" class="orb-btn" id="orbBtn" title="Masaüstü topuna küçült" aria-label="Masaüstü topuna küçült">
+          <span class="orb-dot" aria-hidden="true"></span>
+        </button>
+        <textarea id="input" rows="1" placeholder="Ne yapmak istiyorsun? Yaz, konuş ya da bir görsel ekle…" autocomplete="off"></textarea>
+        <div class="composer-actions">
+          <!-- Mikrofon açık: konuşurken canlı yazıya çevrilir, susunca kendiliğinden gönderilir. -->
+          <button type="button" class="tool-btn mic-btn" id="micBtn" title="Sesle konuş (bas, konuş; sustuğunda kendiliğinden gönderilir)" aria-label="Sesle yaz">
+            <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3M9 21h6"/></svg>
+          </button>
+          <button type="button" class="tool-btn" id="attachBtn" title="Görsel ekle (yapıştırabilir veya sürükleyebilirsiniz)" aria-label="Görsel ekle">
+            <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="15" rx="3"/><circle cx="9" cy="10" r="1.5"/><path d="M4 17l4.6-4.6 3.4 3.2 3-2.6L20 17"/></svg>
+          </button>
+          <button type="button" class="tool-btn" id="emojiBtn" title="Emoji ekle" aria-label="Emoji ekle">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.2 4.2 0 0 0 7 0"/><circle cx="9" cy="9.8" r=".9" fill="currentColor" stroke="none"/><circle cx="15" cy="9.8" r=".9" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <button type="button" class="stop-btn" id="stopBtn" hidden title="Yanıtı durdur">
+            <svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="currentColor" stroke="none"/></svg>
+          </button>
+          <button type="submit" class="send-btn" id="sendBtn" title="Gönder">
+            <svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 8 6 8-16-8z" fill="currentColor" stroke="none"/></svg>
+          </button>
+        </div>
+      </form>
+      <input type="file" id="imagePicker" accept="image/png,image/jpeg,image/webp,image/gif" multiple hidden />
+      <p class="disclaimer">PRIME AI hata yapabilir. Önemli bilgileri doğrulayın.</p>
+    </footer>
+  </main>
+</div>
+
+<div class="emoji-pop" id="emojiPop" hidden></div>
+
+<!-- =========================================================
+     AYARLAR
+     ========================================================= -->
+<div class="modal" id="settingsModal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="settingsTitle">Ayarlar</h2>
+        <p class="modal-sub" id="settingsSub">API ve uygulama tercihleri</p>
+      </div>
+      <button class="icon-btn" id="closeSettings" aria-label="Kapat">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+
+    <div class="settings-tabs" role="tablist">
+      <button type="button" class="settings-tab active" data-panel="api">
+        <svg viewBox="0 0 24 24"><path d="M15 7a4 4 0 1 0-3.4 3.95L10 12.5H8v2H6v2H3v-3.1l4.6-4.6A4 4 0 0 1 15 7z"/></svg>
+        Yapay Zekâ Anahtarı
+      </button>
+      <button type="button" class="settings-tab" data-panel="app">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.6v3M12 18.4v3M21.4 12h-3M5.6 12h-3M18.6 5.4l-2.1 2.1M7.5 16.5l-2.1 2.1M18.6 18.6l-2.1-2.1M7.5 7.5L5.4 5.4"/></svg>
+        Uygulama Ayarları
+      </button>
+      <button type="button" class="settings-tab" data-panel="asistan">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.2"/><circle cx="9.4" cy="10.6" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.6" cy="10.6" r="1.3" fill="currentColor" stroke="none"/><path d="M8.9 14.6a4 4 0 0 0 6.2 0"/></svg>
+        Asistan
+      </button>
+      <button type="button" class="settings-tab" data-panel="kamera" hidden>
+        <svg viewBox="0 0 24 24"><rect x="2.5" y="6.5" width="13" height="11" rx="2.5"/><path d="M15.5 11l6-3.4v8.8l-6-3.4z"/><circle cx="9" cy="12" r="2.4"/></svg>
+        Kamera <i class="beta-tag">BETA</i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+
+      <!-- ================= API YERİ ================= -->
+      <div class="tab-panel" id="panelApi">
+        <div class="api-topbar">
+          <div>
+            <h3 class="panel-title">Yapay zekâ anahtarınız</h3>
+            <p class="panel-sub">PRIME AI'ı konuşturmak için bir anahtar gerekir. Ücretsiz başlamak isterseniz
+              <strong>Google Gemini</strong> anahtarı yeterlidir. Anahtarınız yalnızca bu bilgisayarda saklanır.
+              Anahtar eklemek için aşağıdaki <strong>Yeni API</strong> kartına dokunun. Bir kaydı kaldırmak
+              için kartın sağ üst köşesindeki çöp kutusuna dokunun.</p>
+          </div>
+        </div>
+
+        <div class="api-grid" id="apiGrid"></div>
+
+        <!-- Ortak model: seçim aynı sağlayıcıdaki bütün API kayıtlarına uygulanır. -->
+        <div class="api-model-card" id="globalModelCard">
+          <div class="api-model-head">
+            <div>
+              <h3 class="panel-title">Ortak model</h3>
+              <p class="panel-sub">Seçtiğiniz model, aynı yapay zekâdaki bütün API kayıtlarında ve sohbetlerde kullanılır.</p>
+            </div>
+            <button type="button" class="btn ghost" id="fetchAllModelsBtn">Tüm modelleri getir</button>
+          </div>
+          <select id="globalModelSelect" aria-label="Ortak model"></select>
+          <span class="field-help" id="globalModelStatus"></span>
+        </div>
+
+        <div class="api-form" id="apiForm" hidden>
+          <div class="api-form-head">
+            <span class="api-form-title" id="apiFormTitle">Yeni anahtar</span>
+            <button type="button" class="icon-btn ghost" id="apiFormClose" aria-label="Kapat">
+              <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+            </button>
+          </div>
+
+          <label class="field">
+            <span class="field-label">Hangi yapay zekâ?</span>
+            <select id="providerSelect"></select>
+            <span class="field-help" id="providerHelp"></span>
+            <span class="field-help">Anahtarı yapıştırınca hangisi olduğunu kendim anlarım.</span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">Anahtarınız</span>
+            <div class="key-row">
+              <input type="password" id="apiKeyInput" placeholder="Anahtarınızı buraya yapıştırın" spellcheck="false" autocomplete="off" />
+              <button type="button" class="icon-btn ghost" id="toggleKey" title="Göster / gizle">
+                <svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6-10-6-10-6z"/><circle cx="12" cy="12" r="2.6"/></svg>
+              </button>
+            </div>
+            <span class="field-help" id="keyDetect"></span>
+            <span class="field-help" id="keyHelp"></span>
+          </label>
+
+          <label class="field">
+            <span class="field-label">
+              Beyin (model)
+              <button type="button" class="link-btn" id="fetchModelsBtn">modelleri getir</button>
+            </span>
+            <select id="modelSelect"><option value="">— önce anahtarı girin —</option></select>
+            <input type="text" id="modelManual" class="manual-model" placeholder="ya da model adını elle yazın" spellcheck="false" />
+            <span class="field-help" id="modelStatus"></span>
+            <span class="field-help">“modelleri getir” derseniz listeden en uygun olanı kendim seçerim.</span>
+          </label>
+
+          <div class="api-form-actions">
+            <button type="button" class="btn ghost" id="clearKeyBtn">Bu anahtarı sil</button>
+            <button type="button" class="btn ghost" id="apiUseBtn">Bunu kullan</button>
+            <button type="button" class="btn btn-primary" id="saveApiBtn">Kaydet</button>
+          </div>
+        </div>
+
+        <div class="tile google-tile">
+          <div class="tile-title">
+            Fotoğraf arama (isteğe bağlı)
+            <span class="tag" id="googleTag">kapalı</span>
+          </div>
+          <p class="field-help">
+            Fotoğraf istediğinizde önce Google'a bakmamı isterseniz burayı doldurun.
+            Boş bırakırsanız ücretsiz kaynaklardan ararım (Wikimedia Commons → Openverse) — bu yol için anahtar gerekmez.
+          </p>
+          <div class="google-fields">
+            <label class="field">
+              <span class="field-label">
+                API anahtarı
+                <a class="link-btn" href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer">anahtarı al</a>
+              </span>
+              <input type="password" id="googleKey" placeholder="AIza…" spellcheck="false" autocomplete="off" />
+            </label>
+            <label class="field">
+              <span class="field-label">
+                Arama motoru kimliği (cx)
+                <a class="link-btn" href="https://programmablesearchengine.google.com/controlpanel/all" target="_blank" rel="noopener noreferrer">cx al</a>
+              </span>
+              <input type="text" id="googleCx" placeholder="ör. 0123abc456def7890" spellcheck="false" autocomplete="off" />
+            </label>
+          </div>
+          <p class="field-help" id="googleStatus"></p>
+        </div>
+      </div>
+
+      <!-- ================= PRIME AI AYARLARI ================= -->
+      <div class="tab-panel" id="panelApp" hidden>
+        <h3 class="panel-title">Uygulama ayarları</h3>
+        <p class="panel-sub">Hepsi tek tıkla değişir. Kaydetmeyi unutmayın.</p>
+
+        <div class="tile">
+          <div class="tile-title">Dil</div>
+          <div class="segmented segmented-wrap" id="langSeg" role="group" aria-label="Dil">
+            <button type="button" data-lang-val="tr" class="active" data-no-i18n>Türkçe</button>
+            <button type="button" data-lang-val="en" data-no-i18n>English</button>
+            <button type="button" data-lang-val="de" data-no-i18n>Deutsch</button>
+            <button type="button" data-lang-val="ru" data-no-i18n>Русский</button>
+            <button type="button" data-lang-val="ja" data-no-i18n>日本語</button>
+          </div>
+          <p class="field-help">Arayüz ve yapay zekânın yanıt dili.</p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Görünüm</div>
+          <div class="segmented" id="themeSeg" role="group" aria-label="Tema">
+            <button type="button" data-theme-val="dark">
+              <svg viewBox="0 0 24 24"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+              Siyah
+            </button>
+            <button type="button" data-theme-val="light">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.4v2.2M12 19.4v2.2M2.4 12h2.2M19.4 12h2.2M5.2 5.2l1.6 1.6M17.2 17.2l1.6 1.6M18.8 5.2l-1.6 1.6M6.8 17.2l-1.6 1.6"/></svg>
+              Beyaz
+            </button>
+            <button type="button" data-theme-val="system">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4.5" width="18" height="12" rx="2"/><path d="M8.5 20h7"/></svg>
+              Sistem
+            </button>
+          </div>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Renk</div>
+          <div class="accent-grid" id="accentGrid"></div>
+          <p class="field-help">Seçtiğiniz renk gönder düğmesinde, başlıkta ve vurgularda görünür.</p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Nasıl yazsın?</div>
+          <label class="switch">
+            <span>
+              <strong>Kısa yanıtlar</strong>
+              <small>Uzun giriş ve tekrarlar olmadan, genellikle birkaç cümle. Ayrıntı isterseniz yine uzun anlatır.</small>
+            </span>
+            <input type="checkbox" id="optBrief" checked />
+          </label>
+          <label class="field">
+            <span class="field-label">Ekstra talimat (isteğe bağlı)</span>
+            <textarea id="systemPrompt" rows="2" placeholder="Örn: Kısa ve net yanıt ver."></textarea>
+            <span class="field-help">Buraya yazdığınız her şey PRIME AI'ın üslubunu etkiler. Boş bırakırsanız samimi bir arkadaş gibi yazar.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Yaratıcılık <span class="range-val" id="tempVal">0.7</span></span>
+            <input type="range" id="tempRange" min="0" max="1" step="0.1" value="0.7" />
+            <span class="field-help">Düşük = daha net ve ciddi, yüksek = daha yaratıcı.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">En uzun yanıt (token)</span>
+            <input type="number" id="maxTokens" min="256" max="128000" step="256" value="4096" />
+            <span class="field-help">4096 iyi bir değerdir; yanıt bu sınırda kesilir.</span>
+          </label>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Ek özellikler</div>
+          <label class="switch">
+            <span>
+              <strong>Fotoğraf göstersin</strong>
+              <small>Fotoğraf istediğinizde arar ve sohbete ekler.</small>
+            </span>
+            <input type="checkbox" id="optImages" checked />
+          </label>
+          <label class="switch">
+            <span>
+              <strong>Video ile anlatsın</strong>
+              <small>Yardım istediğinizde ya da bir şey çalışmadığında konuyla ilgili gerçek bir video bulup ekler.</small>
+            </span>
+            <input type="checkbox" id="optVideo" checked />
+          </label>
+        </div>
+
+        <div class="tile" id="keySoundTile">
+          <div class="tile-title">Klavye sesi</div>
+          <label class="switch">
+            <span>
+              <strong>Yazarken ses çıkar</strong>
+              <small>Her tuşa basışta kısa bir tık sesi.</small>
+            </span>
+            <input type="checkbox" id="optKeySound" checked />
+          </label>
+          <label class="field">
+            <span class="field-label">Ses düzeyi <span class="range-val" id="keySoundVal">70%</span></span>
+            <input type="range" id="keySoundRange" min="0" max="100" step="5" value="70" />
+            <span class="field-help">Sesi kısabilir ya da tamamen kapatabilirsiniz.</span>
+          </label>
+          <div class="mic-actions">
+            <button type="button" class="btn ghost" id="keySoundTest">Sesi dinle</button>
+          </div>
+        </div>
+
+        <div class="tile" id="micTile">
+          <div class="tile-title">Mikrofon ve sesle yazma</div>
+          <p class="field-help">Mikrofon düğmesine basıp konuşun; konuşma yazarken canlı olarak yazıya çevrilir, sustuğunuzda kendiliğinden gönderilir ve yanıt gelir. Kayıt yalnızca düğmeye bastığınızda başlar.</p>
+          <div>
+            <label class="field">
+              <span class="field-label">Mikrofon</span>
+              <select id="micSelect"><option value="">Varsayılan mikrofon</option></select>
+              <span class="field-help" id="micStatus">Mikrofonlar listeleniyor…</span>
+            </label>
+            <div class="mic-actions">
+              <button type="button" class="btn ghost" id="micRefresh">Mikrofonları yenile</button>
+            </div>
+          </div>
+          <p class="field-help" id="voiceSupport"></p>
+        </div>
+
+        <div class="tile" id="accessTile">
+          <div class="tile-title">Erişim</div>
+          <p class="field-help">
+            Bir uygulama ya da klasör seçin ve ona bir isim verin. Top hâlindeyken
+            <strong>“aç isim”</strong> ya da <strong>“kapat isim”</strong> yazarak açıp kapatabilirsiniz.
+            Top, uygulama açılırken kısa süre titrer.
+          </p>
+          <div class="access-list" id="accessList"></div>
+          <div class="access-actions">
+            <button type="button" class="btn ghost" id="accessAddApp">
+              <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 4v5"/></svg>
+              Uygulama ekle
+            </button>
+            <button type="button" class="btn ghost" id="accessAddFolder">
+              <svg viewBox="0 0 24 24"><path d="M3 7.5A1.5 1.5 0 0 1 4.5 6h4l1.8 2.2h9.2A1.5 1.5 0 0 1 21 9.7v8.8A1.5 1.5 0 0 1 19.5 20h-15A1.5 1.5 0 0 1 3 18.5z"/></svg>
+              Klasör ekle
+            </button>
+          </div>
+          <p class="field-help" id="accessHint"></p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Hesap</div>
+          <div class="account-row">
+            <span class="user-avatar big" id="accountAvatar">?</span>
+            <div class="account-info">
+              <strong id="accountName">Kullanıcı</strong>
+              <small id="accountSince"></small>
+            </div>
+            <button type="button" class="btn ghost" id="deleteAccountBtn">Hesabı sil</button>
+          </div>
+          <div class="avatar-row">
+            <button type="button" class="btn ghost" id="avatarPickBtn">
+              <svg viewBox="0 0 24 24"><path d="M4 7.5h3l1.4-2h7.2l1.4 2h3A1.5 1.5 0 0 1 21.5 9v8A1.5 1.5 0 0 1 20 18.5H4A1.5 1.5 0 0 1 2.5 17V9A1.5 1.5 0 0 1 4 7.5z"/><circle cx="12" cy="13" r="3.4"/></svg>
+              Fotoğraf yükle
+            </button>
+            <button type="button" class="btn ghost" id="avatarClearBtn" hidden>Fotoğrafı kaldır</button>
+            <span class="field-help" id="avatarHelp">JPG, PNG veya WebP · en fazla 3 MB</span>
+          </div>
+          <input type="file" id="avatarPicker" accept="image/png,image/jpeg,image/webp" hidden />
+        </div>
+
+        <div class="note">
+          API anahtarları ve sohbetler bu cihazda, yalnızca bu hesaba ait olacak şekilde saklanır.
+          <button type="button" class="link-btn" id="aboutBtn" style="padding-left:6px">PRIME AI hakkında</button>
+        </div>
+      </div>
+
+      <!-- ================= KAMERA ================= -->
+      <div class="tab-panel" id="panelKamera" hidden>
+        <h3 class="panel-title">Kamera <i class="beta-tag">BETA</i></h3>
+        <p class="panel-sub">Bir kamera seçin, kameradaki kişiyle ilgili yapay zekâya sorun ve yaratıcıyı belleğe kaydedin.</p>
+        <div class="note">
+          Kamera beta aşamasında. Görüntü yalnızca siz izin verdiğiniz sürece açılır; izni geri aldığınızda kamera kapanır, izleme durur ve bu bölüm gizlenir.
+          <button type="button" class="link-btn" id="camRevokePermit" style="padding-left:6px">Kamera iznini geri al</button>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Kamera seçimi</div>
+          <label class="field">
+            <span class="field-label">Kamera aygıtı</span>
+            <select id="camSelect"><option value="">Varsayılan kamera</option></select>
+            <span class="field-help" id="camStatus">Kameralar listeleniyor…</span>
+          </label>
+          <div class="cam-actions">
+            <button type="button" class="btn ghost" id="camRefresh">Kameraları yenile</button>
+            <button type="button" class="btn ghost" id="camShutdown" hidden>Kamerayı kapat</button>
+          </div>
+          <p class="field-help" id="camShutdownHint"></p>
+          <p class="field-help">Canlı görüntü ve yapay zekâ sohbeti sol menüdeki Kamera düğmesinde; burada yalnızca aygıt, bellek ve güvenlik ayarları var.</p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Yaratıcı belleği</div>
+          <p class="field-help">Buraya kaydettiğiniz kişi uygulamanın yaratıcısı sayılır. Kamera onu gördüğünde uyarı vermez.</p>
+          <div class="cam-memory">
+            <div class="cam-photo-wrap">
+              <img id="camCreatorImg" alt="Yaratıcı fotoğrafı" hidden />
+              <span id="camCreatorEmpty">Henüz fotoğraf yok</span>
+            </div>
+            <div class="cam-memory-actions">
+              <button type="button" class="btn ghost" id="camSaveCreator">Kareyi yaratıcı olarak kaydet</button>
+              <button type="button" class="btn ghost" id="camPickCreator">Fotoğraf yükle</button>
+              <button type="button" class="btn ghost" id="camClearCreator" hidden>Kaldır</button>
+            </div>
+          </div>
+          <input type="file" id="camCreatorPicker" accept="image/png,image/jpeg,image/webp" hidden />
+        </div>
+
+        <div class="tile">
+          <div class="tile-title cam-shots-title" id="camShotsTitle" role="button" tabindex="0">
+            <span>Kamera yakalama <span class="tag" id="camShotsCount">0</span></span>
+            <span class="cam-shots-more">Tümünü gör</span>
+          </div>
+          <p class="field-help">Yaratıcı kontrolü 30 saniyede bir yapılır; insan görüldüğünde kare buraya eklenir. Aynı görünen kareler tekrar kaydedilmez. Yeşil çerçeve bellekteki yaratıcıyı, kırmızı çerçeve tanınmayan kişiyi gösterir. Saat ve tarih her görselin altında.</p>
+          <div class="cam-shots" id="camShots"></div>
+          <p class="field-help" id="camShotsEmpty">Henüz kamera yakalaması yok.</p>
+          <div class="cam-actions">
+            <button type="button" class="btn ghost" id="camShotsAll" hidden>Tümünü gör</button>
+            <button type="button" class="btn ghost" id="camShotsFolder">Klasörü aç</button>
+            <button type="button" class="btn ghost" id="camShotsClear" hidden>Görüntüleri temizle</button>
+          </div>
+          <p class="field-help">Yakalamalar bilgisayarda bir klasöre de kaydedilir; “Klasörü aç” ile gidip görselleri kopyalayabilirsiniz.</p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title cam-shots-title" id="camAbsencesTitle" role="button" tabindex="0">
+            <span>Yokluk <span class="tag" id="camAbsencesCount">0</span></span>
+            <span class="cam-shots-more">Tümünü gör</span>
+          </div>
+          <p class="field-help">Kamerada <strong>insan yokken</strong> en fazla <strong>1 dakikada bir</strong> kare alınır ve burada tarih/saat ile listelenir. İnsan görüldüğünde buraya fotoğraf eklenmez; aynı görünen kareler tekrar yazılmaz.</p>
+          <div class="cam-shots" id="camAbsences"></div>
+          <p class="field-help" id="camAbsencesEmpty">Henüz yokluk kaydı yok.</p>
+          <div class="cam-actions">
+            <button type="button" class="btn ghost" id="camAbsencesAll" hidden>Tümünü gör</button>
+            <button type="button" class="btn ghost" id="camAbsencesFolder">Klasörü aç</button>
+            <button type="button" class="btn ghost" id="camAbsencesClear" hidden>Kayıtları temizle</button>
+          </div>
+          <p class="field-help">Yokluk kayıtları bilgisayarda ayrı bir klasöre de yazılır; oradan görselleri alabilirsiniz.</p>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Güvenlik</div>
+          <label class="switch">
+            <span>
+              <strong>Tanınmayan kişide kırmızı uyarı</strong>
+              <small>Kameradaki kişi bellekteki yaratıcıya benzemiyorsa ekran kırmızı yanıp söner.</small>
+            </span>
+            <input type="checkbox" id="camAlarmOn" checked />
+          </label>
+          <label class="switch">
+            <span>
+              <strong>Geri sayımdan sonra kapat</strong>
+              <small>Uyarı sırasında sayaç biter ve uygulama kendini kapatır.</small>
+            </span>
+            <input type="checkbox" id="camAutoClose" checked />
+          </label>
+          <label class="field">
+            <span class="field-label">Boşta kamerayı kapat (dakika)</span>
+            <input type="number" id="camIdleMin" min="0" max="120" step="1" value="10" />
+            <span class="field-help">Kimse görülmezse ve görüntü değişmezse bu süre sonunda kamera kapanır. 0 = hiç kapanmasın.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Geri sayım (saniye)</span>
+            <input type="number" id="camCountdown" min="1" max="30" step="1" value="5" />
+            <span class="field-help">Uyarı gösterildikten sonra kaç saniye beklensin?</span>
+          </label>
+          <p class="field-help" id="camGuardHint"></p>
+        </div>
+
+      </div>
+
+      <!-- ================= ASİSTAN (uyku ve yüz) ================= -->
+      <div class="tab-panel" id="panelAsistan" hidden>
+        <h3 class="panel-title">Asistan ayarları</h3>
+        <p class="panel-sub">Masaüstündeki asistanın uykusunu ve yüzünü buradan düzenleyin.</p>
+
+        <div class="tile">
+          <div class="tile-title">Asistanın uykusu</div>
+          <label class="switch">
+            <span>
+              <strong>Uyusun</strong>
+              <small>Yorulunca veda eder, yatağına yatar ve uyanır. Kapatırsan hiç uyumaz.</small>
+            </span>
+            <input type="checkbox" id="asstSleepOn" checked />
+          </label>
+          <label class="field">
+            <span class="field-label">Ne kadar sık uyusun? (dakika)</span>
+            <input type="number" id="asstSleepEvery" min="1" max="120" step="1" value="7" />
+            <span class="field-help">Bu kadar dakikada bir yorulup uyumaya hazırlanır. 1–120 dakika.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">Bir uyku ne kadar sürsün? (saniye)</span>
+            <input type="number" id="asstSleepLen" min="10" max="600" step="5" value="60" />
+            <span class="field-help">Yattıktan sonra kaç saniye uyusun? Uyanınca enerjiyle hoplar.</span>
+          </label>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Yüz tasarla</div>
+          <p class="field-help">Asistanın yüzünü kendiniz şekillendirin: kaydedip doğrudan kullanabilirsiniz.</p>
+          <div class="asst-designer">
+            <div class="asst-designer-preview">
+              <span class="asst-face-mini big" id="asstPreview" aria-hidden="true"><i></i><i></i><b></b></span>
+            </div>
+            <div class="asst-designer-controls">
+              <label class="field asst-slider">
+                <span class="field-label">Göz boyutu</span>
+                <input type="range" id="asstEyeSize" min="0.4" max="1.6" step="0.05" value="1" />
+                <span class="range-val" id="asstEyeSizeVal">1</span>
+              </label>
+              <label class="field asst-slider">
+                <span class="field-label">Göz aralığı</span>
+                <input type="range" id="asstEyeGap" min="6" max="18" step="1" value="11" />
+                <span class="range-val" id="asstEyeGapVal">11</span>
+              </label>
+              <label class="field asst-color">
+                <span class="field-label">Göz rengi</span>
+                <input type="color" id="asstEyeColor" value="#121418" />
+              </label>
+              <label class="field asst-slider">
+                <span class="field-label">Ağız genişliği</span>
+                <input type="range" id="asstMouthW" min="6" max="24" step="1" value="15" />
+                <span class="range-val" id="asstMouthWVal">15</span>
+              </label>
+              <label class="field asst-slider">
+                <span class="field-label">Ağız kavisi</span>
+                <input type="range" id="asstMouthCurve" min="0" max="14" step="1" value="8" />
+                <span class="range-val" id="asstMouthCurveVal">8</span>
+              </label>
+              <span class="field-help">Ağız kavisi 0 = düz; yükseldikçe daha çok gülümser.</span>
+              <label class="field asst-color">
+                <span class="field-label">Ağız rengi</span>
+                <input type="color" id="asstMouthColor" value="#121418" />
+              </label>
+              <label class="check">
+                <input type="checkbox" id="asstMouthRound" />
+                <span>Yuvarlak ağız (şaşkın “o”)</span>
+              </label>
+            </div>
+          </div>
+          <div class="asst-save-row">
+            <input type="text" id="asstFaceName" maxlength="24" placeholder="Yüzün adı" autocomplete="off" />
+            <button type="button" class="btn btn-primary" id="asstSaveFace">Yüzümü kaydet</button>
+          </div>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Ekstra yüzler</div>
+          <p class="field-help">Hazır yüzleri ya da kaydettiğiniz kendi yüzlerinizi seçin; asistan seçilen yüzü kullanır.</p>
+          <div class="asst-faces" id="asstFaces"></div>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Aksesuarlar</div>
+          <p class="field-help">Asistanın takacağı aksesuarı seçin: gözlük, kovboy şapkası, şapka, siyah gözlük, kral tacı ya da ağız maskesi. Aynı seçimi topun sağ tık menüsünden de yapabilirsiniz.</p>
+          <div class="asst-accs" id="asstAccs" role="group" aria-label="Aksesuarlar"></div>
+        </div>
+
+        <div class="tile">
+          <div class="tile-title">Sesli asistan sesi</div>
+          <p class="field-help">Asistanın yanıtlarını sesli okumasını isteyin. Kendi ElevenLabs anahtarınızla gerçek yapay zekâ sesleri alınır; anahtar yoksa Gemini’nin 10 kadın ve 12 erkek tınısıyla karışık modlar kullanılır. Seçim burada yapılır; sohbetteki yanıtların altındaki “Sesli oku” düğmesi bu sesi kullanır.</p>
+          <label class="switch">
+            <span>
+              <strong>Yanıtları seslendir</strong>
+              <small>Topun ve sohbetin yanıtları seçilen yapay zekâ sesiyle okunur.</small>
+            </span>
+            <input type="checkbox" id="asstVoiceOn" />
+          </label>
+          <label class="field">
+            <span class="field-label">ElevenLabs API anahtarı</span>
+            <input type="password" id="asstElevenKey" placeholder="xi-api-key" spellcheck="false" autocomplete="off" />
+            <span class="field-help">Sesler doğrudan ElevenLabs’ten alınır: elevenlabs.io/app/settings/api-keys adresinden anahtar alıp yapıştırın. Anahtar yalnızca bu bilgisayarda saklanır; girilirse ses önce ElevenLabs’ten üretilir, sorun olursa Gemini’ye düşer.</span>
+          </label>
+          <label class="field">
+            <span class="field-label">ElevenLabs modeli</span>
+            <select id="asstElevenModel">
+              <option value="eleven_flash_v2_5">Flash v2.5 · en hızlı, Türkçe destekli</option>
+              <option value="eleven_multilingual_v2">Multilingual v2 · en tutarlı, uzun metin</option>
+            </select>
+          </label>
+          <label class="field">
+            <span class="field-label">ElevenLabs sesi</span>
+            <div class="asst-save-row">
+              <select id="asstElevenVoice" title="ElevenLabs sesi"></select>
+              <button type="button" class="btn ghost" id="asstElevenFetch">Sesleri getir</button>
+            </div>
+            <span class="field-help" id="asstElevenStatus"></span>
+          </label>
+          <label class="field" id="asstGeminiRow">
+            <span class="field-label">Gemini sesleri (yedek)</span>
+            <select id="asstVoiceGemini"></select>
+            <span class="field-help" id="asstGeminiStatus"></span>
+          </label>
+          <div class="asst-save-row">
+            <button type="button" class="btn ghost" id="asstVoiceTest">Sesi dene</button>
+          </div>
+          <p class="field-help">Ses sırası: anahtar girilmişse önce ElevenLabs, sonra Gemini, en sonda Windows’un kendi sesi — asistan hiçbir durumda sessiz kalmaz.</p>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="modal-foot">
+      <span class="foot-status" id="footStatus"></span>
+      <div class="foot-right">
+        <button class="btn ghost" id="cancelSettings">Kapat</button>
+        <button class="btn btn-primary" id="saveSettings">Kaydet</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     KAMERA GÖRÜNÜMÜ (sol: sohbet, sağ: büyük görüntü)
+     ========================================================= -->
+<div class="cam-stage-modal" id="camStageModal" hidden>
+  <div class="cam-stage-card" role="dialog" aria-modal="true" aria-labelledby="camStageTitle">
+    <header class="cam-stage-head">
+      <div>
+        <h2 id="camStageTitle">Kamera</h2>
+        <p id="camStageSub">Yapay zekâ kameradaki son kareye bakar.</p>
+      </div>
+      <div class="cam-stage-head-actions">
+        <button type="button" class="btn ghost" id="camStageStop">Kamerayı kapat</button>
+        <button type="button" class="icon-btn" id="camStageClose" aria-label="Kapat">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
+      </div>
+    </header>
+    <div class="cam-stage-body">
+      <div class="cam-stage-chat-col">
+        <div class="cam-chat" id="camChat">
+          <div class="cam-msg ai">Merhaba! Kameradaki kişiyle ilgili bir şey sorabilirsiniz.</div>
+        </div>
+        <form class="cam-chat-form" id="camChatForm">
+          <input type="text" id="camChatInput" placeholder="Örn: Bu kişi ne yapıyor?" autocomplete="off" />
+          <button type="submit" class="btn btn-primary" id="camChatSend">Sor</button>
+        </form>
+        <p class="field-help" id="camChatHint">Yapay zekâ kameradaki son kareye bakar ve yanıtlar.</p>
+      </div>
+      <div class="cam-stage-video-col">
+        <div class="cam-stage big">
+          <video id="camBigVideo" autoplay playsinline muted hidden></video>
+          <div class="cam-empty" id="camBigEmpty">Kamera kapalı</div>
+          <div class="cam-live" id="camBigLive" hidden><i></i>CANLI</div>
+          <div class="cam-who" id="camBigWho" hidden><i></i><span id="camBigWhoText">Yaratıcı</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     HESAPLAR — bu cihazdaki hesaplar ve hesap değiştirme.
+     Başka hesap yoksa "Hesap gir" ile yeni bir hesap eklenir.
+     ========================================================= -->
+<div class="modal" id="accountsModal" aria-hidden="true">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="accountsTitle">
+    <div class="modal-head">
+      <div>
+        <h2 id="accountsTitle">Hesaplar</h2>
+        <p class="modal-sub">Bu cihazdaki hesaplar. Geçmek için şifrenizi girin.</p>
+      </div>
+      <button class="icon-btn" id="closeAccounts" aria-label="Kapat">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="accounts-list" id="accountsList"></div>
+      <p class="field-help" id="accountsHint"></p>
+    </div>
+    <div class="modal-foot">
+      <span class="foot-status"></span>
+      <div class="foot-right">
+        <button class="btn ghost" id="accountsNewBtn">Yeni hesap</button>
+        <button class="btn btn-primary" id="accountsSignInBtn">Hesap gir</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     HAKKINDA
+     ========================================================= -->
+<div class="modal" id="aboutModal" aria-hidden="true">
+  <div class="modal-card small" role="dialog" aria-modal="true" aria-labelledby="aboutTitle">
+    <div class="modal-head">
+      <div class="about-head">
+        <span class="about-logo" id="aboutLogoSlot"></span>
+        <div>
+          <h2 id="aboutTitle">PRIME AI</h2>
+          <p class="modal-sub">Sürüm 1.27.0 · Masaüstü</p>
+        </div>
+      </div>
+      <button class="icon-btn" id="closeAbout" aria-label="Kapat">
+        <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="about-text">
+        PRIME AI, kendi API anahtarınızla çalışan bir yapay zeka sohbet uygulamasıdır.
+        13 sağlayıcıyı destekler: Google Gemini ve Anthropic'in kendi API'leri ile
+        OpenAI, Groq, OpenRouter, Mistral, DeepSeek, xAI, Together, Perplexity,
+        Cerebras, Fireworks ve yerel Ollama.
+      </p>
+      <ul class="about-list">
+        <li>Hesaplar ve sohbetler yalnızca bu cihazda.</li>
+        <li>Siyah/beyaz tema ve geçişli renk seçenekleri.</li>
+        <li>Fotoğraf istediğinizde görsel arayıp sohbete ekler.</li>
+        <li>Fotoğrafa tıklayınca bulanık zemin üzerinde zoom'lu görüntüleyici açılır.</li>
+        <li>Bir konuda yardım istediğinizde konuyla ilgili <strong>gerçek bir video</strong> bulur:
+          başlığı, kanalı ve kapak fotoğrafıyla birlikte ekler.</li>
+        <li>Bir şey çalışmadığında size "video ile mi anlatayım, yazıyla mı?" diye sorar.</li>
+        <li>Konuyu yazdıklarınızdan anlar; tıklayarak konu seçmeniz gerekmez.</li>
+        <li>Akış halinde yanıtlar, markdown ve kod blokları (sohbette metin olarak).</li>
+      </ul>
+    </div>
+    <div class="modal-foot">
+      <div class="foot-right">
+        <button class="btn btn-primary" id="closeAboutBtn">Anladım</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =========================================================
+     FOTOĞRAF GÖRÜNTÜLEYİCİ (lightbox)
+     ========================================================= -->
+<div class="lightbox" id="lightbox" hidden role="dialog" aria-modal="true" aria-label="Fotoğraf görüntüleyici">
+  <div class="lb-backdrop" id="lbBackdrop"></div>
+  <div class="lb-stage" id="lbStage">
+    <img class="lb-img" id="lbImg" alt="" draggable="false" />
+  </div>
+  <div class="lb-caption" id="lbCaption"></div>
+  <div class="lb-tools">
+    <button type="button" class="lb-btn" id="lbPrev" title="Önceki fotoğraf (←)" aria-label="Önceki fotoğraf">
+      <svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button type="button" class="lb-btn" id="lbOut" title="Uzaklaştır (−)" aria-label="Uzaklaştır">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M20 20l-4.4-4.4"/></svg>
+    </button>
+    <span class="lb-zoom" id="lbZoom">100%</span>
+    <button type="button" class="lb-btn" id="lbIn" title="Yakınlaştır (+)" aria-label="Yakınlaştır">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M8 11h6M11 8v6M20 20l-4.4-4.4"/></svg>
+    </button>
+    <button type="button" class="lb-btn" id="lbReset" title="Sıfırla (0)" aria-label="Sıfırla">
+      <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 1 2.6 6.4"/><path d="M3 19v-5h5"/></svg>
+    </button>
+    <a class="lb-btn wide" id="lbSource" href="#" target="_blank" rel="noopener noreferrer" title="Görselin kaynağını aç">
+      <svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>
+      Kaynak
+    </a>
+    <button type="button" class="lb-btn" id="lbClose" title="Kapat (Esc)" aria-label="Kapat">
+      <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <button type="button" class="lb-btn" id="lbNext" title="Sonraki fotoğraf (→)" aria-label="Sonraki fotoğraf">
+      <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+  </div>
+</div>
+
+<!-- =========================================================
+     KONSOL
+     ========================================================= -->
+<div class="console-drawer" id="consoleDrawer" hidden>
+  <div class="console-head">
+    <span class="console-title">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7.5 10l2.5 2-2.5 2M12.5 14.5h4"/></svg>
+      Konsol
+      <span class="console-count" id="consoleCount">0</span>
+    </span>
+    <div class="console-actions">
+      <button type="button" class="mini-btn" id="consoleErrOnly" aria-pressed="false">Sadece hatalar</button>
+      <button type="button" class="mini-btn" id="consoleClear">Temizle</button>
+      <button type="button" class="mini-btn" id="consoleHide">Kapat</button>
+    </div>
+  </div>
+  <div class="console-body" id="consoleBody"></div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="i18n.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

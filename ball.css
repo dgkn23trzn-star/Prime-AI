@@ -1,0 +1,964 @@
+/* PRIME AI — masaüstü topu (ayrı, saydam pencere)
+   Pencere içeriği kadar büyür: 84×84 top · 320×150 yazma · 348×246 cevap ·
+   248×250 menü · 210×210 uyku (yatak + z harfleri). Renkler `body[data-color]` ile değişir. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  background: transparent; overflow: hidden;
+  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  color: #f2f4f8;
+  -webkit-user-select: none; user-select: none;
+}
+
+#stage {
+  position: relative;
+  width: 84px; height: 84px;
+  display: flex; flex-direction: column; align-items: flex-end; justify-content: flex-end;
+  gap: 8px; padding: 10px;
+}
+body[data-state="ask"]    #stage { width: 320px; height: 150px; }
+body[data-state="speech"] #stage { width: 348px; height: 246px; }
+body[data-state="menu"]   #stage { width: 248px; height: 330px; }
+/* Uyurken yatak ve z harfleri topun çevresine taşar: pencere o kadar büyür. */
+body[data-state="sleep"]  #stage { width: 210px; height: 210px; }
+body[data-state="sleep"]  .orb-wrap { transform: translate(-6px, -14px); }
+
+/* ------------------------------- renkler ------------------------------- */
+body[data-color="gri"]     { --orb-a: #cfd5dd; --orb-b: #6d747e; --orb-c: #464c55; }
+body[data-color="kirmizi"] { --orb-a: #ff8d80; --orb-b: #d13b34; --orb-c: #8c1f1c; }
+body[data-color="sari"]    { --orb-a: #ffe58c; --orb-b: #e0b020; --orb-c: #9c7710; }
+body[data-color="mavi"]    { --orb-a: #8fbcff; --orb-b: #2f68d8; --orb-c: #1c3f8f; }
+body[data-color="siyah"]   { --orb-a: #565c66; --orb-b: #22262d; --orb-c: #0b0d11; }
+body[data-color="mor"]     { --orb-a: #c4a6ff; --orb-b: #7a44e0; --orb-c: #492186; }
+body[data-color="pembe"]   { --orb-a: #ffb0d4; --orb-b: #db3f8c; --orb-c: #94225a; }
+body[data-color="yesil"]   { --orb-a: #96ecb4; --orb-b: #2ba361; --orb-c: #146b3e; }
+body[data-color="turuncu"] { --orb-a: #ffc48f; --orb-b: #e8761f; --orb-c: #a84a0d; }
+
+/* --------------------------------- top --------------------------------- */
+.orb-wrap { position: relative; width: 64px; height: 64px; flex: 0 0 auto; }
+
+/* Dinleme sürerken görünen durdurma düğmesi: cevap balonu açıkken de
+   mikrofonu kapatabilmek için topun köşesinde durur. */
+.orb-listen {
+  position: absolute; right: -3px; top: -3px; z-index: 4;
+  width: 21px; height: 21px; padding: 0; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  border: 1.5px solid rgba(255, 255, 255, .85);
+  background: #e0453c; color: #fff; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .45);
+}
+.orb-listen svg { width: 13px; height: 13px; display: block; }
+.orb-listen:hover { filter: brightness(1.08); }
+.orb-listen:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+body.listening .orb-listen { display: inline-flex; }
+
+.orb {
+  position: relative; width: 64px; height: 64px; border-radius: 50%;
+  background: radial-gradient(circle at 34% 28%, var(--orb-a) 0%, var(--orb-b) 52%, var(--orb-c) 100%);
+  box-shadow:
+    inset 0 -6px 12px rgba(0, 0, 0, .34),
+    inset 0 4px 8px rgba(255, 255, 255, .26),
+    0 6px 18px rgba(0, 0, 0, .42);
+  cursor: grab;
+  /* Duruş: etrafa bakarken top bulunduğu yöne hafifçe yatar. `rotate` ve
+     `translate` ayrı özelliklerdir; mutlu/zıplama animasyonlarının transform
+     kareleriyle çakışmaz, üstüne biner. */
+  rotate: var(--posture-r, 0deg);
+  translate: var(--posture-x, 0px) var(--posture-y, 0px);
+  transition: transform .18s ease, rotate .42s ease, translate .42s ease,
+    box-shadow .2s ease, filter .2s ease;
+}
+.orb:active { cursor: grabbing; }
+.orb:hover { filter: brightness(1.06); }
+
+/* Boşta canılık: top nefes alır gibi yavaşça süzülür. Durum animasyonları
+   (düşünme, uyku, zıplama...) daha özel seçicilerle bunu ezer. */
+.orb { animation: orbIdle 6.6s ease-in-out infinite; }
+@keyframes orbIdle {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50%      { transform: translateY(-2.6px) scale(1.022); }
+}
+.orb:focus-visible { outline: 2px solid rgba(255, 255, 255, .6); outline-offset: 3px; }
+
+.orb-shine {
+  position: absolute; left: 15px; top: 11px; width: 18px; height: 12px;
+  border-radius: 50%; background: rgba(255, 255, 255, .38);
+  filter: blur(2px); transform: rotate(-24deg); pointer-events: none;
+}
+
+/* Yüz + ağız birlikte döner: boşta “kafasını çevirip” etrafa bakar. */
+.orb-features {
+  position: absolute; inset: 0; pointer-events: none;
+  transition: transform .46s cubic-bezier(.3, .7, .3, 1);
+}
+
+/* yüz: iki göz — uyurken kapanır, düşünürken kısılır, ara sıra kırpılır.
+   Boyut, aralık, biçim ve renk CSS değişkenleriyle gelir: asistan ayarlarındaki
+   yüz tasarımı bunları değiştirir (varsayılanlar önceki sabit değerlerdir). */
+.orb-face {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  gap: var(--eye-gap, 11px); padding-top: 2px; pointer-events: none;
+}
+.orb-face i {
+  width: calc(7px * var(--eye-size, 1)); height: calc(9px * var(--eye-size, 1));
+  border-radius: var(--eye-r, 50%);
+  background: var(--eye-c, rgba(18, 20, 24, .82));
+  box-shadow: inset 0 -2px 3px rgba(0, 0, 0, .5), 0 1px 1px rgba(255, 255, 255, .18);
+  transition: height .22s ease, border-radius .22s ease;
+  --eye-y: 0px;
+  animation: orbBlink 6.2s ease-in-out infinite;
+}
+@keyframes orbBlink {
+  0%, 91%, 100% { transform: translateY(var(--eye-y)) scaleY(1); }
+  94%, 96%     { transform: translateY(var(--eye-y)) scaleY(.1); }
+}
+/* Ara sıra iki kez üst üste kırpar ya da tek gözünü kırpar (JS sınıfı). */
+@keyframes orbBlinkTwice {
+  0%, 100%     { transform: translateY(var(--eye-y)) scaleY(1); }
+  16%, 27%     { transform: translateY(var(--eye-y)) scaleY(.1); }
+  34%, 50%     { transform: translateY(var(--eye-y)) scaleY(1); }
+  58%, 69%     { transform: translateY(var(--eye-y)) scaleY(.1); }
+  78%          { transform: translateY(var(--eye-y)) scaleY(1); }
+}
+body.blink-twice .orb-face i { animation: orbBlinkTwice 1.25s ease-in-out; }
+@keyframes orbWink {
+  0%, 100%   { height: calc(9px * var(--eye-size, 1)); }
+  42%, 68%   { height: calc(2px * var(--eye-size, 1)); }
+}
+body.wink .orb-face i:last-child { animation: orbWink .75s ease-in-out; }
+/* kaşlar: duyguya göre yükselir, çatılır, iç uçları kalkar.
+   Konumlar gözlerin hemen üstünde; geçişler yumuşak (duygu değişince kayar). */
+.orb-brows {
+  position: absolute; left: 50%; top: 18.5px; width: 34px; height: 9px;
+  margin-left: -17px; pointer-events: none;
+}
+.orb-brows i {
+  position: absolute; top: 2px; width: 10px; height: 3.2px; border-radius: 3px;
+  background: var(--eye-c, rgba(18, 20, 24, .82));
+  box-shadow: 0 1px 1px rgba(255, 255, 255, .12);
+  opacity: .9;
+  transition: transform .6s cubic-bezier(.3, .7, .3, 1), top .6s ease,
+    height .4s ease, opacity .4s ease, border-radius .4s ease;
+}
+.orb-brows i:first-child { left: 2px; transform: rotate(-7deg); }
+.orb-brows i:last-child { right: 2px; transform: rotate(7deg); }
+
+/* mutlu gözler: hafif yukarı kıvrık */
+body.happy .orb-face i {
+  height: calc(6px * var(--eye-size, 1)); border-radius: 6px 6px 2px 2px; --eye-y: -1px;
+}
+body.smiling .orb-face i { height: calc(5px * var(--eye-size, 1)); border-radius: 6px 6px 2px 2px; --eye-y: -1px; }
+body.thinking .orb-face i { height: calc(4px * var(--eye-size, 1)); border-radius: 3px; }
+body.thinking .orb-face i:first-child { --eye-y: -1px; }
+body.thinking .orb-face i:last-child { --eye-y: 2px; }
+/* yorgunluk: gözler sarkar, sonra iyice kısılır */
+body.sleepy .orb-face i { height: calc(4.5px * var(--eye-size, 1)); border-radius: 4px; --eye-y: 2px; }
+body.very-sleepy .orb-face i { height: calc(3px * var(--eye-size, 1)); border-radius: 4px; --eye-y: 2.5px; }
+body.sleeping .orb-face i {
+  height: calc(2.5px * var(--eye-size, 1)); border-radius: 3px; --eye-y: 1px; animation: none;
+  transform: translateY(1px);
+}
+/* esnerken gözler kısılır */
+body.yawning .orb-face i { height: calc(2px * var(--eye-size, 1)); --eye-y: 2px; }
+
+/* boşta etrafa bakma, fare takibi ve duruş.
+   Bakış tek bir yerden (body üzerindeki --look-* değişkenleri) yönetilir:
+   yüz ve aksesuarlar AYNI dönüşümü alır, böylece “yüz döndü, şapka yerinde
+   kaldı” olmaz; top da aynı yöne hafifçe yatar. */
+body { --look-x: 0px; --look-y: 0px; --look-r: 0deg; }
+body.look-left  { --look-x: -6px; --look-r: -9deg; }
+body.look-right { --look-x: 6px;  --look-r: 9deg; }
+body.look-up    { --look-y: -4px; --look-r: 0deg; }
+/* fareyi takip: değerler JS'ten gelir; yön değiştikçe geçiş yumuşak kalır. */
+body.gazing {
+  --look-x: var(--gaze-x, 0px);
+  --look-y: var(--gaze-y, 0px);
+  --look-r: var(--gaze-r, 0deg);
+}
+.orb-features,
+.orb-acc {
+  transform: translate(var(--look-x, 0px), var(--look-y, 0px)) rotate(var(--look-r, 0deg));
+}
+body.gazing .orb-features,
+body.gazing .orb-acc { transition: transform .2s ease-out; }
+
+/* Duruş: bakış yönüne göre hafif yatış. */
+body { --posture-r: 0deg; --posture-x: 0px; --posture-y: 0px; }
+body.look-left  { --posture-r: -3.4deg; --posture-x: -1.6px; }
+body.look-right { --posture-r: 3.4deg;  --posture-x: 1.6px; }
+body.look-up    { --posture-r: 0deg;    --posture-y: -2.2px; }
+body.gazing {
+  --posture-r: calc(var(--gaze-r, 0deg) * .42);
+  --posture-x: calc(var(--gaze-x, 0px) * .14);
+  --posture-y: calc(var(--gaze-y, 0px) * .1);
+}
+body.gazing .orb { transition: rotate .18s ease-out, translate .18s ease-out; }
+
+/* ağız: varsayılan gülümseme; konuşurken açılıp kapanır.
+   Genişlik, kavis ve renk de yüz tasarımından gelen değişkenlerdir. */
+.orb-mouth {
+  position: absolute; left: 50%; top: 42px;
+  width: var(--mouth-w, 15px); height: 9px;
+  margin-left: calc(var(--mouth-w, 15px) / -2);
+  background: transparent; border: 0;
+  border-bottom: var(--mouth-curve, 8px) solid var(--mouth-c, rgba(18, 20, 24, .8));
+  border-radius: 0 0 12px 12px;
+  transition: height .16s ease, width .16s ease, top .45s ease, opacity .2s ease,
+    border-width .45s ease, border-radius .45s ease, background-color .45s ease;
+  pointer-events: none;
+}
+/* şaşkın “yuvarlak ağız” yüzü: küçük, dolgun bir o */
+body.round-mouth .orb-mouth {
+  background: var(--mouth-c, rgba(18, 20, 24, .8));
+  border-bottom: 0; border-radius: 50%;
+}
+body.talking .orb-mouth {
+  top: 39px; width: 11px; height: 8px; margin-left: -5.5px;
+  background: rgba(18, 20, 24, .86); border-bottom-color: transparent; border-radius: 50%;
+  animation: orbTalk .26s ease-in-out infinite alternate;
+}
+@keyframes orbTalk {
+  0%   { height: 3px; width: 9px; margin-left: -4.5px; }
+  55%  { height: 9px; width: 12px; margin-left: -6px; }
+  100% { height: 5px; width: 10px; margin-left: -5px; }
+}
+/* konuşurken top hafifçe canlanır */
+body.talking .orb { animation: orbTalkBob .5s ease-in-out infinite; }
+@keyframes orbTalkBob { 50% { transform: translateY(-1.5px) rotate(-1.4deg); } }
+
+/* Sesli okuma (TTS): metin akmasa da ağız hece gibi açılıp kapanır.
+   Duygu varsa aşağıdaki duygu+ağız kuralları (daha özgül) şekli korur. */
+body.speaking .orb-mouth {
+  top: 39px; width: 11px; height: 8px; margin-left: -5.5px;
+  background: rgba(18, 20, 24, .88);
+  border-bottom-color: transparent; border-radius: 50%;
+  transition: height .12s ease, width .12s ease, border-width .12s ease,
+    border-radius .18s ease, background-color .12s ease;
+  animation: orbSpeak .18s ease-in-out infinite alternate;
+}
+@keyframes orbSpeak {
+  0%   { height: 2.5px; width: 10px; margin-left: -5px; }
+  45%  { height: 10px;  width: 13px; margin-left: -6.5px; }
+  100% { height: 5px;   width: 11px; margin-left: -5.5px; }
+}
+body.speaking .orb { animation: orbSpeakBob .34s ease-in-out infinite; }
+@keyframes orbSpeakBob { 50% { transform: translateY(-1px) rotate(-.8deg); } }
+
+/* uykuya yaklaşırken ağız küçülür, gülümseme söner */
+body.sleepy .orb-mouth {
+  top: 43px;
+  width: calc(var(--mouth-w, 15px) * .73); height: 6px;
+  margin-left: calc(var(--mouth-w, 15px) * -.365);
+  border-bottom-width: calc(var(--mouth-curve, 8px) * .75); opacity: .85;
+}
+body.very-sleepy .orb-mouth {
+  top: 44px;
+  width: calc(var(--mouth-w, 15px) * .53); height: 4px;
+  margin-left: calc(var(--mouth-w, 15px) * -.265);
+  border-bottom-width: calc(var(--mouth-curve, 8px) * .5); opacity: .7;
+}
+
+/* uyuyan ağız: küçük, sakin bir “o” */
+body.sleeping .orb-mouth {
+  top: 44px; width: 8px; height: 5px; margin-left: -4px;
+  background: rgba(18, 20, 24, .55); border-bottom: 0; border-radius: 50%;
+}
+/* esneme: ağız kocaman açılır */
+body.yawning .orb-mouth {
+  top: 36px; width: 15px; height: 16px; margin-left: -7.5px;
+  background: rgba(18, 20, 24, .86); border-bottom: 0; border-radius: 50%;
+  animation: orbYawn 1.55s ease-in-out both;
+}
+@keyframes orbYawn {
+  0%   { top: 42px; width: 10px; height: 6px; margin-left: -5px; opacity: .9; }
+  35%  { top: 35px; width: 16px; height: 17px; margin-left: -8px; }
+  70%  { top: 36px; width: 13px; height: 14px; margin-left: -6.5px; }
+  100% { top: 43px; width: 8px; height: 5px; margin-left: -4px; opacity: .7; }
+}
+
+/* ------------------------------ duygular ------------------------------
+   Asistanın kendi yanıtındaki kelimelere göre kaşlar, gözler ve ağız
+   değişir. Aynı metinde duygu değişirse (ör. “maalesef… ama harika haber”)
+   geçişler transition ile yumuşak kalır. */
+body[data-mood="neseli"] .orb-brows i:first-child { transform: translateY(-2px) rotate(-12deg); }
+body[data-mood="neseli"] .orb-brows i:last-child { transform: translateY(-2px) rotate(12deg); }
+
+body[data-mood="uzgun"] .orb-brows i:first-child { transform: translateY(1px) rotate(-19deg); }
+body[data-mood="uzgun"] .orb-brows i:last-child { transform: translateY(1px) rotate(19deg); }
+body[data-mood="uzgun"] .orb-brows i { animation: browSad 2.8s ease-in-out infinite; }
+
+body[data-mood="kizgin"] .orb-brows i:first-child { transform: translateY(2px) rotate(17deg); }
+body[data-mood="kizgin"] .orb-brows i:last-child { transform: translateY(2px) rotate(-17deg); }
+body[data-mood="kizgin"] .orb-brows i { height: 2.6px; }
+
+body[data-mood="saskin"] .orb-brows i:first-child { transform: translateY(-5px) rotate(-5deg); }
+body[data-mood="saskin"] .orb-brows i:last-child { transform: translateY(-5px) rotate(5deg); }
+body[data-mood="saskin"] .orb-brows i { height: 3.8px; }
+
+@keyframes browSad {
+  0%, 100% { translate: 0 0; }
+  50%      { translate: 0 -1px; }
+}
+
+/* duygu değişiminde kaşlara kısa bir ışık: geçişin fark edilmesini sağlar */
+body.mood-shift .orb-brows i { filter: drop-shadow(0 0 2px rgba(255, 255, 255, .55)); }
+
+/* kaşlar uyurken de görünsün ama yumuşasın */
+body.sleeping .orb-brows i, body.yawning .orb-brows i { opacity: .5; }
+
+/* gözler: üzgün hafif düşük, kızgın çekik, şaşkın iri */
+body[data-mood]:not(.sleepy):not(.very-sleepy):not(.sleeping):not(.yawning):not(.thinking) .orb-face i {
+  transition: height .45s ease, border-radius .45s ease, transform .45s ease;
+}
+body[data-mood="uzgun"]:not(.sleepy):not(.very-sleepy):not(.sleeping):not(.yawning):not(.thinking) .orb-face i {
+  height: calc(6px * var(--eye-size, 1)); border-radius: 45% 45% 58% 58%; --eye-y: 2px;
+}
+body[data-mood="kizgin"]:not(.sleepy):not(.very-sleepy):not(.sleeping):not(.yawning):not(.thinking) .orb-face i {
+  height: calc(5px * var(--eye-size, 1)); border-radius: 3px; --eye-y: 1px;
+}
+body[data-mood="saskin"]:not(.sleepy):not(.very-sleepy):not(.sleeping):not(.yawning):not(.thinking) .orb-face i {
+  height: calc(11px * var(--eye-size, 1)); --eye-y: -1px;
+}
+
+/* Konuşurken de duygu ağzı belirler: akış sırasında ağız şaşkın “o”, kızgın
+   düz çizgi, üzgün aşağı kıvrık kalır (yalnızca konuşma animasyonu eklenir). */
+body.talking[data-mood="saskin"] .orb-mouth {
+  top: 37px; width: 11px; height: 12px; margin-left: -5.5px;
+  background: var(--mouth-c, rgba(18, 20, 24, .8));
+  border: 0; border-radius: 50%;
+  animation: orbTalkShock .3s ease-in-out infinite alternate;
+}
+@keyframes orbTalkShock {
+  0%   { height: 9px; width: 9px; margin-left: -4.5px; }
+  60%  { height: 13px; width: 12px; margin-left: -6px; }
+  100% { height: 10px; width: 10px; margin-left: -5px; }
+}
+body.talking[data-mood="kizgin"] .orb-mouth {
+  top: 42px; width: 13px; height: 3px; margin-left: -6.5px;
+  background: transparent; border-bottom: 0;
+  border-top: 2.8px solid var(--mouth-c, rgba(18, 20, 24, .8)); border-radius: 0;
+  animation: orbTalkAngry .24s ease-in-out infinite alternate;
+}
+@keyframes orbTalkAngry {
+  0%   { width: 11px; margin-left: -5.5px; }
+  100% { width: 14px; margin-left: -7px; }
+}
+body.talking[data-mood="uzgun"] .orb-mouth {
+  top: 43px; width: 12px; height: 7px; margin-left: -6px;
+  background: transparent; border-bottom: 0;
+  border-top: calc(var(--mouth-curve, 8px) * .7) solid var(--mouth-c, rgba(18, 20, 24, .8));
+  border-radius: 14px 14px 0 0;
+  animation: orbTalkSad .34s ease-in-out infinite alternate;
+}
+@keyframes orbTalkSad {
+  0%   { height: 6px; top: 44px; }
+  100% { height: 8px; top: 43px; }
+}
+
+/* ağız: üzgün aşağı kıvrılır, kızgın düzleşir, şaşkın “o” olur */
+body[data-mood="uzgun"]:not(.talking) .orb-mouth {
+  top: 43px; width: calc(var(--mouth-w, 15px) * .9); height: 8px;
+  margin-left: calc(var(--mouth-w, 15px) * -.45);
+  border-bottom: 0; border-top: calc(var(--mouth-curve, 8px) * .85) solid var(--mouth-c, rgba(18, 20, 24, .8));
+  border-radius: 16px 16px 0 0;
+}
+body[data-mood="kizgin"]:not(.talking) .orb-mouth {
+  top: 42px; width: calc(var(--mouth-w, 15px) * .82); height: 4px;
+  margin-left: calc(var(--mouth-w, 15px) * -.41);
+  border-bottom: 0; border-radius: 0;
+  border-top: 3px solid var(--mouth-c, rgba(18, 20, 24, .8));
+}
+body[data-mood="saskin"]:not(.talking) .orb-mouth {
+  top: 40px; width: 7px; height: 9px; margin-left: -3.5px;
+  background: var(--mouth-c, rgba(18, 20, 24, .8));
+  border-bottom: 0; border-radius: 50%;
+}
+body[data-mood="neseli"]:not(.talking) .orb-mouth {
+  border-bottom-width: calc(var(--mouth-curve, 8px) * 1.08);
+  width: calc(var(--mouth-w, 15px) * 1.05);
+  margin-left: calc(var(--mouth-w, 15px) * -.525);
+}
+
+/* mutlu ve enerjik duruş: nefes alır gibi hafif salınım */
+body.happy .orb { animation: orbHappy 6.6s ease-in-out infinite; }
+@keyframes orbHappy {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  25%      { transform: translateY(-2.4px) rotate(-1.4deg) scale(1.011, .997); }
+  50%      { transform: translateY(-.6px) rotate(0deg) scale(1.02, .998); }
+  75%      { transform: translateY(-1.8px) rotate(1.4deg) scale(1.009, .997); }
+}
+/* enerji taşması: ara sıra iki kez hoplar */
+body.excited .orb { animation: orbExcited .42s ease-in-out 3; }
+@keyframes orbExcited {
+  0%, 100% { transform: translateY(0) scale(1); }
+  30%      { transform: translateY(-7px) rotate(-3deg) scale(1.05, 1.02); }
+  60%      { transform: translateY(0) rotate(2deg) scale(.96, 1.04); }
+}
+
+/* yorgunluk: ağır, yavaş nefes */
+body.bedtime .orb { animation: orbBedtime 2.4s ease-in-out infinite; }
+@keyframes orbBedtime {
+  0%, 100% { transform: translateY(0) rotate(-1deg); }
+  50%      { transform: translateY(2px) rotate(1.5deg); }
+}
+
+/* düşünme halkası */
+.orb-ring {
+  position: absolute; inset: -5px; border-radius: 50%;
+  border: 2px solid transparent; opacity: 0; pointer-events: none;
+}
+
+/* mikrofon dinliyor: halka kırmızı vurguda nabız atar */
+body.listening .orb-ring {
+  opacity: 1; border-color: rgba(255, 96, 84, .85);
+  animation: orbListen 1.05s ease-in-out infinite;
+}
+@keyframes orbListen { 50% { transform: scale(1.13); opacity: .38; } }
+body.listening .orb-mic { color: #ff8b80; }
+body.thinking .orb { animation: orbBreathe 1.4s ease-in-out infinite; }
+body.thinking .orb-ring {
+  opacity: 1; border-top-color: rgba(255, 255, 255, .85); border-right-color: rgba(255, 255, 255, .28);
+  animation: orbSpin 1.1s linear infinite;
+}
+@keyframes orbSpin { to { transform: rotate(360deg); } }
+@keyframes orbBreathe { 50% { transform: scale(1.04); } }
+
+/* uyurken yatağa yayılır: hafif yatık, ağır ağır nefes alır */
+body.sleeping .orb {
+  filter: saturate(.72) brightness(.9);
+  animation: orbSleep 4.2s ease-in-out infinite;
+}
+@keyframes orbSleep {
+  0%, 100% { transform: translateY(2px) rotate(-7deg) scale(1.03, .96); }
+  50%      { transform: translateY(4px) rotate(-8deg) scale(1.04, .94); }
+}
+
+/* ara sıra etrafta dolanırken yavaşça yuvarlanır */
+body.moving .orb { animation: orbHop 2.4s ease-in-out; }
+@keyframes orbHop {
+  20% { transform: translateY(-5px) rotate(-6deg) scale(1.02, .98); }
+  50% { transform: translateY(1px) rotate(0deg) scale(.98, 1.03); }
+  80% { transform: translateY(-3px) rotate(6deg) scale(1.01, .99); }
+}
+
+/* uygulama/klasör açılırken ya da kapatılırken top titrer
+   (dolanma kuralından sonra: iki sınıf birlikteyse titreme kazanır) */
+body.launching .orb { animation: orbShake .11s linear infinite; }
+@keyframes orbShake {
+  0%   { transform: translate(0, 0) rotate(0deg); }
+  25%  { transform: translate(-2px, 1px) rotate(-2deg); }
+  50%  { transform: translate(2px, -1px) rotate(2deg); }
+  75%  { transform: translate(-1px, -2px) rotate(-1deg); }
+  100% { transform: translate(1px, 1px) rotate(1deg); }
+}
+
+/* ------------------------------ uyku zzz ------------------------------ */
+.orb-zzz {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  pointer-events: none; opacity: 0; transition: opacity .3s ease; z-index: 2;
+}
+body.sleeping .orb-zzz { opacity: 1; }
+.orb-zzz .z {
+  position: absolute; right: 22px; bottom: 54px;
+  font-weight: 800; color: rgba(255, 255, 255, .92);
+  text-shadow: 0 1px 5px rgba(0, 0, 0, .5);
+  font-size: calc(12px + var(--i) * 3px);
+  opacity: 0; animation: zFloat 3.4s ease-in-out infinite;
+  /* negatif gecikme: dört z de ilk anda farklı evrelerde görünür */
+  animation-delay: calc(var(--i) * -0.62s);
+}
+@keyframes zFloat {
+  0%   { opacity: 0; transform: translate(0, 0) scale(.55) rotate(-8deg); }
+  13%  { opacity: 1; }
+  72%  { opacity: .85; }
+  100% { opacity: 0; transform: translate(calc(6px + var(--i) * 4px), calc(-34px - var(--i) * 5px)) scale(1.3) rotate(12deg); }
+}
+
+/* ------------------------------- paneller ------------------------------ */
+/* hidden özniteliği .orb-panel'in display:flex kuralını ezmeli:
+   yoksa kapatılan menü/baloncuk pencerede kalır. */
+.orb-panel[hidden] { display: none; }
+
+.orb-panel {
+  width: 100%; min-height: 0;
+  background: rgba(17, 19, 24, .97);
+  border: 1px solid rgba(255, 255, 255, .12);
+  border-radius: 16px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 255, 255, .06);
+  animation: panelIn .18s cubic-bezier(.2, .8, .2, 1);
+  display: flex; flex-direction: column;
+}
+@keyframes panelIn { from { opacity: 0; transform: translateY(8px) scale(.97); } }
+
+/* --- yazma yeri: yalnızca giriş satırı --- */
+.orb-ask { flex: 0 0 auto; padding: 6px 7px 6px 12px; }
+.orb-form { display: flex; align-items: center; gap: 6px; }
+.orb-form input {
+  flex: 1 1 auto; min-width: 0; height: 34px; padding: 0 2px;
+  background: transparent; border: 0; outline: none; color: #f4f6fa; font-size: 13px;
+}
+.orb-form input::placeholder { color: rgba(255, 255, 255, .38); }
+.orb-mic {
+  width: 30px; height: 30px; flex: 0 0 auto; padding: 0; border: 0; border-radius: 50%;
+  background: transparent; color: rgba(255, 255, 255, .62); display: grid; place-items: center;
+  transition: color .14s ease, background .14s ease, transform .14s ease;
+}
+.orb-mic svg { width: 16px; height: 16px; }
+.orb-mic:hover { background: rgba(255, 255, 255, .1); color: #fff; }
+.orb-mic.on { background: rgba(255, 90, 80, .22); color: #ff8b80; }
+
+/* Topun köşesindeki mikrofon: her durumda görünür, dinlerken kırmızı olur. */
+.orb-mic-float {
+  position: absolute; right: -4px; bottom: -4px; z-index: 5;
+  width: 25px; height: 25px; border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, .82);
+  background: rgba(17, 19, 24, .9); color: rgba(255, 255, 255, .82);
+  box-shadow: 0 2px 7px rgba(0, 0, 0, .5);
+  display: grid; place-items: center;
+}
+.orb-mic-float svg { width: 14px; height: 14px; }
+.orb-mic-float:hover { background: rgba(40, 44, 54, .96); color: #fff; }
+.orb-mic-float.on { background: #e0453c; color: #fff; border-color: #fff; }
+body.listening .orb-mic-float { animation: micPulse 1.6s ease-in-out infinite; }
+@keyframes micPulse {
+  0%, 100% { box-shadow: 0 2px 7px rgba(0, 0, 0, .5), 0 0 0 0 rgba(224, 69, 60, .55); }
+  50% { box-shadow: 0 2px 7px rgba(0, 0, 0, .5), 0 0 0 6px rgba(224, 69, 60, 0); }
+}
+
+.orb-send {
+  width: 32px; height: 32px; flex: 0 0 auto; padding: 0; border: 0; border-radius: 50%;
+  background: var(--orb-b); color: #fff; display: grid; place-items: center;
+  transition: transform .14s ease, filter .14s ease;
+}
+.orb-send svg { width: 16px; height: 16px; }
+.orb-send:hover { filter: brightness(1.12); transform: scale(1.05); }
+.orb-send:active { transform: scale(.94); }
+
+/* --- cevap: ayrı, kuyruklu konuşma balonu --- */
+.orb-speech { flex: 1 1 auto; padding: 10px 12px 12px; position: relative; overflow: visible; }
+.orb-reply {
+  height: 100%; overflow-y: auto; overscroll-behavior: contain;
+  font-size: 12.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word;
+  -webkit-user-select: text; user-select: text; cursor: text;
+  scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .22) transparent;
+}
+.orb-reply::-webkit-scrollbar { width: 6px; }
+.orb-reply::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, .2); border-radius: 6px; }
+.orb-reply.err { color: #ffc9c9; }
+.orb-reply .dots { display: inline-flex; gap: 4px; align-items: center; height: 16px; }
+.orb-reply .dots i {
+  width: 5px; height: 5px; border-radius: 50%; background: rgba(255, 255, 255, .75);
+  animation: dotPulse 1s ease-in-out infinite;
+}
+.orb-reply .dots i:nth-child(2) { animation-delay: .16s; }
+.orb-reply .dots i:nth-child(3) { animation-delay: .32s; }
+@keyframes dotPulse { 0%, 100% { opacity: .3; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+
+/* Konuşurken yazıya çevrilen canlı metin: cevap balonunun üstünde kısa süre görünür. */
+.orb-live {
+  position: absolute; left: 10px; right: 10px; bottom: 8px; z-index: 3;
+  display: none; max-height: 56px; overflow: hidden;
+  padding: 6px 9px; border-radius: 10px;
+  background: rgba(10, 12, 16, .96);
+  border: 1px solid rgba(255, 96, 84, .5);
+  color: #ffe3df; font-size: 11.5px; line-height: 1.35;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, .45);
+  pointer-events: none;
+}
+.orb-live.on { display: block; }
+.orb-live::before {
+  content: ''; display: inline-block; width: 6px; height: 6px; margin-right: 6px;
+  border-radius: 50%; background: #ff6054; vertical-align: 1px;
+  animation: livePulse 1s ease-in-out infinite;
+}
+@keyframes livePulse { 50% { opacity: .35; transform: scale(.8); } }
+
+.orb-tail {
+  position: absolute; right: 16px; bottom: -7px; width: 15px; height: 15px;
+  background: rgba(17, 19, 24, .97);
+  border-right: 1px solid rgba(255, 255, 255, .12);
+  border-bottom: 1px solid rgba(255, 255, 255, .12);
+  transform: rotate(45deg) skew(8deg, 8deg);
+  border-radius: 0 0 4px 0;
+}
+
+/* -------------------------------- menü -------------------------------- */
+.orb-menu { flex: 0 0 auto; padding: 7px; gap: 6px; }
+.orb-back {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  padding: 8px 9px; border: 0; border-radius: 10px; background: rgba(255, 255, 255, .07);
+  color: #eef1f6; font-size: 12.5px; font-weight: 600; text-align: left;
+  transition: background .15s ease, color .15s ease;
+}
+.orb-back svg { width: 15px; height: 15px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.orb-back:hover { background: rgba(255, 255, 255, .13); }
+/* ikinci basış bekleniyor: onay isteği */
+.orb-back.armed { background: rgba(255, 106, 61, .2); color: #ffd4c6; box-shadow: inset 0 0 0 1px rgba(255, 106, 61, .5); }
+.orb-back.armed:hover { background: rgba(255, 106, 61, .3); }
+
+.orb-colors {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  padding: 2px; justify-items: center;
+}
+.orb-swatch {
+  width: 26px; height: 26px; padding: 0; border-radius: 50%;
+  border: 2px solid transparent; background-clip: padding-box;
+  position: relative; transition: transform .14s ease, border-color .14s ease;
+}
+.orb-swatch:hover { transform: scale(1.12); }
+.orb-swatch[aria-pressed="true"] { border-color: #fff; box-shadow: 0 0 0 2px rgba(0, 0, 0, .35); }
+.orb-swatch::after {
+  content: ""; position: absolute; inset: 0; border-radius: 50%;
+  box-shadow: inset 0 -3px 5px rgba(0, 0, 0, .35), inset 0 2px 3px rgba(255, 255, 255, .3);
+}
+.orb-swatch:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* ---------------------------- aksesuarlar ---------------------------- */
+/* Sağ tık menüsünden seçilen aksesuar (gözlük, şapka, maske, taç…) topun
+   yüzüyle birlikte çizilir ve dönerken yüzü takip eder. */
+.orb-menu-label {
+  display: block; margin: 2px 2px 0; padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, .1);
+  font-size: 11px; font-weight: 700; letter-spacing: .04em;
+  color: rgba(255, 255, 255, .55); text-transform: uppercase;
+}
+.orb-accs {
+  display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;
+  padding: 2px; justify-items: center;
+}
+.orb-acc-btn {
+  width: 26px; height: 26px; padding: 0; border-radius: 8px; font-size: 14px;
+  line-height: 1; display: grid; place-items: center; cursor: pointer;
+  border: 2px solid transparent; background: rgba(255, 255, 255, .08); color: #fff;
+  transition: transform .14s ease, border-color .14s ease, background .14s ease;
+}
+.orb-acc-btn:hover { transform: scale(1.12); background: rgba(255, 255, 255, .16); }
+.orb-acc-btn[aria-pressed="true"] { border-color: #fff; background: rgba(255, 255, 255, .22); }
+.orb-acc-btn:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* aksesuar çizimi: 64px top üzerinde yüzün üstünde/çevresinde durur */
+.orb-acc {
+  position: absolute; inset: 0; border-radius: 50%;
+  pointer-events: none; display: none; z-index: 3;
+  transition: transform .46s cubic-bezier(.3, .7, .3, 1);
+}
+body[data-acc="gozluk"] .orb-acc,
+body[data-acc="kovboy"] .orb-acc,
+body[data-acc="sapka"] .orb-acc,
+body[data-acc="maske"] .orb-acc,
+body[data-acc="tac"] .orb-acc,
+body[data-acc="agiz"] .orb-acc { display: block; }
+
+/* Ek parçalar: her aksesuar yalnızca ihtiyaç duyduğu parçaları gösterir. */
+.orb-acc i { position: absolute; display: none; }
+
+/* gözlük: iki ayrı mavi camlı çerçeve — şık, ince siyah çerçeve + saplar */
+body[data-acc="gozluk"] .orb-acc::before,
+body[data-acc="gozluk"] .orb-acc::after {
+  content: ''; position: absolute; top: 23.5px;
+  width: 15px; height: 13px; border-radius: 6px 6px 7px 7px;
+  border: 2px solid #0f1a29;
+  background:
+    linear-gradient(118deg, transparent 40%, rgba(255, 255, 255, .65) 45%, transparent 52%),
+    linear-gradient(160deg, #bfe9ff 0%, #58a6ef 46%, #17427f 100%);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, .55), 0 2px 4px rgba(0, 0, 0, .42);
+}
+body[data-acc="gozluk"] .orb-acc::before { left: 50%; margin-left: -19px; }
+body[data-acc="gozluk"] .orb-acc::after { left: 50%; margin-left: 4px; }
+/* köprü ve şakak sapları */
+body[data-acc="gozluk"] .acc-1 {
+  display: block; left: 50%; top: 29.5px; margin-left: -4px;
+  width: 8px; height: 2.6px; border-radius: 1.5px; background: #0f1a29;
+}
+body[data-acc="gozluk"] .acc-2,
+body[data-acc="gozluk"] .acc-3 {
+  display: block; top: 28.5px; width: 6px; height: 2.4px; border-radius: 1.5px;
+  background: linear-gradient(90deg, #0f1a29, rgba(15, 26, 41, .5));
+}
+body[data-acc="gozluk"] .acc-2 { left: 50%; margin-left: -24px; }
+body[data-acc="gozluk"] .acc-3 { left: 50%; margin-left: 18px; transform: scaleX(-1); }
+
+/* kovboy şapkası: büyük, kafaya oturan kahverengi şapka */
+body[data-acc="kovboy"] .orb-acc::before {
+  content: ''; position: absolute; left: 50%; top: -12px; margin-left: -17px;
+  width: 34px; height: 24px; border-radius: 16px 16px 5px 5px;
+  background:
+    linear-gradient(90deg, transparent 46%, rgba(0, 0, 0, .22) 47% 53%, transparent 54%),
+    linear-gradient(180deg, #b47c46 0%, #8a5a2f 46%, #5b3a1e 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .34), inset 0 -3px 4px rgba(0, 0, 0, .35),
+    0 1px 3px rgba(0, 0, 0, .35);
+}
+body[data-acc="kovboy"] .orb-acc::after {
+  content: ''; position: absolute; left: 50%; top: 3px; margin-left: -29px;
+  width: 58px; height: 14px; border-radius: 50%;
+  background: radial-gradient(120% 180% at 50% 0%, #a06a3a 0 46%, #6b4523 74%, #43290f 100%);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, .5), inset 0 1.6px 0 rgba(255, 255, 255, .34);
+  transform: rotate(-2.5deg);
+}
+body[data-acc="kovboy"] .acc-1 {
+  display: block; left: 50%; top: 5px; margin-left: -17px;
+  width: 34px; height: 4px; border-radius: 2px;
+  background: linear-gradient(180deg, #4a2e15, #31200e);
+  box-shadow: 0 1px 1px rgba(255, 255, 255, .25);
+}
+
+/* şapka: mavi beyzbol şapkası — büyük tepe kafayı örter, siper öne bakar */
+body[data-acc="sapka"] .orb-acc::before {
+  content: ''; position: absolute; left: 50%; top: -10px; margin-left: -20px;
+  width: 40px; height: 24px; border-radius: 20px 20px 6px 6px;
+  background:
+    radial-gradient(circle at 50% 10%, #eaf3ff 0 1.8px, transparent 2.4px),
+    repeating-linear-gradient(100deg, transparent 0 8px, rgba(0, 0, 0, .18) 8px 9px),
+    linear-gradient(180deg, #6aa2f7 0%, #2b62cc 58%, #173a7c 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .38), inset 0 -3px 5px rgba(0, 0, 0, .3),
+    0 1px 3px rgba(0, 0, 0, .35);
+}
+body[data-acc="sapka"] .orb-acc::after {
+  content: ''; position: absolute; left: 50%; top: 12px; margin-left: -23px;
+  width: 46px; height: 10px;
+  border-radius: 4px 4px 22px 22px / 2px 2px 12px 12px;
+  background: linear-gradient(180deg, #3f7ce4 0%, #1d4590 58%, #122f66 100%);
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .45), inset 0 2px 0 rgba(255, 255, 255, .35);
+}
+/* tepelik düğmesi */
+body[data-acc="sapka"] .acc-1 {
+  display: block; left: 50%; top: -2px; margin-left: -2px;
+  width: 4px; height: 4px; border-radius: 50%;
+  background: #e6f0ff;
+  box-shadow: 0 1px 1px rgba(0, 0, 0, .35);
+}
+
+/* siyah gözlük: mavi gözlüğün birebir aynı modeli — iki ayrı cam, köprü ve
+   iki sap; yalnızca rengi siyah (mavi ton yok). */
+body[data-acc="maske"] .orb-acc::before,
+body[data-acc="maske"] .orb-acc::after {
+  content: ''; position: absolute; top: 23.5px;
+  width: 15px; height: 13px; border-radius: 6px 6px 7px 7px;
+  border: 2px solid #05070a;
+  background:
+    linear-gradient(118deg, transparent 40%, rgba(255, 255, 255, .48) 45%, transparent 52%),
+    radial-gradient(circle at 30% 22%, rgba(150, 158, 170, .3), transparent 58%),
+    linear-gradient(160deg, #3c4149 0%, #14181e 46%, #05070a 100%);
+  box-shadow: inset 0 2px 2px rgba(255, 255, 255, .42), 0 2px 4px rgba(0, 0, 0, .5);
+}
+body[data-acc="maske"] .orb-acc::before { left: 50%; margin-left: -19px; }
+body[data-acc="maske"] .orb-acc::after { left: 50%; margin-left: 4px; }
+/* köprü ve şakak sapları (mavi gözlükle aynı ölçüler) */
+body[data-acc="maske"] .acc-1 {
+  display: block; left: 50%; top: 29.5px; margin-left: -4px;
+  width: 8px; height: 2.6px; border-radius: 1.5px; background: #05070a;
+}
+body[data-acc="maske"] .acc-2,
+body[data-acc="maske"] .acc-3 {
+  display: block; top: 28.5px; width: 6px; height: 2.4px; border-radius: 1.5px;
+  background: linear-gradient(90deg, #05070a, rgba(5, 7, 10, .45));
+}
+body[data-acc="maske"] .acc-2 { left: 50%; margin-left: -24px; }
+body[data-acc="maske"] .acc-3 { left: 50%; margin-left: 18px; transform: scaleX(-1); }
+
+/* kral tacı: büyük altın taç, mücevherli bant */
+body[data-acc="tac"] .orb-acc::before {
+  content: ''; position: absolute; left: 50%; top: -11px; margin-left: -23px;
+  width: 46px; height: 24px;
+  background:
+    radial-gradient(circle at 50% 66%, rgba(255, 255, 255, .55) 0 1.4px, transparent 1.9px),
+    linear-gradient(180deg, #ffe98f 0%, #f0b52c 58%, #b57b07 100%);
+  clip-path: polygon(0 100%, 0 28%, 17% 62%, 30% 2%, 50% 50%, 70% 2%, 83% 62%, 100% 28%, 100% 100%);
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, .5));
+}
+body[data-acc="tac"] .orb-acc::after {
+  content: ''; position: absolute; left: 50%; top: 12px; margin-left: -23px;
+  width: 46px; height: 7px; border-radius: 2px;
+  background:
+    radial-gradient(circle at 20% 50%, #7fd7ff 0 1.5px, transparent 1.9px),
+    radial-gradient(circle at 50% 50%, #ff6f6f 0 1.7px, transparent 2.1px),
+    radial-gradient(circle at 80% 50%, #8dffb0 0 1.5px, transparent 1.9px),
+    linear-gradient(180deg, #fff6d0, #d99b10);
+  box-shadow: inset 0 -1px 2px rgba(0, 0, 0, .4), 0 2px 3px rgba(0, 0, 0, .35);
+}
+
+/* ağız maskesi: pilili cerrahi maske — ağız ve çeneyi örter */
+body[data-acc="agiz"] .orb-acc::before {
+  content: ''; position: absolute; left: 50%; top: 32px; margin-left: -17px;
+  width: 34px; height: 23px; border-radius: 8px 8px 18px 18px;
+  background:
+    repeating-linear-gradient(101deg, transparent 0 6px, rgba(120, 152, 194, .38) 6px 7.2px),
+    linear-gradient(180deg, #f2f8ff, #c3d8f0 55%, #9db8d8);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .9), inset 0 -2px 3px rgba(90, 120, 160, .35),
+    0 2px 5px rgba(0, 0, 0, .35);
+}
+body[data-acc="agiz"] .orb-acc::after {
+  content: ''; position: absolute; left: 50%; top: 35px; margin-left: -23px;
+  width: 46px; height: 11px;
+  border: 2px solid rgba(184, 208, 236, .9);
+  border-left-color: transparent; border-right-color: transparent; border-radius: 50%;
+}
+
+/* ------------------------- hareket azaltma tercihi ------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .orb, .orb-ring, .orb-zzz .z, .orb-reply .dots i, .orb-panel, .orb-face, .orb-face i,
+  .orb-mouth, .orb-bed, .orb-sheet { animation: none !important; }
+  .orb-zzz .z { opacity: .8; }
+  .orb-features, .orb-acc { transition: none; }
+  .orb { transition: box-shadow .2s ease, filter .2s ease; }
+  .orb-bed, .orb-sheet { transition: opacity .2s ease; }
+}
+
+/* ======================================================================
+   ASİSTAN ÇAĞRISI — yandan küçükten büyüyerek gelir, gülümser
+   ====================================================================== */
+.orb-close {
+  position: absolute; left: -5px; top: -5px; z-index: 6;
+  width: 19px; height: 19px; padding: 0; border-radius: 50%;
+  display: grid; place-items: center;
+  border: 1.5px solid rgba(255, 255, 255, .7);
+  background: rgba(20, 22, 27, .92); color: #fff; cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+  transition: background .15s ease, transform .15s ease;
+}
+.orb-close svg { width: 10px; height: 10px; display: block; }
+.orb-close:hover { background: rgba(220, 60, 50, .95); transform: scale(1.06); }
+.orb-close:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+body.summoning .orb { animation: orbSummon .95s cubic-bezier(.2, .85, .25, 1.12) both; }
+@keyframes orbSummon {
+  0%   { transform: translateX(46px) scale(.1); opacity: 0; filter: blur(6px); }
+  55%  { transform: translateX(-5px) scale(1.08); opacity: 1; filter: blur(0); }
+  78%  { transform: translateX(2px) scale(.97); }
+  100% { transform: translateX(0) scale(1); }
+}
+body.summoning .orb-ring {
+  opacity: 1; border-color: rgba(255, 255, 255, .6);
+  animation: orbSpin .95s linear;
+}
+
+/* --------------------------- tepki animasyonları --------------------------- */
+/* Yanıt gelince hafif bir sevinç zıplaması. */
+body.cheering .orb { animation: orbCheer .95s cubic-bezier(.2, .8, .2, 1); }
+@keyframes orbCheer {
+  0%   { transform: translateY(0) scale(1); }
+  25%  { transform: translateY(-6px) scale(1.05, .96); }
+  45%  { transform: translateY(1px) scale(.97, 1.04); }
+  65%  { transform: translateY(-3px) scale(1.02, .99); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+/* Topun çevresine saçılan minik kıvılcımlar. */
+.orb-spark {
+  position: absolute; left: 50%; top: 50%; width: 6px; height: 6px;
+  margin: -3px 0 0 -3px; border-radius: 50%; pointer-events: none; z-index: 5;
+  background: radial-gradient(circle, #fff 0%, rgba(255, 255, 255, .9) 45%, rgba(255, 255, 255, 0) 72%);
+  animation: orbSpark .85s ease-out forwards;
+}
+@keyframes orbSpark {
+  0%   { opacity: .95; transform: translate(0, 0) scale(.5); }
+  65%  { opacity: .8; }
+  100% { opacity: 0; transform: translate(var(--sx, 0px), var(--sy, -24px)) scale(1.15); }
+}
+
+/* Tıklayınca toptan dışa yayılan ince halka. */
+.orb-ripple {
+  position: absolute; left: 50%; top: 50%; width: 64px; height: 64px;
+  margin: -32px 0 0 -32px; border-radius: 50%; pointer-events: none; z-index: 4;
+  border: 2px solid rgba(255, 255, 255, .55);
+  animation: orbRipple .62s ease-out forwards;
+}
+@keyframes orbRipple {
+  from { opacity: .75; transform: scale(.62); }
+  to   { opacity: 0; transform: scale(1.3); }
+}
+
+/* gülümseme: ağız daha da açık bir kavis */
+body.smiling .orb-mouth {
+  width: calc(var(--mouth-w, 15px) + 2px); height: 9px;
+  margin-left: calc((var(--mouth-w, 15px) + 2px) / -2); top: 43px;
+  background: transparent;
+  border-bottom: calc(var(--mouth-curve, 8px) + 1px) solid var(--mouth-c, rgba(18, 20, 24, .82));
+  border-radius: 0 0 12px 12px;
+}
+
+/* ======================================================================
+   YATAK, YATMA VE UYANMA
+   ====================================================================== */
+/* Yatak topun arkasında durur; yatma anında yumuşakça belirir. */
+.orb-bed {
+  position: absolute; right: 4px; bottom: -10px; width: 140px; height: 52px;
+  z-index: 0; pointer-events: none; opacity: 0;
+  transform: translateY(10px) scale(.94); transform-origin: 85% 100%;
+  transition: opacity .45s ease, transform .55s cubic-bezier(.2, .8, .2, 1);
+}
+body.lying .orb-bed, body.sleeping .orb-bed { opacity: 1; transform: none; }
+
+/* karyola */
+.orb-bed::before {
+  content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 32px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #c8b5a1 0%, #9a7f68 55%, #6d5443 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .32), inset 0 -4px 8px rgba(0, 0, 0, .35), 0 8px 18px rgba(0, 0, 0, .45);
+}
+/* başlık */
+.orb-bed::after {
+  content: ''; position: absolute; left: 2px; bottom: 26px; width: 14px; height: 34px;
+  border-radius: 8px 8px 3px 3px;
+  background: linear-gradient(180deg, #bda78f, #7a6150);
+  box-shadow: inset 1px 0 0 rgba(255, 255, 255, .3), 0 3px 8px rgba(0, 0, 0, .4);
+}
+/* yastık */
+.bed-pillow {
+  position: absolute; left: 26px; bottom: 24px; width: 80px; height: 22px;
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fbfcff 0%, #d7deee 70%, #b9c4da 100%);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .35), inset 0 -2px 4px rgba(0, 0, 0, .12);
+}
+/* yorgan */
+.bed-duvet {
+  position: absolute; right: 4px; bottom: 18px; width: 92px; height: 26px;
+  border-radius: 12px 12px 8px 8px;
+  background: linear-gradient(180deg, #9cc2ec 0%, #5f92d4 45%, #3a68a8 100%);
+  box-shadow: inset 0 2px 0 rgba(255, 255, 255, .45), 0 3px 8px rgba(0, 0, 0, .35);
+}
+
+/* topun alt yarısını örten yorgan: yatakta yattığı hissi */
+.orb-sheet {
+  position: absolute; inset: 0; border-radius: 50%; pointer-events: none; opacity: 0;
+  background: linear-gradient(
+    180deg,
+    transparent 45%,
+    rgba(255, 255, 255, .55) 45%, rgba(255, 255, 255, .55) 50%,
+    #6ba0df 50%, #3d6dad 100%);
+  transition: opacity .6s ease;
+}
+body.lying .orb-sheet { opacity: .35; }
+body.sleeping .orb-sheet { opacity: 1; }
+
+/* yatma: top yatağa doğru yumuşakça devrilir */
+body.lying .orb { animation: orbLie .9s cubic-bezier(.3, .8, .3, 1) both; }
+@keyframes orbLie {
+  0%   { transform: translateY(0) rotate(0deg) scale(1); }
+  50%  { transform: translateY(-7px) rotate(-11deg) scale(1.06, .95); }
+  100% { transform: translateY(2px) rotate(-7deg) scale(1.03, .96); }
+}
+
+/* uyanma: gerinme, iki hop, yerine oturma */
+body.waking .orb-face i { height: calc(10px * var(--eye-size, 1)); --eye-y: -1px; }
+body.waking .orb { animation: orbWake 1.5s cubic-bezier(.3, .8, .3, 1) both; }
+@keyframes orbWake {
+  0%   { transform: translateY(2px) rotate(-7deg) scale(1.03, .96); }
+  22%  { transform: translateY(-9px) rotate(5deg) scale(1.11, 1.06); }
+  42%  { transform: translateY(0) rotate(-3deg) scale(.95, 1.06); }
+  62%  { transform: translateY(-6px) rotate(3deg) scale(1.06, 1); }
+  82%  { transform: translateY(0) rotate(-1deg) scale(.98, 1.02); }
+  100% { transform: translateY(0) rotate(0deg) scale(1); }
+}
+body.waking .orb-mouth {
+  top: 38px; width: 12px; height: 12px; margin-left: -6px;
+  background: rgba(18, 20, 24, .8); border-bottom: 0; border-radius: 50%;
+  animation: orbWakeYawn 1.4s ease-out both;
+}
+@keyframes orbWakeYawn {
+  0%   { transform: scale(.7); opacity: .7; }
+  30%  { transform: scale(1.25); opacity: 1; }
+  100% { transform: scale(.55); opacity: .8; }
+}
