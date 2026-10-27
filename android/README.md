@@ -42,6 +42,17 @@ dosya repoya eklenmez).
 > cd /d P:\android
 > gradle :app:assembleDebug
 > ```
+>
+> SDK klasörü de Türkçe karakterli bir yolun altındaysa onu da bir sürücü
+> harfine bağlayıp `local.properties` içine yazın:
+>
+> ```cmd
+> subst S: C:\Users\DOUKAN~1\Desktop\primeAI\.tools\android-sdk
+> ```
+>
+> ```properties
+> sdk.dir=S:/android-sdk
+> ```
 
 APK, makinedeki **Android debug anahtarıyla** imzalanır. Aynı telefona yeni
 sürüm yüklerken aynı anahtar gerekir; başka bir bilgisayarda üretilen APK'yı
