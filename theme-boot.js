@@ -11,7 +11,7 @@
       ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
       : pref;
     document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-accent', settings.accent || 'alev');
+    document.documentElement.setAttribute('data-accent', settings.accent || 'kirmizi');
   } catch (e) {
     /* varsayılan koyu tema */
   }

@@ -67,6 +67,7 @@ const BASE_URLS = {
 };
 
 const ACCENTS = [
+  { id: 'kirmizi',   name: 'Kırmızı',     a: '#e11d48', b: '#ff5f3a' },
   { id: 'alev',      name: 'Alev',        a: '#ff3b30', b: '#ff9500' },
   { id: 'gunbatimi', name: 'Gün batımı',  a: '#f43f5e', b: '#f59e0b' },
   { id: 'okyanus',   name: 'Okyanus',     a: '#2563eb', b: '#06b6d4' },
@@ -112,7 +113,7 @@ const DEFAULT_SETTINGS = {
   apis: [], activeApiId: null,
   keys: {}, models: {}, model: {},
   systemPrompt: '', temperature: 0.7, maxTokens: 4096, brief: true,
-  theme: 'dark', accent: 'alev',
+  theme: 'dark', accent: 'kirmizi',
   useEmoji: false, imageSearch: true, videoHelp: true,
   keySoundOn: true, keySoundLevel: 70,
   lang: 'tr', avatar: '',
@@ -1744,17 +1745,21 @@ function resolvedTheme() {
 function applyTheme() {
   const t = resolvedTheme();
   const root = document.documentElement;
+  /* Tema/renk değişimi yumuşak olsun: geçiş sınıfı kısa süreli eklenir. */
+  root.classList.add('theme-anim');
+  clearTimeout(applyTheme._animTimer);
+  applyTheme._animTimer = setTimeout(() => root.classList.remove('theme-anim'), 450);
   root.setAttribute('data-theme', t);
-  root.setAttribute('data-accent', settings.accent || 'alev');
+  root.setAttribute('data-accent', settings.accent || 'kirmizi');
   const meta = $('metaThemeColor');
   if (meta) meta.setAttribute('content', t === 'light' ? '#ffffff' : '#000000');
   const seg = $('themeSeg');
   if (seg) seg.querySelectorAll('[data-theme-val]').forEach((b) => b.classList.toggle('active', b.dataset.themeVal === (settings.theme || 'dark')));
   const grid = $('accentGrid');
-  if (grid) grid.querySelectorAll('[data-accent-val]').forEach((b) => b.classList.toggle('active', b.dataset.accentVal === (settings.accent || 'alev')));
-  const stamp = t + '/' + (settings.accent || 'alev');
+  if (grid) grid.querySelectorAll('[data-accent-val]').forEach((b) => b.classList.toggle('active', b.dataset.accentVal === (settings.accent || 'kirmizi')));
+  const stamp = t + '/' + (settings.accent || 'kirmizi');
   if (lastThemeLogged && lastThemeLogged !== stamp) {
-    logInfo('Tema: ' + (settings.theme || 'dark') + ' → görünüm ' + t + ' · renk: ' + (settings.accent || 'alev'));
+    logInfo('Tema: ' + (settings.theme || 'dark') + ' → görünüm ' + t + ' · renk: ' + (settings.accent || 'kirmizi'));
   }
   lastThemeLogged = stamp;
 }
@@ -6559,7 +6564,7 @@ function renderAccentGrid() {
   const grid = $('accentGrid');
   grid.innerHTML = '';
   for (const a of ACCENTS) {
-    const b = el('button', 'accent-swatch' + ((settings.accent || 'alev') === a.id ? ' active' : ''));
+    const b = el('button', 'accent-swatch' + ((settings.accent || 'kirmizi') === a.id ? ' active' : ''));
     b.type = 'button';
     b.dataset.accentVal = a.id;
     const i = document.createElement('i');
@@ -7523,6 +7528,13 @@ function startApp() {
   $('app').classList.add('entering');   // yumuşak giriş (Freebuff tarzı açılış)
 
   settings = Object.assign(freshDefaults(), load(ukey('settings'), {}));
+  /* 1 → 2: eski varsayılan renk (alev) siyah-kırmızı temaya taşınır;
+     renkleri bilerek seçenlerin ayarına dokunulmaz. */
+  if (!settings.accentMigrated && settings.accent === 'alev') {
+    settings.accent = 'kirmizi';
+    settings.accentMigrated = true;
+    persist();
+  }
   /* Dil tercihi cihazda tutulur. Cihazda seçim yoksa hesabın dili benimsenir
      (eski sürümden gelen tercih kaybolmasın); cihaz seçimi her zaman kazanır. */
   const deviceLang = langStored();
