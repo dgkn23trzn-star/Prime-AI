@@ -51,10 +51,12 @@ python -m http.server 5173
 
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
-- **Android uygulaması (APK):** `PRIME-AI-Mobil-1.0.0.apk` dosyasını telefona indirip kurun;
-  **PRIME AI** simgesi diğer uygulamaların yanına eklenir, tarayıcı açılmaz. Kaynak ve derleme
-  notları [`android/`](android/) klasöründe. (APK debug anahtarıyla imzalıdır; kurulumda
-  “bilinmeyen kaynaklara izin ver” isteyebilir.)
+- **Android uygulaması (APK):** doğrudan indir →
+  **[PRIME-AI-Mobil-1.0.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.0.0/PRIME-AI-Mobil-1.0.0.apk)**
+  (288 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
+  dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
+  notları [`android/`](android/) klasöründe.
 - **Web/PWA:** `PRIME-AI-Mobil-1.0.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
