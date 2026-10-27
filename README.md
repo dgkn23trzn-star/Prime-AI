@@ -49,10 +49,14 @@ python -m http.server 5173
 
 ## Mobil sürüm (telefon)
 
-`prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır; sıkıştırılmış hâli
-`PRIME-AI-Mobil-1.0.0.zip` olarak repoda durur. Masaüstü kurulumu gerekmez: klasörü bir statik
-barındırmaya (GitHub Pages, Netlify…) koyup telefonda açmak yeterlidir; tarayıcı menüsünden
-**Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
+`prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
+
+- **Android uygulaması (APK):** `PRIME-AI-Mobil-1.0.0.apk` dosyasını telefona indirip kurun;
+  **PRIME AI** simgesi diğer uygulamaların yanına eklenir, tarayıcı açılmaz. Kaynak ve derleme
+  notları [`android/`](android/) klasöründe. (APK debug anahtarıyla imzalıdır; kurulumda
+  “bilinmeyen kaynaklara izin ver” isteyebilir.)
+- **Web/PWA:** `PRIME-AI-Mobil-1.0.0.zip` içindeki klasörü bir statik barındırmaya koyup
+  telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
 - **Asistan topu:** sohbetin üstünde sürekli durur, nefes alır/göz kırpar, dokununca kısa yanıt

@@ -236,6 +236,9 @@ function applyTheme() {
   document.documentElement.setAttribute('data-accent', state.accent || 'mor');
   const meta = $('metaTheme');
   if (meta) meta.setAttribute('content', t === 'light' ? '#ffffff' : '#08080c');
+  if (window.PrimeAndroid && window.PrimeAndroid.setDark) {
+    try { window.PrimeAndroid.setDark(t !== 'light'); } catch { /* tarayıcı */ }
+  }
   document.querySelectorAll('#themeSeg [data-theme]').forEach((b) => {
     b.classList.toggle('active', b.dataset.theme === state.theme);
   });
@@ -667,9 +670,22 @@ function messageNode(m) {
 }
 
 async function copyText(text) {
+  const value = String(text || '');
   try {
-    await navigator.clipboard.writeText(String(text || ''));
+    await navigator.clipboard.writeText(value);
     toast('Kopyalandı.');
+    return;
+  } catch { /* izin yok: aşağıdaki yöntem denenir */ }
+  try {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    toast(ok ? 'Kopyalandı.' : 'Kopyalanamadı.', !ok);
   } catch {
     toast('Kopyalanamadı.', true);
   }
@@ -1701,8 +1717,24 @@ function registerSW() {
 }
 
 /* ----------------------------- Başlangıç ----------------------------- */
+/* Android kabuğunda tarayıcı ipucu gösterilmez. */
+function inApp() {
+  try { return !!(window.PrimeAndroid && window.PrimeAndroid.isApp && window.PrimeAndroid.isApp()); }
+  catch { return false; }
+}
+
+/* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
+window.__primeBack = function () {
+  if (!$('orbPanel').hidden) { closeOrbPanel(); return true; }
+  if (!$('drawer').hidden) { closeDrawer(); return true; }
+  if (!$('settings').hidden) { closeSettings(); return true; }
+  if (!$('tutorial').hidden) { closeTutorial(); return true; }
+  return false;
+};
+
 function boot() {
   ensureActive();
+  if (inApp()) document.documentElement.classList.add('in-app');
   updateBrand();
   updateGreeting();
   applyTheme();

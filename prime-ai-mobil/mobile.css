@@ -885,6 +885,9 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 .hint.bad { color: var(--danger); }
 .hint.good { color: var(--ok); }
 
+/* Android uygulamasında tarayıcıya özel ipuçları görünmez. */
+.in-app #tutInstallTip { display: none; }
+
 .fineprint {
   margin: 20px 6px 0;
   font-size: 11.5px;

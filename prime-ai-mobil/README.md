@@ -9,6 +9,22 @@ hiçbir sunucuya gönderilmez.
 Sunucusuz bir web uygulamasıdır (PWA). Derleme adımı yoktur: dosyaları bir
 statik sunucuya koyup açmak yeterlidir.
 
+## Android uygulaması (APK)
+
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.0.0.apk**.
+
+1. Dosyayı telefona indir.
+2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
+3. Kurulunca **PRIME AI** simgesi ana ekrana / uygulama çekmecesine eklenir.
+
+APK, bu klasördeki web uygulamasını tam ekran bir WebView'de çalıştırır; arayüz
+internetten bağımsız olarak açılır, yalnızca API çağrıları internet ister.
+Kaynak ve yeniden derleme adımları: [`../android/README.md`](../android/README.md).
+
+> APK, makinedeki Android debug anahtarıyla imzalandı. Aynı telefona yeni sürüm
+> yüklerken aynı anahtar gerekir; başka bir bilgisayarda üretileni kurmadan önce
+> eski uygulamayı kaldırman gerekebilir.
+
 ## Telefonda açma
 
 **Seçenek 1 — bir web sunucusuna koy (önerilir).** Klasörü herhangi bir statik
