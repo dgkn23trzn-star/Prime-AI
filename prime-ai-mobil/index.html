@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" data-accent="mor">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#08080c" id="metaTheme" />
+<meta name="description" content="PRIME AI — telefonunda kendi API anahtarınla çalışan yapay zeka asistanı." />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="PRIME AI" />
+<title>PRIME AI</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<link rel="stylesheet" href="mobile.css" />
+<script>
+/* Açılışta kayıtlı tema uygulanır: koyu ekranda beyaz parlama olmaz. */
+try {
+  var __s = JSON.parse(localStorage.getItem('primeai.mobil.v1') || '{}');
+  var __t = __s.theme || 'system';
+  if (__t === 'system') __t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', __t === 'light' ? 'light' : 'dark');
+  document.documentElement.setAttribute('data-accent', __s.accent || 'mor');
+} catch (e) { /* ilk açılış */ }
+</script>
+</head>
+<body>
+
+<div class="app" id="app">
+
+  <header class="topbar" id="topbar">
+    <button class="icon-btn" id="menuBtn" aria-label="Menü">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h10" /></svg>
+    </button>
+    <h1 class="brand" id="brandTitle">PRIME AI<span class="brand-dot"></span></h1>
+    <button class="avatar" id="avatarBtn" aria-label="Hesap">P</button>
+  </header>
+
+  <main class="chat-area" id="chatArea">
+    <section class="welcome" id="welcome">
+      <div class="welcome-glow" aria-hidden="true"></div>
+      <p class="welcome-hi" id="greeting">Merhaba</p>
+      <h2 class="welcome-title">Bugün ne yapalım?</h2>
+      <div class="chips" id="chipWrap">
+        <button class="chip" data-prompt="Bana kısa bir hikâye yaz."><span class="chip-ico">✍️</span>Bir şeyler yaz</button>
+        <button class="chip" data-prompt="Bu konuyu basitçe anlat: "><span class="chip-ico">💡</span>Bir konuyu öğren</button>
+        <button class="chip" data-prompt="Günüm için üç maddelik bir plan yap."><span class="chip-ico">🗓️</span>Plan yap</button>
+        <button class="chip" data-prompt="Bana kısa bir JavaScript fonksiyonu yaz: "><span class="chip-ico">💻</span>Kod yaz</button>
+      </div>
+    </section>
+
+    <div class="thread" id="thread" aria-live="polite"></div>
+  </main>
+
+  <div class="composer-wrap" id="composerWrap">
+    <div class="attachments" id="attachRow" hidden></div>
+    <div class="chip-row" id="chipRow">
+      <button class="model-chip" id="modelChip" type="button">
+        <span class="model-dot" id="modelDot"></span>
+        <span id="modelChipText">Model seç</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m7 10 5 5 5-5" /></svg>
+      </button>
+      <span class="quota-hint" id="quotaHint" hidden></span>
+    </div>
+    <form class="composer" id="composer" autocomplete="off">
+      <button class="composer-btn attach" id="attachBtn" type="button" aria-label="Görsel ekle">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+      </button>
+      <textarea id="input" rows="1" placeholder="PRIME AI'ya sor" enterkeyhint="send" aria-label="Mesaj"></textarea>
+      <button class="composer-btn mic" id="micBtn" type="button" aria-label="Sesle yaz">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+      </button>
+      <button class="send" id="sendBtn" type="submit" aria-label="Gönder" disabled>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+      </button>
+    </form>
+    <input type="file" id="fileInput" accept="image/*" hidden />
+  </div>
+
+  <button class="orb" id="orb" type="button" aria-label="Asistanı aç">
+    <span class="orb-halo"></span>
+    <span class="orb-core">
+      <span class="orb-eyes"><i class="eye left"></i><i class="eye right"></i></span>
+      <span class="orb-mouth"></span>
+    </span>
+    <span class="orb-badge" id="orbBadge" hidden></span>
+  </button>
+</div>
+
+<section class="orb-panel" id="orbPanel" hidden aria-label="Asistan">
+  <header class="orb-panel-head">
+    <span class="orb-mini"><i></i></span>
+    <strong>Asistan</strong>
+    <button class="icon-btn small" id="orbClose" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+  </header>
+  <div class="orb-log" id="orbLog"></div>
+  <form class="orb-ask" id="orbForm">
+    <input id="orbInput" placeholder="Asistana bir şey sor" aria-label="Asistana soru" />
+    <button type="submit" aria-label="Gönder">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+    </button>
+  </form>
+</section>
+
+<div class="scrim" id="scrim" hidden></div>
+
+<aside class="drawer" id="drawer" hidden aria-label="Sohbetler">
+  <div class="drawer-head">
+    <div class="drawer-avatar" id="drawerAvatar">P</div>
+    <div>
+      <strong id="drawerName">PRIME AI</strong>
+      <span id="drawerSub">Yerel hesap</span>
+    </div>
+  </div>
+  <button class="drawer-new" id="newChatBtn">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+    Yeni sohbet
+  </button>
+  <p class="drawer-label">Sohbetler</p>
+  <nav class="chat-list" id="chatList"></nav>
+  <div class="drawer-foot">
+    <button id="drawerSettings">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6h.08A1.7 1.7 0 0 0 10 3.05V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.08a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" /></svg>
+      Ayarlar
+    </button>
+    <button id="drawerAbout">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 7.6v.2" /></svg>
+      Hakkında
+    </button>
+  </div>
+</aside>
+
+<section class="sheet" id="settings" hidden aria-label="Ayarlar">
+  <header class="sheet-head">
+    <button class="icon-btn" id="settingsBack" aria-label="Geri">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    </button>
+    <h2>Ayarlar</h2>
+    <span class="sheet-spacer"></span>
+  </header>
+
+  <div class="sheet-body">
+
+    <div class="card profile-card">
+      <div class="drawer-avatar big" id="profileAvatar">P</div>
+      <div class="profile-text">
+        <input id="nameInput" class="line-input" placeholder="Adın" maxlength="32" aria-label="Adın" />
+        <span class="muted" id="profileSub">Sohbetler yalnızca bu telefonda saklanır</span>
+      </div>
+    </div>
+
+    <p class="group-label">Görünüm</p>
+    <div class="card">
+      <div class="row">
+        <div class="row-text"><strong>Tema</strong><span>Uygulamanın rengi</span></div>
+      </div>
+      <div class="seg" id="themeSeg" role="group" aria-label="Tema">
+        <button data-theme="system">Sistem</button>
+        <button data-theme="light">Açık</button>
+        <button data-theme="dark">Koyu</button>
+      </div>
+      <div class="row">
+        <div class="row-text"><strong>Vurgu rengi</strong><span>Düğmeler ve asistan</span></div>
+      </div>
+      <div class="accents" id="accentRow"></div>
+    </div>
+
+    <p class="group-label">Asistan</p>
+    <div class="card">
+      <label class="row">
+        <div class="row-text"><strong>Ekranda görünsün</strong><span>Asistan topu sohbetin üstünde durur</span></div>
+        <span class="switch"><input type="checkbox" id="assistantOn" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>Boyut</strong><span>Topun ekrandaki büyüklüğü</span></div>
+        <input type="range" id="orbSize" min="44" max="76" step="2" />
+      </div>
+      <div class="row">
+        <div class="row-text"><strong>Canlılık</strong><span>Nefes, göz kırpma ve sevinç zıplaması</span></div>
+        <span class="switch"><input type="checkbox" id="orbLife" /><i></i></span>
+      </div>
+    </div>
+
+    <p class="group-label">Sohbet</p>
+    <div class="card">
+      <label class="row">
+        <div class="row-text"><strong>Kısa yanıtlar</strong><span>Uzun giriş ve tekrar olmadan yazar</span></div>
+        <span class="switch"><input type="checkbox" id="briefOn" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>Yanıt dili</strong><span>Yapay zekânın yazacağı dil</span></div>
+        <select id="replyLang">
+          <option value="tr">Türkçe</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="ru">Русский</option>
+          <option value="ja">日本語</option>
+        </select>
+      </div>
+      <div class="row">
+        <div class="row-text"><strong>Yaratıcılık</strong><span id="tempValue">0,7</span></div>
+        <input type="range" id="temperature" min="0" max="1" step="0.1" />
+      </div>
+      <div class="row column">
+        <div class="row-text"><strong>Ekstra talimat</strong><span>Her istekte modele eklenir</span></div>
+        <textarea id="systemPrompt" rows="3" placeholder="Örn. Kısa ve samimi yaz."></textarea>
+      </div>
+    </div>
+
+    <p class="group-label">API</p>
+    <div class="card" id="apiCard">
+      <div class="api-list" id="apiList"></div>
+      <div class="api-empty" id="apiEmpty">
+        <p>Henüz API anahtarı yok. Anahtar ekleyince sohbet başlar.</p>
+        <button class="text-btn" id="openTutorial">API rehberini aç</button>
+      </div>
+      <details class="api-add" id="apiAdd">
+        <summary>Anahtar ekle</summary>
+        <div class="api-form">
+          <label>Sağlayıcı
+            <select id="apiProvider"></select>
+          </label>
+          <p class="hint" id="apiHint"></p>
+          <label>API anahtarı
+            <input id="apiKey" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Anahtarı yapıştır" />
+          </label>
+          <div class="api-form-row">
+            <button class="outline-btn" id="fetchModelsBtn" type="button">Modelleri getir</button>
+            <button class="filled-btn" id="saveApiBtn" type="button">Kaydet</button>
+          </div>
+          <label class="model-field" id="modelField" hidden>Model
+            <select id="apiModel"></select>
+          </label>
+          <p class="hint" id="apiFormMsg"></p>
+        </div>
+      </details>
+    </div>
+    <div class="card">
+      <button class="row link-row" id="retestBtn">
+        <div class="row-text"><strong>Bağlantıyı test et</strong><span id="testResult">Etkin anahtarı dener</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+    </div>
+
+    <p class="group-label">Ses</p>
+    <div class="card">
+      <label class="row">
+        <div class="row-text"><strong>Tuş sesi</strong><span>Yazarken hafif tık sesi</span></div>
+        <span class="switch"><input type="checkbox" id="soundOn" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>Ses düzeyi</strong><span id="soundValue">%55</span></div>
+        <input type="range" id="soundLevel" min="0" max="100" step="5" />
+      </div>
+    </div>
+
+    <p class="group-label">Veriler</p>
+    <div class="card">
+      <button class="row link-row" id="clearChatsBtn">
+        <div class="row-text"><strong>Sohbetleri sil</strong><span>Tüm sohbet geçmişi bu cihazdan silinir</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+      <button class="row link-row" id="resetAllBtn">
+        <div class="row-text"><strong>Her şeyi sıfırla</strong><span>Ayarlar, anahtarlar ve sohbetler silinir</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+    </div>
+
+    <p class="group-label">Hakkında</p>
+    <div class="card">
+      <div class="row">
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.0.0</span></div>
+      </div>
+      <button class="row link-row" id="tutorialAgain">
+        <div class="row-text"><strong>API rehberi</strong><span>Kurulum adımlarını yeniden göster</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+      <a class="row link-row" href="https://github.com/dgkn23trzn-star/Prime-AI" target="_blank" rel="noopener">
+        <div class="row-text"><strong>GitHub</strong><span>Masaüstü sürümü ve kaynak kod</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </a>
+    </div>
+
+    <p class="fineprint">Kendi anahtarınla çalışır. Anahtarlar ve sohbetler yalnızca cihazında saklanır; PRIME AI sunucusuna hiçbir şey gönderilmez.</p>
+  </div>
+</section>
+
+<section class="sheet tutorial" id="tutorial" hidden aria-label="API rehberi">
+  <header class="sheet-head">
+    <button class="icon-btn" id="tutorialClose" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <div class="tut-dots" id="tutDots"><i class="on"></i><i></i><i></i><i></i></div>
+    <span class="sheet-spacer"></span>
+  </header>
+
+  <div class="tut-body">
+    <div class="tut-step" data-step="1">
+      <div class="tut-art art-hello" aria-hidden="true"><span></span></div>
+      <h2>PRIME AI'ya hoş geldin</h2>
+      <p class="tut-lead">Telefonunda çalışan yapay zekâ asistanı. Üç adımda hazır:</p>
+      <ul class="tut-list">
+        <li><b>Kendi anahtarın</b> — ücretsiz Gemini anahtarı yeter.</li>
+        <li><b>Asistan hep yanında</b> — ekrandaki topla konuş.</li>
+        <li><b>Gizli</b> — sohbetler cihazından çıkmaz.</li>
+      </ul>
+    </div>
+
+    <div class="tut-step" data-step="2" hidden>
+      <div class="tut-art art-key" aria-hidden="true"><span></span></div>
+      <h2>API anahtarını ekle</h2>
+      <p class="tut-lead">Anahtar, yapay zekânın senin adına çalışmasını sağlar. Google AI Studio'da ücretsiz:</p>
+      <ol class="tut-steps">
+        <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> adresini aç.</li>
+        <li>“Create API key” düğmesine dokun, Google hesabınla giriş yap.</li>
+        <li>Oluşan <b>AIza…</b> ile başlayan anahtarı kopyala.</li>
+      </ol>
+      <a class="filled-btn wide" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Anahtar sayfasını aç</a>
+      <label class="tut-field">Anahtarı buraya yapıştır
+        <input id="tutKey" type="text" autocomplete="off" spellcheck="false" placeholder="AIza…" />
+      </label>
+      <p class="hint" id="tutKeyMsg">Anahtar yalnızca bu telefonda saklanır.</p>
+      <p class="tut-alt">Başka bir sağlayıcı mı kullanıyorsun? <button class="text-btn" id="tutOther">Listeden seç</button></p>
+    </div>
+
+    <div class="tut-step" data-step="3" hidden>
+      <div class="tut-art art-model" aria-hidden="true"><span></span></div>
+      <h2>Modeli seç</h2>
+      <p class="tut-lead">Anahtarınla kullanabileceğin modeller listelenir. Hızlı ve ücretsiz olan iyi bir başlangıç.</p>
+      <div class="tut-model-box">
+        <button class="outline-btn wide" id="tutFetch">Modelleri getir</button>
+        <p class="hint" id="tutFetchMsg">İnternet yoksa varsayılan modelle devam edebilirsin.</p>
+        <label class="tut-field" id="tutModelField" hidden>Model
+          <select id="tutModel"></select>
+        </label>
+      </div>
+    </div>
+
+    <div class="tut-step" data-step="4" hidden>
+      <div class="tut-art art-ready" aria-hidden="true"><span></span></div>
+      <h2>Hazırsın</h2>
+      <p class="tut-lead">Asistan topu ekranda dursun mu? Dilediğin zaman Ayarlar → Asistan'dan değiştirebilirsin.</p>
+      <label class="row card">
+        <div class="row-text"><strong>Asistan ekranda olsun</strong><span>Sohbetin üstünde yüzen top</span></div>
+        <span class="switch"><input type="checkbox" id="tutAssistant" checked /><i></i></span>
+      </label>
+      <p class="fineprint">İpucu: Tarayıcı menüsünden “Ana ekrana ekle” dersen uygulama gibi açılır.</p>
+    </div>
+  </div>
+
+  <footer class="tut-foot">
+    <button class="text-btn" id="tutSkip">Şimdilik atla</button>
+    <button class="filled-btn" id="tutNext">Devam</button>
+  </footer>
+</section>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="mobile.js"></script>
+</body>
+</html>

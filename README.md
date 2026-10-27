@@ -1,6 +1,6 @@
 # PRIME AI
 
-Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü (.exe)** ve **tarayıcı** olarak çalışır.
+Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü (.exe)**, **tarayıcı** ve **telefon** olarak çalışır.
 
 ---
 
@@ -44,6 +44,25 @@ npm start           # geliştirme modunda çalıştır
 python -m http.server 5173
 # sonra: http://localhost:5173
 ```
+
+---
+
+## Mobil sürüm (telefon)
+
+`prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır; sıkıştırılmış hâli
+`PRIME-AI-Mobil-1.0.0.zip` olarak repoda durur. Masaüstü kurulumu gerekmez: klasörü bir statik
+barındırmaya (GitHub Pages, Netlify…) koyup telefonda açmak yeterlidir; tarayıcı menüsünden
+**Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
+
+- **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
+- **Asistan topu:** sohbetin üstünde sürekli durur, nefes alır/göz kırpar, dokununca kısa yanıt
+  veren küçük panel açılır. **Ayarlar → Asistan → Ekranda görünsün** ile kapatılabilir.
+- **İlk açılış API rehberi:** yalnızca ilk yüklemede 4 adımda anahtar ve model seçimi gösterilir;
+  sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabilir.
+- **Mobil ayarlar:** tema, vurgu rengi, yanıt dili, kısa yanıtlar, yaratıcılık, tuş sesi,
+  API anahtarı yönetimi ve bağlantı testi.
+
+Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 
 ---
 
