@@ -1,11 +1,15 @@
 package com.primeai.mobil;
 
+import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
@@ -18,10 +22,14 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Toast;
 
+import org.json.JSONObject;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends Activity {
 
@@ -30,9 +38,13 @@ public class MainActivity extends Activity {
     private static final String HOST = "appassets.androidplatform.net";
     private static final String START_URL = "https://" + HOST + "/index.html";
     private static final int PICK_FILE = 1001;
+    private static final int REQ_OVERLAY = 2001;
+    private static final int REQ_PERMS = 2002;
 
     private WebView web;
     private ValueCallback<Uri[]> pendingFiles;
+    /* Ekranda gösterme izni verilince asistan kendiliğinden açılsın. */
+    private boolean assistantPending = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -154,6 +166,50 @@ public class MainActivity extends Activity {
             return true;
         }
 
+        /* ------------------ Asistan tuşu (ana ekranda yüzen top) ------------------ */
+
+        /** Asistanın gerçek durumu: anahtar, izinler ve servis çalışıyor mu. */
+        @JavascriptInterface
+        public String assistantState() {
+            SharedPreferences p = getSharedPreferences(AssistantService.PREFS, MODE_PRIVATE);
+            boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(MainActivity.this);
+            boolean mic = hasMic();
+            boolean notif = Build.VERSION.SDK_INT < 33 || hasPermission(Manifest.permission.POST_NOTIFICATIONS);
+            JSONObject o = new JSONObject();
+            try {
+                o.put("want", p.getBoolean(AssistantService.KEY_WANT, false));
+                o.put("overlay", overlay);
+                o.put("mic", mic);
+                o.put("notif", notif);
+                o.put("running", AssistantService.running);
+            } catch (Exception ignored) { }
+            return o.toString();
+        }
+
+        /** Ayarlardaki anahtar: açar (izin ister, uygulamayı küçültür), kapatır. */
+        @JavascriptInterface
+        public String setAssistant(final boolean on) {
+            final SharedPreferences p = getSharedPreferences(AssistantService.PREFS, MODE_PRIVATE);
+            p.edit().putBoolean(AssistantService.KEY_WANT, on).apply();
+            runOnUiThread(() -> {
+                if (on) enableAssistant();
+                else disableAssistant();
+            });
+            return assistantState();
+        }
+
+        /** Sessiz eşitleme: ayar açıksa top yoksa yeniden kurulur, uygulama küçültülmez. */
+        @JavascriptInterface
+        public String ensureAssistant() {
+            final SharedPreferences p = getSharedPreferences(AssistantService.PREFS, MODE_PRIVATE);
+            final boolean want = p.getBoolean(AssistantService.KEY_WANT, false);
+            final boolean overlay = Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(MainActivity.this);
+            if (want && overlay && !AssistantService.running) {
+                runOnUiThread(() -> startAssistantService());
+            }
+            return assistantState();
+        }
+
         @JavascriptInterface
         public void setDark(final boolean dark) {
             runOnUiThread(() -> {
@@ -179,8 +235,101 @@ public class MainActivity extends Activity {
         }
     }
 
+    private boolean hasPermission(String name) {
+        return checkSelfPermission(name) == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private boolean hasMic() {
+        return hasPermission(Manifest.permission.RECORD_AUDIO);
+    }
+
+    private boolean canOverlay() {
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(this);
+    }
+
+    /** Asistanı açar: önce ekranda gösterme izni, sonra mikrofon/bildirim, sonra top. */
+    private void enableAssistant() {
+        if (!canOverlay()) {
+            assistantPending = true;
+            try {
+                Intent i = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:" + getPackageName()));
+                startActivityForResult(i, REQ_OVERLAY);
+            } catch (Exception e) {
+                Toast.makeText(this, "Ekranda gösterme izni açılamadı. Ayarlar → Uygulamalar → PRIME AI → Diğer izinler.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
+        requestAssistantPermissions();
+    }
+
+    private void requestAssistantPermissions() {
+        List<String> need = new ArrayList<>();
+        if (!hasMic()) need.add(Manifest.permission.RECORD_AUDIO);
+        if (Build.VERSION.SDK_INT >= 33 && !hasPermission(Manifest.permission.POST_NOTIFICATIONS)) {
+            need.add(Manifest.permission.POST_NOTIFICATIONS);
+        }
+        startAssistantService();
+        if (!need.isEmpty()) requestPermissions(need.toArray(new String[0]), REQ_PERMS);
+        minimizeApp();
+    }
+
+    private void startAssistantService() {
+        try {
+            Intent i = new Intent(this, AssistantService.class).setAction(AssistantService.ACTION_START);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) startForegroundService(i);
+            else startService(i);
+        } catch (Exception e) {
+            Toast.makeText(this, "Asistan başlatılamadı: " + e.getClass().getSimpleName(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void disableAssistant() {
+        assistantPending = false;
+        try {
+            stopService(new Intent(this, AssistantService.class));
+        } catch (Exception ignored) { }
+    }
+
+    /** Uygulama kapanır, top ana ekranda kalır. */
+    private void minimizeApp() {
+        moveTaskToBack(true);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (assistantPending && canOverlay()) {
+            assistantPending = false;
+            requestAssistantPermissions();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_PERMS) {
+            if (!hasMic()) Toast.makeText(this, "Mikrofon izni olmadan top dinleyemez; istediğinde Ayarlar'dan açabilirsin.", Toast.LENGTH_LONG).show();
+            if (hasMic()) {
+                /* Mikrofon izni sonradan verildiyse servis mikrofon türüyle yeniden başlar;
+                   böylece uygulama kapalıyken de top dinleyebilir. */
+                stopService(new Intent(this, AssistantService.class));
+            }
+            if (!AssistantService.running) startAssistantService();
+        }
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQ_OVERLAY) {
+            if (canOverlay()) {
+                assistantPending = false;
+                requestAssistantPermissions();
+            } else {
+                assistantPending = false;
+                Toast.makeText(this, "İzin verilmedi: top ana ekranda görünmez.", Toast.LENGTH_LONG).show();
+            }
+            return;
+        }
         if (requestCode == PICK_FILE) {
             if (pendingFiles != null) {
                 pendingFiles.onReceiveValue(WebChromeClient.FileChooserParams.parseResult(resultCode, data));

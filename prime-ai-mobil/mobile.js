@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -89,7 +89,7 @@ const DEF = {
   brief: true,
   temperature: 0.7,
   systemPrompt: '',
-  assistantOn: true,
+  assistantKey: false,
   orbSize: 56,
   orbLife: true,
   soundOn: true,
@@ -107,8 +107,6 @@ let streaming = null;        // { ctrl, chatId, msg }
 let pendingImages = [];
 let tutStep = 1;
 let tutSlot = null;
-let orbMsgs = [];
-let orbBusy = false;
 
 function loadState() {
   try {
@@ -125,12 +123,17 @@ function loadState() {
     }
     /* 1 → 2: eski varsayılan (sistem teması + mor) siyah-kırmızıya geçer;
        beyazı ya da başka rengi seçenlerin ayarına dokunulmaz. */
-    if (oldVersion < 2) {
-      if (s.theme === 'system' && s.accent === 'mor') {
-        s.theme = 'dark';
-        s.accent = 'kirmizi';
-      }
-      s.v = 2;
+    if (oldVersion < 2 && s.theme === 'system' && s.accent === 'mor') {
+      s.theme = 'dark';
+      s.accent = 'kirmizi';
+    }
+    /* 2 → 3: sohbet içindeki yüzen top kaldırıldı, yerine ana ekran tuşu geldi. */
+    if (oldVersion < 3) {
+      s.assistantKey = s.assistantKey === true;
+      delete s.assistantOn;
+    }
+    if (oldVersion < DEF.v) {
+      s.v = DEF.v;
       try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch { /* yok */ }
     }
     return s;
@@ -280,7 +283,7 @@ function mimeOf(im) {
   return /^image\/[a-z0-9.+-]+$/i.test(m) ? m : 'image/jpeg';
 }
 
-function geminiBody(history, extra) {
+function geminiBody(model, history, extra) {
   const body = {
     contents: history.map((m) => {
       const parts = [];
@@ -291,7 +294,13 @@ function geminiBody(history, extra) {
   };
   const sys = systemPrompt(extra);
   if (sys) body.systemInstruction = { parts: [{ text: sys }] };
-  body.generationConfig = { temperature: Number(state.temperature), maxOutputTokens: 4096 };
+  const gc = { temperature: Number(state.temperature), maxOutputTokens: 8192 };
+  /* 2.5 serisi varsayılan olarak düşünmeye token ayırıyor; bütçe sınırsız kalınca
+     yanıt bazen tamamen düşünmeye gidip ekrana hiçbir cümle gelmiyor. Flash'ta
+     düşünmeyi kapatıyoruz, Pro'da en küçük bütçeye indiriyoruz. */
+  if (/^gemini-2[.]5-flash/i.test(model)) gc.thinkingConfig = { thinkingBudget: 0 };
+  else if (/^gemini-2[.]5-pro/i.test(model)) gc.thinkingConfig = { thinkingBudget: 128 };
+  body.generationConfig = gc;
   return body;
 }
 
@@ -440,30 +449,57 @@ async function streamOnce(slot, history, onText, signal, extra) {
   const model = modelOf(slot);
   if (!model) throw new Error('Model seçilmedi. Ayarlar → API bölümünden model seç.');
 
+  /* Gelen her parça sayılır: hiç metin gelmezse bu bir hata olarak bildirilir,
+     böylece “API yanıt vermiyor” sessizce boş bir balona dönüşmez. */
+  let chars = 0;
+  let why = '';
+  const fed = (text) => { if (text) { chars += text.length; onText(text); } };
+
   if (cfg.kind === 'gemini') {
     await sseFetch(base + '/models/' + encodeURIComponent(model) + ':streamGenerateContent?alt=sse',
-      { 'x-goog-api-key': key }, geminiBody(history, extra), (raw) => {
+      { 'x-goog-api-key': key }, geminiBody(model, history, extra), (raw) => {
         let chunk; try { chunk = JSON.parse(raw); } catch { return; }
-        const parts = (((chunk.candidates || [])[0] || {}).content || {}).parts || [];
-        for (const p of parts) if (p.text) onText(p.text);
+        const cand = (chunk.candidates || [])[0] || {};
+        if (cand.finishReason) why = String(cand.finishReason);
+        const blocked = String((chunk.promptFeedback || {}).blockReason || '');
+        if (blocked) why = blocked;
+        const parts = (cand.content || {}).parts || [];
+        for (const p of parts) if (p.text) fed(p.text);
       }, signal);
+    if (!chars) throw new Error(geminiEmptyWhy(model, why));
     return;
   }
 
   if (cfg.kind === 'anthropic') {
     await sseFetch(base + '/messages', authHeaders(cfg, key), anthropicBody(model, history, extra), (raw) => {
       let j; try { j = JSON.parse(raw); } catch { return; }
-      if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta' && j.delta.text) onText(j.delta.text);
+      if (j.type === 'error' && j.error) why = String(j.error.message || '');
+      if (j.type === 'content_block_delta' && j.delta && j.delta.type === 'text_delta' && j.delta.text) fed(j.delta.text);
     }, signal);
+    if (!chars) throw new Error('Model boş yanıt döndürdü' + (why ? ': ' + why : '') + '. Ayarlar → API bölümünden başka bir model dene.');
     return;
   }
 
   await sseFetch(base + '/chat/completions', Object.assign(authHeaders(cfg, key), extraHeaders(base)),
     openAIBody(model, history, extra), (raw) => {
       let chunk; try { chunk = JSON.parse(raw); } catch { return; }
-      const d = (((chunk.choices || [])[0] || {}).delta) || {};
-      if (typeof d.content === 'string') onText(d.content);
+      const choice = (chunk.choices || [])[0] || {};
+      if (choice.finish_reason) why = String(choice.finish_reason);
+      if (chunk.error) why = String((chunk.error && chunk.error.message) || why);
+      const d = choice.delta || {};
+      if (typeof d.content === 'string') fed(d.content);
     }, signal);
+  if (!chars) throw new Error('Model boş yanıt döndürdü' + (why ? ': ' + why : '') + '. Ayarlar → API bölümünden başka bir model dene.');
+}
+
+/* Boş yanıtın nedenini anlaşılır tek cümleye çevirir. */
+function geminiEmptyWhy(model, why) {
+  const w = String(why || '');
+  if (w === 'MAX_TOKENS') return 'Yanıt token sınırına takıldı ve boş döndü (' + model + '). Daha kısa bir soruyla tekrar dene; sürerse Ayarlar → API bölümünden başka bir model seç.';
+  if (w === 'SAFETY' || w === 'PROHIBITED_CONTENT' || w === 'BLOCKLIST' || w === 'RECITATION') return 'İçerik filtresi yanıtı engelledi: ' + w + '. Soruyu farklı yazmayı dene.';
+  if (w === 'MALFORMED_FUNCTION_CALL') return 'Model yanıtı bozdu (' + w + '). Tekrar dene.';
+  if (w) return 'Yanıt gelmedi: ' + w + '. Başka bir model dene.';
+  return 'Model boş yanıt döndürdü. Ayarlar → API bölümünden başka bir model dene.';
 }
 
 function isQuotaError(err) {
@@ -709,7 +745,6 @@ function setBusy(on) {
     : '<svg viewBox="0 0 24 24"><path d="M12 19V5M6 11l6-6 6 6"/></svg>';
   send.setAttribute('aria-label', on ? 'Durdur' : 'Gönder');
   $('input').disabled = on;
-  $('orb').classList.toggle('busy', on);
   updateSendState();
 }
 
@@ -784,7 +819,6 @@ async function sendMessage(text, images, opts) {
     aiMsg.content = aiMsg.content.trim();
     if (!aiMsg.content) aiMsg.content = 'Yanıt gelmedi. Anahtarını ve modelini kontrol edip yeniden dene.';
     saveState();
-    cheerOrb();
   } catch (err) {
     const aborted = ctrl.signal.aborted;
     const msg = String((err && err.message) || err);
@@ -963,112 +997,6 @@ function toggleMic() {
 }
 
 /* ----------------------------- Asistan topu ----------------------------- */
-function updateOrb() {
-  const orb = $('orb');
-  orb.hidden = !state.assistantOn;
-  orb.style.setProperty('--orb-size', Number(state.orbSize) + 'px');
-  document.documentElement.style.setProperty('--orb-size', Number(state.orbSize) + 'px');
-  orb.classList.toggle('no-life', !state.orbLife);
-  $('app').classList.toggle('orb-on', !!state.assistantOn);
-  if (!state.assistantOn) closeOrbPanel();
-}
-
-function measureComposer() {
-  const h = $('composerWrap').offsetHeight;
-  document.documentElement.style.setProperty('--composer-h', h + 'px');
-}
-
-function sparkle() {
-  if (!state.orbLife) return;
-  const orb = $('orb');
-  for (let i = 0; i < 9; i += 1) {
-    const s = document.createElement('span');
-    s.className = 'spark';
-    const angle = (Math.PI * 2 * i) / 9 + Math.random() * 0.5;
-    const dist = 34 + Math.random() * 26;
-    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
-    s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
-    orb.appendChild(s);
-    setTimeout(() => s.remove(), 1000);
-  }
-}
-
-function cheerOrb() {
-  const orb = $('orb');
-  orb.classList.add('cheer');
-  sparkle();
-  setTimeout(() => orb.classList.remove('cheer'), 950);
-}
-
-function ripple() {
-  const orb = $('orb');
-  const r = document.createElement('span');
-  r.className = 'ripple';
-  orb.appendChild(r);
-  setTimeout(() => r.remove(), 900);
-}
-
-function openOrbPanel() {
-  if (!state.assistantOn) { toast('Asistan kapalı. Ayarlar → Asistan bölümünden aç.'); return; }
-  const panel = $('orbPanel');
-  panel.hidden = false;
-  measureComposer();
-  if (!orbMsgs.length) addOrbMessage('ai', 'Buradayım. Kısa sorularına hemen yanıt veririm.');
-  setTimeout(() => $('orbInput').focus(), 120);
-}
-
-function closeOrbPanel() {
-  $('orbPanel').hidden = true;
-}
-
-function addOrbMessage(role, text) {
-  orbMsgs.push({ role, content: text });
-  const log = $('orbLog');
-  const b = document.createElement('div');
-  b.className = 'ob ' + (role === 'user' ? 'me' : role === 'sys' ? 'sys' : 'ai');
-  if (role === 'ai') b.innerHTML = md(text); else b.textContent = text;
-  log.appendChild(b);
-  log.scrollTop = log.scrollHeight;
-  return b;
-}
-
-async function askOrb(text) {
-  const clean = String(text || '').trim();
-  if (!clean || orbBusy) return;
-  if (!slotReady(activeSlot())) { toast('Önce API anahtarı ekle.', true); openTutorial(true); return; }
-  const input = $('orbInput');
-  input.value = '';
-  addOrbMessage('user', clean);
-  const ai = addOrbMessage('ai', '');
-  ai.innerHTML = '<span class="dots"><i></i><i></i><i></i></span>';
-
-  orbBusy = true;
-  $('orb').classList.add('thinking');
-  const history = orbMsgs.filter((m) => m.role === 'user' || m.role === 'ai')
-    .slice(0, -1).slice(-8)
-    .map((m) => ({ role: m.role, content: m.content }));
-
-  try {
-    let text2 = '';
-    await streamReply(history, (d) => {
-      text2 += d;
-      ai.innerHTML = md(text2) || '<span class="dots"><i></i><i></i><i></i></span>';
-      $('orbLog').scrollTop = $('orbLog').scrollHeight;
-    }, undefined, 'Asistan olarak çok kısa yanıt ver: en fazla 2-3 cümle. Gereksiz açıklama ekleme.');
-    orbMsgs[orbMsgs.length - 1].content = text2.trim() || 'Yanıt gelmedi.';
-    ai.innerHTML = md(orbMsgs[orbMsgs.length - 1].content);
-    cheerOrb();
-  } catch (err) {
-    ai.textContent = 'Hata: ' + String((err && err.message) || err);
-    orbMsgs.pop();
-    $('orb').classList.remove('thinking');
-  } finally {
-    orbBusy = false;
-    $('orb').classList.remove('thinking');
-    $('orbLog').scrollTop = $('orbLog').scrollHeight;
-  }
-}
-
 /* ----------------------------- Çekmece ----------------------------- */
 function openDrawer() {
   $('drawer').hidden = false;
@@ -1153,7 +1081,6 @@ function renderModelChip() {
 /* ----------------------------- Ayarlar ----------------------------- */
 function openSettings() {
   closeDrawer();
-  closeOrbPanel();
   $('settings').hidden = false;
   syncSettingsUI();
 }
@@ -1168,7 +1095,7 @@ function syncSettingsUI() {
   $('drawerAvatar').textContent = initialOf(state.name);
   $('drawerName').textContent = state.name ? state.name : 'PRIME AI';
   applyTheme();
-  $('assistantOn').checked = !!state.assistantOn;
+  syncAssistantKey();
   $('orbSize').value = String(state.orbSize);
   $('orbLife').checked = !!state.orbLife;
   $('briefOn').checked = !!state.brief;
@@ -1363,24 +1290,20 @@ function wireSettings() {
     accents.appendChild(b);
   }
 
-  $('assistantOn').addEventListener('change', (e) => {
-    state.assistantOn = e.target.checked;
-    saveState();
-    updateOrb();
-    measureComposer();
-    toast(state.assistantOn ? 'Asistan ekranda.' : 'Asistan gizlendi.');
+  $('assistantKey').addEventListener('change', (e) => {
+    setAssistantKey(e.target.checked);
   });
 
   $('orbSize').addEventListener('input', (e) => {
     state.orbSize = Number(e.target.value);
     saveState();
-    updateOrb();
+    applyAssistantKey();
   });
 
   $('orbLife').addEventListener('change', (e) => {
     state.orbLife = e.target.checked;
     saveState();
-    updateOrb();
+    applyAssistantKey();
   });
 
   $('briefOn').addEventListener('change', (e) => {
@@ -1439,13 +1362,18 @@ function wireSettings() {
     const slot = activeSlot();
     const out = $('testResult');
     if (!slot) { out.textContent = 'Önce anahtar ekle.'; return; }
-    out.textContent = 'Deneniyor…';
+    out.textContent = 'Deneniyor… (bağlantı + yazılı yanıt)';
     try {
       const models = await fetchModels(slot.provider, slot.key);
-      out.textContent = 'Bağlantı çalışıyor · ' + models.length + ' model';
-      toast('Bağlantı çalışıyor.');
+      let text = '';
+      await streamOnce(slot, [{ role: 'user', content: 'Tek kelimeyle yanıtla: hazır' }],
+        (chunk) => { text += chunk; }, null, 'Yanıtı en fazla bir cümleyle ver.');
+      const reply = text.trim();
+      if (!reply) throw new Error('Model boş yanıt döndürdü.');
+      out.textContent = 'Çalışıyor · ' + models.length + ' model · yanıt: “' + reply.slice(0, 40) + '”';
+      toast('Bağlantı ve yanıt çalışıyor.');
     } catch (err) {
-      out.textContent = 'Başarısız: ' + String((err && err.message) || err).slice(0, 90);
+      out.textContent = 'Başarısız: ' + String((err && err.message) || err).slice(0, 120);
       toast('Bağlantı kurulamadı.', true);
     }
   });
@@ -1505,29 +1433,26 @@ function openTutorial(force) {
   $('tutModelField').hidden = true;
   $('tutFetchMsg').textContent = 'İnternet yoksa varsayılan modelle devam edebilirsin.';
   $('tutFetchMsg').className = 'hint';
-  $('tutAssistant').checked = !!state.assistantOn;
+  $('tutAssistant').checked = !!state.assistantKey;
   setTutStep(1);
   if (!force && state.tutorialDone) closeTutorial();
 }
 
 function closeTutorial() {
   $('tutorial').hidden = true;
-  updateOrb();
-  measureComposer();
+  syncAssistantKey();
   setTimeout(() => $('input').focus(), 100);
 }
 
 function finishTutorial() {
   state.tutorialDone = true;
-  const on = $('tutAssistant').checked;
-  if (on !== state.assistantOn) {
-    state.assistantOn = on;
-    saveState();
-  }
   saveState();
   closeTutorial();
   renderModelChip();
   renderApiList();
+  const on = $('tutAssistant').checked;
+  if (on !== state.assistantKey) setAssistantKey(on);
+  else if (on) applyAssistantKey();
   toast('Hazır. Bir şey sorabilirsin.');
 }
 
@@ -1685,16 +1610,6 @@ function wireChrome() {
     });
   });
 
-  $('orb').addEventListener('click', () => {
-    ripple();
-    if (!$('orbPanel').hidden) closeOrbPanel(); else openOrbPanel();
-  });
-  $('orbClose').addEventListener('click', closeOrbPanel);
-  $('orbForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    askOrb($('orbInput').value);
-  });
-
   $('thread').addEventListener('click', (e) => {
     const btn = e.target.closest('[data-copy]');
     if (!btn) return;
@@ -1705,8 +1620,6 @@ function wireChrome() {
 
   $('chatArea').addEventListener('scroll', () => { /* kaydırma konumu korunur */ });
 
-  const ro = new ResizeObserver(() => measureComposer());
-  ro.observe($('composerWrap'));
 }
 
 /* ----------------------------- PWA ----------------------------- */
@@ -1723,9 +1636,69 @@ function inApp() {
   catch { return false; }
 }
 
+/* ------------------------- Asistan tuşu (Android) ------------------------- */
+/* Ayarlardaki anahtar Android kabuğuna haber verir: uygulama kapanır, top ana
+   ekranda kalır ve oradan soru sorulur. Tarayıcıda yalnızca ayar saklanır. */
+function assistantBridge() {
+  return inApp() ? window.PrimeAndroid : null;
+}
+function assistantStateOf() {
+  const na = assistantBridge();
+  if (!na || typeof na.assistantState !== 'function') return null;
+  try { return JSON.parse(String(na.assistantState() || '')); } catch { return null; }
+}
+function assistantKeySub(info) {
+  const el = $('assistantKeySub');
+  if (!el) return;
+  if (!inApp()) {
+    el.textContent = 'Ana ekrandaki top PRIME AI uygulamasında görünür';
+    return;
+  }
+  if (!state.assistantKey) {
+    el.textContent = 'Kapalı · açınca top ana ekranda durur, uygulama kapanır';
+    return;
+  }
+  const i = info || assistantStateOf() || {};
+  if (i.overlay === false) { el.textContent = 'Ekranda gösterme izni bekleniyor · ayarı kapatıp aç'; return; }
+  if (i.mic === false) { el.textContent = 'Mikrofon izni yok · top dinleyemez, yazamaz'; return; }
+  el.textContent = 'Açık · top ana ekranda; uygulama kapalıyken de sorabilirsin';
+}
+function applyAssistantKey() { assistantKeySub(null); }
+
+function setAssistantKey(on) {
+  state.assistantKey = !!on;
+  saveState();
+  renderAssistantKey();
+  const na = assistantBridge();
+  if (na && typeof na.setAssistant === 'function') {
+    let info = null;
+    try { info = JSON.parse(String(na.setAssistant(!!on) || '')); } catch { info = null; }
+    assistantKeySub(info);
+    if (!on) { toast('Asistan tuşu kapatıldı.'); return; }
+    if (info && info.overlay === false) toast('İzin ekranında “bu uygulamaya izin ver”e bas.');
+    else if (info && info.mic === false) toast('Mikrofon izni vermezsen sesle soramazsın.');
+    else toast('Asistan topu ana ekranda.');
+    return;
+  }
+  toast(on ? 'Asistan tuşu açıldı · top uygulamada ana ekranda görünür.' : 'Asistan tuşu kapatıldı.');
+}
+
+function renderAssistantKey() {
+  const box = $('assistantKey');
+  if (box) box.checked = !!state.assistantKey;
+  assistantKeySub(null);
+}
+
+/* Uygulama her açıldığında: ayar açıksa top Android tarafında yeniden kurulur. */
+function syncAssistantKey() {
+  renderAssistantKey();
+  const na = assistantBridge();
+  if (!na || typeof na.ensureAssistant !== 'function') return;
+  try { assistantKeySub(JSON.parse(String(na.ensureAssistant() || ''))); } catch { /* yok */ }
+}
+
 /* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
 window.__primeBack = function () {
-  if (!$('orbPanel').hidden) { closeOrbPanel(); return true; }
   if (!$('drawer').hidden) { closeDrawer(); return true; }
   if (!$('settings').hidden) { closeSettings(); return true; }
   if (!$('tutorial').hidden) { closeTutorial(); return true; }
@@ -1734,6 +1707,9 @@ window.__primeBack = function () {
 
 function boot() {
   ensureActive();
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) renderAssistantKey();
+  });
   if (inApp()) document.documentElement.classList.add('in-app');
   updateBrand();
   updateGreeting();
@@ -1743,8 +1719,7 @@ function boot() {
   wireChrome();
   wireSettings();
   wireTutorial();
-  updateOrb();
-  measureComposer();
+  syncAssistantKey();
   renderModelChip();
   renderThread();
   renderChatList();
@@ -1762,7 +1737,6 @@ function boot() {
       if (window.visualViewport.height) {
         document.documentElement.style.setProperty('--app-h', window.visualViewport.height + 'px');
       }
-      measureComposer();
     };
     window.visualViewport.addEventListener('resize', fit);
     fit();

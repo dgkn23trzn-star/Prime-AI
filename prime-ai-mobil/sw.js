@@ -1,10 +1,13 @@
 /* PRIME AI Mobil — çevrimdışı açılış için kabuk önbelleği */
-const CACHE = 'primeai-mobil-v1.0.2';
+const CACHE = 'primeai-mobil-v1.0.3';
 const SHELL = [
   './',
   './index.html',
   './mobile.css',
   './mobile.js',
+  './assistant.html',
+  './assistant.css',
+  './assistant.js',
   './manifest.webmanifest',
   './icons/icon-192.png',
   './icons/icon-512.png',

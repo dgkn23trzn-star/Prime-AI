@@ -1,7 +1,9 @@
 # PRIME AI Mobil
 
-Telefon için yapılmış PRIME AI: Gemini tarzı sade bir sohbet ekranı, her an
-ekranda duran asistan topu ve kendi API anahtarınla çalışan yapay zekâ.
+Telefon için yapılmış PRIME AI: Gemini tarzı sade bir sohbet ekranı ve kendi API
+anahtarınla çalışan yapay zekâ. Sohbetin üstünde duran top yok; Android
+uygulamasında asistan, **ana ekranda duran bir top** olarak çalışır (Ayarlar →
+Asistan tuşu).
 Masaüstü sürümündeki hesap/veri mantığı yerine bu sürüm **tek cihazda**
 çalışır: anahtarlar ve sohbetler yalnızca tarayıcının `localStorage`'ında durur,
 hiçbir sunucuya gönderilmez.
@@ -11,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.0.0.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.0.1.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -55,7 +57,7 @@ görünmez:
 2. API anahtarını yapıştır — ücretsiz **Google Gemini** anahtarı için
    [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 3. Kullanılabilir modelleri getir, birini seç.
-4. Asistan topunun ekranda durup durmayacağını seç ve başla.
+4. Asistan tuşunun (ana ekrandaki yüzen top) açık olup olmayacağını seç ve başla.
 
 Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabilir.
 
@@ -63,9 +65,12 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
 
 - **Sohbet:** akış (streaming) yanıt, markdown/kod blokları, kopyala ve yeniden
   üret, görsel ekleme (en fazla 3), sesle yazma (destekleyen tarayıcılarda).
-- **Asistan topu:** sohbetin üstünde durur; nefes alır, göz kırpar, yanıt
-  gelince zıplayıp kıvılcım saçar. Dokununca küçük bir asistan paneli açılır ve
-  kısa yanıt verir. **Ayarlar → Asistan → Ekranda görünsün** ile kapatılabilir.
+- **Asistan tuşu (ana ekranda top):** **Ayarlar → Asistan → Asistan tuşu**
+  açılınca gerekli izinler istenir, uygulama kapanır ve top ana ekranda kalır.
+  Topa dokununca mikrofon dinler, yanıt balonda akar ve sesli okunur; topu
+  sürükleyip istediğin yere koyabilirsin. Balonda mikrofon, yazma, ses,
+  uygulamayı açma ve topu kaldırma düğmeleri vardır; başka uygulamaların
+  üstünde de çalışır. Boyut ve canlılık aynı ayar bölümünden değiştirilir.
 - **Sohbetler:** soldaki menüde liste, yeni sohbet, sohbet silme.
 - **Ayarlar:** tema (varsayılan **siyah-kırmızı**; ayrıca **beyaz** ve sistem
   teması), 8 vurgu rengi, asistan boyutu ve canlılığı, kısa yanıtlar, yanıt
@@ -86,7 +91,10 @@ istek gövdeleri kullanılır; anahtar biçiminden sağlayıcı otomatik tanın�
 | --- | --- |
 | `index.html` | Ekranlar: sohbet, menü, ayarlar, API rehberi |
 | `mobile.css` | Gemini tarzı mobil arayüz, animasyonlar |
-| `mobile.js` | Sohbet, API, asistan topu, ayarlar, kayıt |
+| `mobile.js` | Sohbet, API, asistan tuşu, ayarlar, kayıt |
+| `assistant.html` | Ana ekrandaki top ve yanıt balonu sayfası |
+| `assistant.css` | Topun ve balonun stilleri |
+| `assistant.js` | Mikrofon, akış yanıt, sesli okuma (kod yazmaz) |
 | `manifest.webmanifest` | Ana ekrana ekleme bilgileri |
 | `sw.js` | Çevrimdışı kabuk önbelleği |
 | `icons/` | 192/512 px uygulama simgeleri |

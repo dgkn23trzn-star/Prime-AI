@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="dark" data-accent="kirmizi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>PRIME AI · Asistan</title>
+<link rel="stylesheet" href="assistant.css" />
+</head>
+<body>
+  <!-- Top: uygulama kapalıyken ana ekranda duran yüzen düğme -->
+  <div class="orb-stage" id="orbStage" hidden>
+    <button class="orb" id="orb" aria-label="PRIME AI asistanı">
+      <span class="orb-face" aria-hidden="true"><i></i><i></i></span>
+      <span class="orb-mouth" aria-hidden="true"></span>
+      <span class="orb-ring" aria-hidden="true"></span>
+    </button>
+  </div>
+
+  <!-- Balon: soru, yanıt ve düğmeler -->
+  <section class="panel" id="panel" hidden aria-live="polite">
+    <header class="panel-head">
+      <span class="dot" id="dot"></span>
+      <strong id="panelTitle">PRIME AI</strong>
+      <button class="icon" id="closeBtn" aria-label="Kapat">✕</button>
+    </header>
+
+    <div class="panel-body" id="panelBody">
+      <p class="reply" id="reply"></p>
+      <p class="live" id="live" hidden></p>
+      <p class="hint" id="hint" hidden></p>
+    </div>
+
+    <form class="ask" id="askForm" hidden>
+      <input type="text" id="askInput" placeholder="Bir şey yaz…" maxlength="500" autocomplete="off" />
+      <button type="submit" class="send" aria-label="Gönder">➤</button>
+    </form>
+
+    <div class="chips">
+      <button class="chip" id="micBtn">🎤 <span id="micText">Konuş</span></button>
+      <button class="chip" id="typeBtn">⌨️ Yaz</button>
+      <button class="chip" id="sayBtn">🔊 Sesli</button>
+      <button class="chip" id="appBtn">📱 Uygulama</button>
+      <button class="chip danger" id="stopBtn">Topu kaldır</button>
+    </div>
+  </section>
+
+<script src="assistant.js"></script>
+</body>
+</html>

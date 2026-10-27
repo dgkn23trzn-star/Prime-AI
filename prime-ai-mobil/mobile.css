@@ -1,7 +1,3 @@
-/* ============================================================
-   PRIME AI Mobil — telefon için Gemini tarzı arayüz
-   ============================================================ */
-
 :root {
   --a1: #7c3aed;
   --a2: #ec4899;
@@ -20,16 +16,14 @@
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
-
-[data-accent="kirmizi"]  { --a1: #e11d48; --a2: #ff5f3a; }
-[data-accent="alev"]     { --a1: #ff3b30; --a2: #ff9500; }
-[data-accent="gunbatimi"]{ --a1: #f43f5e; --a2: #f59e0b; }
-[data-accent="okyanus"]  { --a1: #2563eb; --a2: #06b6d4; }
-[data-accent="orman"]    { --a1: #059669; --a2: #84cc16; }
-[data-accent="mor"]      { --a1: #7c3aed; --a2: #ec4899; }
-[data-accent="altin"]    { --a1: #d97706; --a2: #fbbf24; }
-[data-accent="buz"]      { --a1: #0284c7; --a2: #8b5cf6; }
-
+[data-accent="kirmizi"] { --a1: #e11d48; --a2: #ff5f3a; }
+[data-accent="alev"] { --a1: #ff3b30; --a2: #ff9500; }
+[data-accent="gunbatimi"] { --a1: #f43f5e; --a2: #f59e0b; }
+[data-accent="okyanus"] { --a1: #2563eb; --a2: #06b6d4; }
+[data-accent="orman"] { --a1: #059669; --a2: #84cc16; }
+[data-accent="mor"] { --a1: #7c3aed; --a2: #ec4899; }
+[data-accent="altin"] { --a1: #d97706; --a2: #fbbf24; }
+[data-accent="buz"] { --a1: #0284c7; --a2: #8b5cf6; }
 [data-theme="light"] {
   --bg: #ffffff;
   --bg-soft: #f7f7fb;
@@ -40,9 +34,7 @@
   --muted: #5f5f70;
   --shadow: 0 18px 40px rgba(24, 24, 40, .16);
 }
-
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
 html, body {
   height: 100%;
   margin: 0;
@@ -54,19 +46,15 @@ html, body {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-
 body { overflow: hidden; }
-
 button, input, textarea, select {
   font: inherit;
   color: inherit;
 }
-
 button { background: none; border: 0; padding: 0; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
 a { color: var(--a2); text-decoration: none; }
 svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
 [hidden] { display: none !important; }
-
 .app {
   display: flex;
   flex-direction: column;
@@ -76,15 +64,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   position: relative;
   isolation: isolate;
 }
-
-/* Siyah tema: üst köşelerde kırmızıya çalan çok hafif ışık. */
 [data-theme="dark"] .app {
   background:
     radial-gradient(95% 46% at 84% -8%, color-mix(in srgb, var(--a1) 13%, transparent), transparent 70%),
     radial-gradient(70% 38% at 6% 0%, color-mix(in srgb, var(--a2) 8%, transparent), transparent 72%);
 }
-
-/* ----------------------------- Üst çubuk ----------------------------- */
 .topbar {
   display: flex;
   align-items: center;
@@ -93,7 +77,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   min-height: 58px;
   flex: 0 0 auto;
 }
-
 .icon-btn {
   width: 40px;
   height: 40px;
@@ -105,7 +88,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .icon-btn:active { background: var(--surface); opacity: 1; }
 .icon-btn.small { width: 32px; height: 32px; }
 .icon-btn.small svg { width: 18px; height: 18px; }
-
 .brand {
   margin: 0;
   font-size: 19px;
@@ -125,7 +107,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background: linear-gradient(140deg, var(--a1), var(--a2));
   align-self: center;
 }
-
 .avatar {
   width: 36px; height: 36px;
   border-radius: 50%;
@@ -134,8 +115,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background: linear-gradient(140deg, var(--a1), var(--a2));
   box-shadow: 0 4px 14px rgba(0, 0, 0, .28);
 }
-
-/* ----------------------------- Sohbet alanı ----------------------------- */
 .chat-area {
   flex: 1 1 auto;
   overflow-y: auto;
@@ -145,7 +124,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   scrollbar-width: none;
 }
 .chat-area::-webkit-scrollbar { display: none; }
-
 .welcome {
   position: relative;
   padding: 26px 4px 8px;
@@ -183,7 +161,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color: transparent;
   padding-bottom: 4px;
 }
-
 .chips {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -205,12 +182,7 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .chip:active { transform: scale(.975); border-color: var(--a1); }
 .chip-ico { font-size: 16px; line-height: 1; }
-
-/* ----------------------------- Mesajlar ----------------------------- */
 .thread { display: flex; flex-direction: column; gap: 16px; padding: 8px 0 18px; }
-/* Asistan topu son mesajın üstüne binmesin. */
-.app.orb-on .thread { padding-bottom: 74px; }
-
 .msg {
   display: flex;
   flex-direction: column;
@@ -227,7 +199,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .msg.user .bubble .img-strip { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
 .msg.user .bubble .img-strip img { width: 96px; height: 96px; object-fit: cover; border-radius: 14px; }
-
 .msg.ai { align-items: stretch; gap: 8px; }
 .msg.ai .who { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); font-weight: 600; }
 .msg.ai .who i {
@@ -282,7 +253,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   border-left: 3px solid color-mix(in srgb, var(--a1) 55%, var(--line));
   color: var(--muted);
 }
-
 .msg .actions { display: flex; gap: 4px; margin-top: 6px; }
 .msg.ai .actions button {
   height: 30px; padding: 0 10px; border-radius: 10px;
@@ -290,7 +260,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .msg.ai .actions button:active { background: var(--surface); color: var(--text); }
 .msg.ai .actions svg { width: 15px; height: 15px; }
-
 .dots { display: inline-flex; gap: 4px; align-items: center; height: 20px; }
 .dots i {
   width: 6px; height: 6px; border-radius: 50%;
@@ -299,7 +268,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .dots i:nth-child(2) { animation-delay: .16s; }
 .dots i:nth-child(3) { animation-delay: .32s; }
-
 .err-note {
   display: flex; gap: 8px; align-items: flex-start;
   padding: 11px 13px;
@@ -309,8 +277,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   font-size: 13.5px;
   color: color-mix(in srgb, var(--danger) 80%, var(--text));
 }
-
-/* ----------------------------- Yazma alanı ----------------------------- */
 .composer-wrap {
   flex: 0 0 auto;
   padding: 6px 12px calc(var(--safe-bottom) + 10px);
@@ -318,7 +284,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   position: relative;
   z-index: 20;
 }
-
 .attachments { display: flex; gap: 8px; padding: 0 4px 8px; overflow-x: auto; }
 .attachments .thumb { position: relative; flex: 0 0 auto; }
 .attachments img { width: 56px; height: 56px; border-radius: 12px; object-fit: cover; border: 1px solid var(--line); }
@@ -328,7 +293,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   background: var(--surface-2); border: 1px solid var(--line);
   font-size: 12px; color: var(--text);
 }
-
 .chip-row { display: flex; align-items: center; gap: 8px; padding: 0 6px 7px; }
 .model-chip {
   gap: 6px;
@@ -351,7 +315,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .model-dot.live { background: var(--ok); box-shadow: 0 0 0 3px color-mix(in srgb, var(--ok) 22%, transparent); }
 .model-dot.warn { background: #ffb340; }
 .quota-hint { font-size: 11px; color: var(--muted); }
-
 .composer {
   display: flex;
   align-items: flex-end;
@@ -380,7 +343,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   line-height: 1.35;
 }
 .composer textarea::placeholder { color: var(--muted); }
-
 .composer-btn {
   width: 40px; height: 40px;
   border-radius: 50%;
@@ -390,7 +352,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .composer-btn svg { width: 20px; height: 20px; }
 .composer-btn:active { background: var(--surface-2); color: var(--text); }
 .composer-btn.mic.listening { color: var(--a2); animation: pulse 1.4s infinite; }
-
 .send {
   width: 42px; height: 42px;
   border-radius: 50%;
@@ -404,150 +365,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .send svg { width: 20px; height: 20px; stroke-width: 2.2; }
 .send:not(:disabled):active { transform: scale(.94); }
 .send.stop { background: var(--surface-2); color: var(--text); box-shadow: none; }
-
-/* ----------------------------- Asistan topu ----------------------------- */
-.orb {
-  position: absolute;
-  right: 16px;
-  bottom: calc(var(--composer-h) + 10px);
-  width: var(--orb-size, 56px);
-  height: var(--orb-size, 56px);
-  border-radius: 50%;
-  z-index: 25;
-  transition: transform .2s cubic-bezier(.2, .8, .3, 1), opacity .2s ease;
-  animation: orbFloat 6.6s ease-in-out infinite;
-}
-.orb[hidden] { display: none; }
-.orb-halo {
-  position: absolute; inset: -7px;
-  border-radius: 50%;
-  background: conic-gradient(from 0deg, var(--a1), var(--a2), var(--a1));
-  filter: blur(9px);
-  opacity: .58;
-  animation: halo 5.5s ease-in-out infinite;
-}
-.orb-core {
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .95), rgba(255, 255, 255, .18) 26%, transparent 46%),
-    conic-gradient(from 200deg at 52% 48%, var(--a1), var(--a2), color-mix(in srgb, var(--a2) 60%, #fff), var(--a1));
-  box-shadow:
-    inset 0 -6px 14px rgba(0, 0, 0, .28),
-    inset 0 4px 12px rgba(255, 255, 255, .28),
-    0 10px 24px color-mix(in srgb, var(--a1) 42%, transparent);
-  display: flex; align-items: center; justify-content: center;
-  overflow: hidden;
-}
-.orb-eyes { display: flex; gap: 9px; margin-top: -2px; }
-.orb-eyes .eye {
-  width: 6.5px; height: 8px;
-  border-radius: 50%;
-  background: rgba(12, 8, 24, .82);
-  transform-origin: center;
-  animation: blinkEye 6.4s infinite;
-}
-.orb-eyes .eye.right { animation-delay: .1s; }
-.orb-mouth {
-  position: absolute;
-  bottom: 26%;
-  width: 12px; height: 5px;
-  border-radius: 0 0 12px 12px;
-  border-bottom: 2px solid rgba(12, 8, 24, .6);
-  opacity: .75;
-}
-.orb.cheer { animation: orbCheer .9s cubic-bezier(.2, .8, .3, 1); }
-.orb.no-life { animation: none; }
-.orb.no-life .orb-halo,
-.orb.no-life .orb-eyes .eye,
-.orb.no-life .orb-mouth { animation: none; }
-.orb.busy .orb-mouth { animation: mouthTalk .6s ease-in-out infinite; }
-.orb.thinking .orb-halo { animation: halo 1.2s ease-in-out infinite; }
-.orb-badge {
-  position: absolute;
-  top: -2px; right: -2px;
-  min-width: 18px; height: 18px;
-  padding: 0 5px;
-  border-radius: 999px;
-  background: var(--danger);
-  color: #fff;
-  font-size: 11px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  border: 2px solid var(--bg);
-}
-
-.spark {
-  position: absolute;
-  left: 50%; top: 50%;
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  background: linear-gradient(140deg, var(--a1), var(--a2));
-  pointer-events: none;
-  animation: sparkOut .95s ease-out forwards;
-}
-.ripple {
-  position: absolute; inset: 0;
-  border-radius: 50%;
-  border: 2px solid color-mix(in srgb, var(--a2) 70%, transparent);
-  animation: ripple .85s ease-out forwards;
-  pointer-events: none;
-}
-
-/* ----------------------------- Asistan paneli ----------------------------- */
-.orb-panel {
-  position: fixed;
-  left: 12px; right: 12px;
-  bottom: calc(var(--composer-h) + 12px + var(--safe-bottom));
-  max-width: 600px;
-  margin: 0 auto;
-  z-index: 30;
-  border-radius: 22px;
-  background: var(--bg-soft);
-  border: 1px solid var(--line);
-  box-shadow: var(--shadow);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  animation: panelUp .3s cubic-bezier(.2, .8, .3, 1) both;
-}
-.orb-panel-head {
-  display: flex; align-items: center; gap: 9px;
-  padding: 10px 10px 8px 14px;
-  border-bottom: 1px solid var(--line);
-  font-size: 13.5px;
-}
-.orb-panel-head strong { flex: 1; font-weight: 600; }
-.orb-mini {
-  width: 22px; height: 22px; border-radius: 50%;
-  background: conic-gradient(from 200deg, var(--a1), var(--a2), var(--a1));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--a1) 22%, transparent);
-}
-.orb-log {
-  padding: 12px 14px;
-  max-height: 42vh;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  font-size: 14px;
-}
-.orb-log .ob { padding: 9px 12px; border-radius: 16px; max-width: 92%; }
-.orb-log .ob.me { align-self: flex-end; background: var(--surface-2); border-bottom-right-radius: 6px; }
-.orb-log .ob.ai { align-self: flex-start; background: color-mix(in srgb, var(--a1) 12%, var(--surface)); border-bottom-left-radius: 6px; }
-.orb-log .ob.sys { align-self: center; color: var(--muted); font-size: 12.5px; text-align: center; }
-.orb-ask {
-  display: flex; gap: 6px; align-items: center;
-  padding: 8px 8px 8px 14px;
-  border-top: 1px solid var(--line);
-}
-.orb-ask input { flex: 1; border: 0; background: none; outline: none; padding: 10px 0; font-size: 14.5px; }
-.orb-ask button {
-  width: 36px; height: 36px; border-radius: 50%; color: #fff;
-  background: linear-gradient(140deg, var(--a1), var(--a2));
-}
-.orb-ask button svg { width: 18px; height: 18px; }
-
-/* ----------------------------- Çekmece ----------------------------- */
 .scrim {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .5);
@@ -617,8 +434,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .drawer-foot button:active { background: var(--surface); }
 .drawer-foot svg { width: 19px; height: 19px; color: var(--muted); }
-
-/* ----------------------------- Sayfalar (ayarlar / rehber) ----------------------------- */
 .sheet {
   position: fixed;
   inset: 0;
@@ -644,7 +459,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   padding: 14px 14px calc(var(--safe-bottom) + 30px);
   overscroll-behavior: contain;
 }
-
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -672,7 +486,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color: var(--muted);
   font-weight: 650;
 }
-
 .row {
   display: flex;
   align-items: center;
@@ -690,7 +503,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .link-row { color: var(--text); }
 .link-row svg { width: 18px; height: 18px; color: var(--muted); flex: 0 0 auto; }
 .link-row:active { opacity: .7; }
-
 .switch { position: relative; width: 47px; height: 29px; flex: 0 0 auto; }
 .switch input { position: absolute; opacity: 0; width: 100%; height: 100%; margin: 0; }
 .switch i {
@@ -713,7 +525,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .switch input:checked + i { background: linear-gradient(120deg, var(--a1), var(--a2)); border-color: transparent; }
 .switch input:checked + i::after { transform: translateX(18px); }
 .switch input:focus-visible + i { outline: 2px solid var(--a2); outline-offset: 2px; }
-
 .seg {
   display: flex;
   padding: 3px;
@@ -749,7 +560,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .seg button[data-theme="light"]::before { background: #ffffff; }
 .seg button[data-theme="system"]::before { background: linear-gradient(90deg, #101016 50%, #ffffff 50%); }
 .seg button.active { background: var(--surface-2); color: var(--text); font-weight: 600; }
-
 .accents { display: flex; gap: 10px; padding: 2px 0 14px; flex-wrap: wrap; }
 .accents button {
   width: 34px; height: 34px;
@@ -759,7 +569,6 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 }
 .accents button span { position: absolute; inset: 3px; border-radius: 50%; }
 .accents button.active { border-color: var(--text); }
-
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -783,7 +592,6 @@ input[type="range"]::-webkit-slider-thumb {
 }
 input[type="range"]::-moz-range-track { height: 4px; border-radius: 2px; background: var(--surface-2); }
 input[type="range"]::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff; }
-
 select, .tut-field select {
   background: var(--surface-2);
   border: 1px solid var(--line);
@@ -805,8 +613,6 @@ textarea#systemPrompt {
   min-height: 74px;
 }
 textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, var(--line)); }
-
-/* API kartı */
 .api-list { display: flex; flex-direction: column; }
 .api-item {
   display: flex; align-items: center; gap: 11px;
@@ -833,7 +639,6 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 .api-item .del svg { width: 16px; height: 16px; }
 .api-empty { padding: 14px 0; display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
 .api-empty p { margin: 0; font-size: 13px; color: var(--muted); }
-
 .text-btn { color: var(--a2); font-size: 13.5px; font-weight: 550; padding: 4px 0; }
 .filled-btn {
   padding: 11px 18px;
@@ -852,7 +657,6 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
   color: var(--text);
 }
 .wide { width: 100%; justify-content: center; }
-
 .api-add { margin: 8px 0 12px; }
 .api-add summary {
   list-style: none;
@@ -884,10 +688,7 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 .hint { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.4; }
 .hint.bad { color: var(--danger); }
 .hint.good { color: var(--ok); }
-
-/* Android uygulamasında tarayıcıya özel ipuçları görünmez. */
 .in-app #tutInstallTip { display: none; }
-
 .fineprint {
   margin: 20px 6px 0;
   font-size: 11.5px;
@@ -895,8 +696,6 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
   color: var(--muted);
   text-align: center;
 }
-
-/* ----------------------------- Rehber ----------------------------- */
 .tut-dots { display: flex; gap: 5px; flex: 1; justify-content: center; }
 .tut-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--surface-2); transition: width .2s ease, background .2s ease; }
 .tut-dots i.on { width: 18px; border-radius: 3px; background: linear-gradient(90deg, var(--a1), var(--a2)); }
@@ -931,7 +730,7 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
   border-radius: 50%;
   background: conic-gradient(from 200deg, var(--a1), var(--a2), var(--a1));
   box-shadow: 0 0 40px color-mix(in srgb, var(--a2) 45%, transparent), inset 0 -8px 18px rgba(0, 0, 0, .3);
-  animation: orbFloat 6.6s ease-in-out infinite;
+  animation: floaty 6.6s ease-in-out infinite;
 }
 .tut-art.art-key span { width: 92px; height: 46px; margin: -23px 0 0 -46px; border-radius: 14px; }
 .tut-art.art-key span::after {
@@ -949,15 +748,13 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
   border-radius: 10px;
   border: 3px solid rgba(255, 255, 255, .8);
 }
-.tut-art.art-ready span { animation: orbCheer 2.4s ease-in-out infinite; }
+.tut-art.art-ready span { animation: cheerful 2.4s ease-in-out infinite; }
 .tut-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 10px;
   padding: 12px 18px calc(var(--safe-bottom) + 14px);
   border-top: 1px solid var(--line);
   flex: 0 0 auto;
 }
-
-/* ----------------------------- Bildirim ----------------------------- */
 .toast-wrap {
   position: fixed;
   left: 50%;
@@ -983,8 +780,6 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
   animation: toastIn .24s ease both;
 }
 .toast.err { background: color-mix(in srgb, var(--danger) 85%, #000); color: #fff; border-color: transparent; }
-
-/* ----------------------------- Animasyonlar ----------------------------- */
 @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes fade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideIn { from { transform: translateX(-100%); } to { transform: none; } }
@@ -992,41 +787,10 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 @keyframes panelUp { from { transform: translateY(16px) scale(.98); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 @keyframes blink { 0%, 80%, 100% { opacity: .28; transform: translateY(0); } 40% { opacity: 1; transform: translateY(-2px); } }
-@keyframes orbFloat {
-  0%, 100% { transform: translateY(0) scale(1); }
-  35% { transform: translateY(-5px) scale(1.02); }
-  68% { transform: translateY(2px) scale(.995); }
-}
-@keyframes halo { 0%, 100% { opacity: .45; transform: scale(.97); } 50% { opacity: .72; transform: scale(1.05); } }
-@keyframes blinkEye {
-  0%, 41%, 45%, 100% { transform: scaleY(1); }
-  43% { transform: scaleY(.08); }
-  71%, 73% { transform: scaleY(1); }
-  72% { transform: scaleY(.08); }
-}
-@keyframes mouthTalk { 0%, 100% { height: 4px; opacity: .6; } 50% { height: 9px; opacity: .9; } }
-@keyframes orbCheer {
-  0% { transform: translateY(0) scale(1); }
-  22% { transform: translateY(-14px) scale(1.1); }
-  46% { transform: translateY(0) scale(.95); }
-  66% { transform: translateY(-7px) scale(1.04); }
-  100% { transform: translateY(0) scale(1); }
-}
-@keyframes sparkOut {
-  0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  100% { opacity: 0; transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.2); }
-}
-@keyframes ripple { from { opacity: .85; transform: scale(.6); } to { opacity: 0; transform: scale(2.1); } }
-@keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.13); } }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
-}
-
-/* ----------------------------- Geniş ekran ----------------------------- */
+@keyframes floaty { 0%, 100% { transform: translateY(0) scale(1); } 35% { transform: translateY(-6px) scale(1.02); } 68% { transform: translateY(2px) scale(.995); } }
+@keyframes cheerful { 0% { transform: scale(1); } 22% { transform: translateY(-9px) scale(1.08); } 46% { transform: translateY(0) scale(.96); } 66% { transform: translateY(-4px) scale(1.03); } 100% { transform: scale(1); } }
 @media (min-width: 720px) {
   .chat-area, .composer-wrap { padding-left: 28px; padding-right: 28px; }
-  .orb { right: 26px; }
   .chips { grid-template-columns: repeat(4, 1fr); }
   .welcome-title { font-size: 38px; }
   .sheet { border-left: 1px solid var(--line); border-right: 1px solid var(--line); }

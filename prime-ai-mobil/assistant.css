@@ -1,0 +1,211 @@
+/* ==========================================================================
+   PRIME AI · Asistan topu ve yanıt balonu (ana ekran katmanı)
+   Yalnızca bu sayfada kullanılır: mobil uygulamanın stillerinden bağımsız.
+   ========================================================================== */
+
+:root {
+  --a1: #ff4d3d;
+  --a2: #ff8a3d;
+  --ink: #f7f7fb;
+  --panel-bg: rgba(14, 14, 20, .96);
+  --line: rgba(255, 255, 255, .12);
+  --dim: rgba(255, 255, 255, .62);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  background: transparent;
+  color: var(--ink);
+  font: 15px/1.45 "Segoe UI", system-ui, -apple-system, "Roboto", sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  overflow: hidden;
+}
+
+/* ------------------------------- Top ------------------------------- */
+
+.orb-stage {
+  position: fixed;
+  inset: 0;
+  display: block;
+}
+
+.orb {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 32% 26%, rgba(255, 255, 255, .34), transparent 46%),
+    conic-gradient(from 200deg, var(--a1), var(--a2), var(--a1));
+  box-shadow:
+    0 10px 26px rgba(0, 0, 0, .48),
+    0 0 22px color-mix(in srgb, var(--a2) 42%, transparent),
+    inset 0 -8px 20px rgba(0, 0, 0, .32);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  overflow: visible;
+  animation: floaty 5.4s ease-in-out infinite;
+  transition: transform .18s ease, filter .18s ease;
+  touch-action: none;
+}
+
+.orb:active { transform: scale(.94); }
+
+.orb-face {
+  display: flex;
+  gap: 16%;
+  width: 52%;
+  justify-content: center;
+  align-items: center;
+}
+
+.orb-face i {
+  width: 13%;
+  min-width: 4px;
+  aspect-ratio: 1 / 1.35;
+  border-radius: 50%;
+  background: #14141c;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .25);
+  animation: blinkEye 5.6s ease-in-out infinite;
+}
+
+.orb-mouth {
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  width: 26%;
+  height: 5px;
+  margin-left: -13%;
+  border-radius: 0 0 8px 8px;
+  background: #14141c;
+  opacity: .8;
+}
+
+.orb-ring {
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--a2) 60%, transparent);
+  opacity: 0;
+}
+
+body[data-state="listen"] .orb-ring { opacity: 1; animation: ring 1.3s ease-out infinite; }
+body[data-state="listen"] .orb { animation: hop 1.1s ease-in-out infinite; }
+body[data-state="talk"] .orb-ring { opacity: 1; animation: ring 1.9s ease-out infinite; }
+body[data-state="talk"] .orb-mouth { animation: talk .34s ease-in-out infinite; }
+body[data-state="idle"] .orb { animation: floaty 5.4s ease-in-out infinite; }
+
+/* ------------------------------ Balon ------------------------------ */
+
+.panel {
+  position: relative;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--panel-bg);
+  border: 1px solid var(--line);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .55);
+  backdrop-filter: blur(12px);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.panel-head strong { font-size: 13px; letter-spacing: .04em; text-transform: uppercase; color: var(--dim); }
+.panel-head .icon {
+  margin-left: auto;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-size: 13px;
+  cursor: pointer;
+}
+.dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--a1);
+  box-shadow: 0 0 10px var(--a1);
+}
+
+.panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 260px;
+  overflow-y: auto;
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.reply { margin: 0; font-size: 14.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+.reply:empty::before { content: 'Dinliyorum…'; color: var(--dim); }
+.live { margin: 0; font-size: 13px; color: var(--dim); font-style: italic; }
+.hint { margin: 0; font-size: 12.5px; color: #ffb3a7; }
+
+.ask {
+  display: flex;
+  gap: 6px;
+}
+.ask input {
+  flex: 1;
+  min-width: 0;
+  padding: 9px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .06);
+  color: var(--ink);
+  font-size: 14px;
+}
+.ask input:focus { outline: none; border-color: color-mix(in srgb, var(--a1) 70%, transparent); }
+.send {
+  width: 40px;
+  border-radius: 12px;
+  border: 0;
+  background: linear-gradient(180deg, var(--a1), var(--a2));
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, .06);
+  color: var(--ink);
+  font-size: 12.5px;
+  cursor: pointer;
+}
+.chip.on { border-color: color-mix(in srgb, var(--a1) 80%, transparent); background: color-mix(in srgb, var(--a1) 22%, transparent); }
+.chip.danger { margin-left: auto; color: #ffb3a7; }
+
+@keyframes floaty { 0%, 100% { transform: translateY(0) scale(1); } 45% { transform: translateY(-5px) scale(1.015); } }
+@keyframes hop { 0%, 100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-3px) scale(1.04); } }
+@keyframes ring { 0% { transform: scale(.92); opacity: .85; } 100% { transform: scale(1.18); opacity: 0; } }
+@keyframes talk { 0%, 100% { height: 4px; } 50% { height: 10px; } }
+@keyframes blinkEye { 0%, 43%, 47%, 100% { transform: scaleY(1); } 45% { transform: scaleY(.1); } 72%, 74% { transform: scaleY(1); } 73% { transform: scaleY(.12); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .orb, .orb-ring, .orb-mouth, .orb-face i { animation: none !important; }
+}

@@ -15,6 +15,24 @@ hariç): dosyalar APK'nın içindedir.
 - `PrimeAndroid.setDark(...)` ile durum çubuğu seçili temaya uyar; görsel
   seçici (`onShowFileChooser`) sohbetin görsel ekleme düğmesine bağlıdır.
 
+## Asistan tuşu (ana ekranda duran top)
+
+Ayarlar → Asistan → **Asistan tuşu** açılınca `PrimeAndroid.setAssistant(true)`
+çağrılır: `MainActivity` sırayla ekranda gösterme iznini (`ACTION_MANAGE_OVERLAY_PERMISSION`),
+mikrofon ve bildirim izinlerini ister, `AssistantService`'i başlatır ve
+`moveTaskToBack(true)` ile uygulamayı kapatır. Top ana ekranda kalır.
+
+- `AssistantService` bir ön plan servisidir (`microphone|specialUse`); bildirim
+  “PRIME AI asistanı açık” olarak durur ve bildirimden kapatılabilir.
+- Servis iki pencere açar: top (`assistant.html?role=orb`) ve yanıt balonu
+  (`assistant.html?role=panel`). Balon, topun üstünde ya da altında ekrana
+  sığacak biçimde yerleştirilir; genişliği sayfadan gelen ölçüyle ayarlanır.
+- Mikrofon `SpeechRecognizer` ile dinler (uygulama kapalıyken de), sonuç
+  `__primeSpeech(...)` ile sayfaya iletilir; yanıt `TextToSpeech` ile okunur.
+- Sayfalar uygulamayla aynı `localStorage`'ı kullanır: API anahtarı, model ve
+  sohbet ayarları ortaktır. Uygulama açılınca `ensureAssistant()` topu sessizce
+  yeniden kurar; top kaldırıldıysa anahtar kendiliğinden kapanır.
+
 ## Gerekenler
 
 - JDK 17 veya üstü (JDK 21 ile derlendi)
