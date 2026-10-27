@@ -21,6 +21,7 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+[data-accent="kirmizi"]  { --a1: #e11d48; --a2: #ff5f3a; }
 [data-accent="alev"]     { --a1: #ff3b30; --a2: #ff9500; }
 [data-accent="gunbatimi"]{ --a1: #f43f5e; --a2: #f59e0b; }
 [data-accent="okyanus"]  { --a1: #2563eb; --a2: #06b6d4; }
@@ -74,6 +75,13 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   margin: 0 auto;
   position: relative;
   isolation: isolate;
+}
+
+/* Siyah tema: üst köşelerde kırmızıya çalan çok hafif ışık. */
+[data-theme="dark"] .app {
+  background:
+    radial-gradient(95% 46% at 84% -8%, color-mix(in srgb, var(--a1) 13%, transparent), transparent 70%),
+    radial-gradient(70% 38% at 6% 0%, color-mix(in srgb, var(--a2) 8%, transparent), transparent 72%);
 }
 
 /* ----------------------------- Üst çubuk ----------------------------- */
@@ -723,6 +731,23 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
   color: var(--muted);
   transition: background .18s ease, color .18s ease;
 }
+.seg button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.seg button::before {
+  content: '';
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  flex: 0 0 auto;
+}
+.seg button[data-theme="dark"]::before { background: #101016; }
+.seg button[data-theme="light"]::before { background: #ffffff; }
+.seg button[data-theme="system"]::before { background: linear-gradient(90deg, #101016 50%, #ffffff 50%); }
 .seg button.active { background: var(--surface-2); color: var(--text); font-weight: 600; }
 
 .accents { display: flex; gap: 10px; padding: 2px 0 14px; flex-wrap: wrap; }

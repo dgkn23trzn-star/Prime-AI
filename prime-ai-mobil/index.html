@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="tr" data-theme="dark" data-accent="mor">
+<html lang="tr" data-theme="dark" data-accent="kirmizi">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -18,10 +18,10 @@
 /* Açılışta kayıtlı tema uygulanır: koyu ekranda beyaz parlama olmaz. */
 try {
   var __s = JSON.parse(localStorage.getItem('primeai.mobil.v1') || '{}');
-  var __t = __s.theme || 'system';
+  var __t = __s.theme || 'dark';
   if (__t === 'system') __t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', __t === 'light' ? 'light' : 'dark');
-  document.documentElement.setAttribute('data-accent', __s.accent || 'mor');
+  document.documentElement.setAttribute('data-accent', __s.accent || 'kirmizi');
 } catch (e) { /* ilk açılış */ }
 </script>
 </head>
@@ -155,12 +155,12 @@ try {
     <p class="group-label">Görünüm</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>Tema</strong><span>Uygulamanın rengi</span></div>
+        <div class="row-text"><strong>Tema</strong><span>Siyah-kırmızı varsayılan; beyaz da seçilebilir</span></div>
       </div>
       <div class="seg" id="themeSeg" role="group" aria-label="Tema">
+        <button data-theme="dark">Siyah</button>
+        <button data-theme="light">Beyaz</button>
         <button data-theme="system">Sistem</button>
-        <button data-theme="light">Açık</button>
-        <button data-theme="dark">Koyu</button>
       </div>
       <div class="row">
         <div class="row-text"><strong>Vurgu rengi</strong><span>Düğmeler ve asistan</span></div>

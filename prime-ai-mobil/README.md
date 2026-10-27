@@ -51,10 +51,10 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
   gelince zıplayıp kıvılcım saçar. Dokununca küçük bir asistan paneli açılır ve
   kısa yanıt verir. **Ayarlar → Asistan → Ekranda görünsün** ile kapatılabilir.
 - **Sohbetler:** soldaki menüde liste, yeni sohbet, sohbet silme.
-- **Ayarlar:** tema (sistem/açık/koyu), 7 vurgu rengi, asistan boyutu ve
-  canlılığı, kısa yanıtlar, yanıt dili, yaratıcılık, ekstra talimat, API
-  yönetimi (ekle / etkinleştir / sil / bağlantı testi), tuş sesi ve düzeyi,
-  verileri temizleme.
+- **Ayarlar:** tema (varsayılan **siyah-kırmızı**; ayrıca **beyaz** ve sistem
+  teması), 8 vurgu rengi, asistan boyutu ve canlılığı, kısa yanıtlar, yanıt
+  dili, yaratıcılık, ekstra talimat, API yönetimi (ekle / etkinleştir / sil /
+  bağlantı testi), tuş sesi ve düzeyi, verileri temizleme.
 - **Çevrimdışı kabuk:** `sw.js` arayüzü önbelleğe alır; internet yokken uygulama
   açılır, sohbet için bağlantı gerekir.
 

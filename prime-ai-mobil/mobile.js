@@ -62,6 +62,7 @@ const PROVIDERS = {
 };
 
 const ACCENTS = [
+  { id: 'kirmizi', name: 'Kırmızı' },
   { id: 'alev', name: 'Alev' },
   { id: 'gunbatimi', name: 'Gün batımı' },
   { id: 'okyanus', name: 'Okyanus' },
@@ -80,10 +81,10 @@ const KEY_PREFIXES = [
 const LANG_NAMES = { tr: 'Türkçe', en: 'English', de: 'Deutsch', ru: 'Русский', ja: '日本語' };
 
 const DEF = {
-  v: 1,
+  v: 2,
   name: '',
-  theme: 'system',
-  accent: 'mor',
+  theme: 'dark',
+  accent: 'kirmizi',
   replyLang: 'tr',
   brief: true,
   temperature: 0.7,
@@ -113,6 +114,7 @@ function loadState() {
   try {
     const raw = JSON.parse(localStorage.getItem(STORE_KEY));
     if (!raw || typeof raw !== 'object') return { ...DEF };
+    const oldVersion = Number(raw.v || 1);
     const s = { ...DEF, ...raw };
     s.apis = Array.isArray(s.apis) ? s.apis.filter((a) => a && PROVIDERS[a.provider]) : [];
     s.chats = Array.isArray(s.chats) ? s.chats.filter((c) => c && Array.isArray(c.msgs)) : [];
@@ -120,6 +122,16 @@ function loadState() {
       if (!a.sid) a.sid = uid();
       a.key = String(a.key || '');
       a.model = String(a.model || '');
+    }
+    /* 1 → 2: eski varsayılan (sistem teması + mor) siyah-kırmızıya geçer;
+       beyazı ya da başka rengi seçenlerin ayarına dokunulmaz. */
+    if (oldVersion < 2) {
+      if (s.theme === 'system' && s.accent === 'mor') {
+        s.theme = 'dark';
+        s.accent = 'kirmizi';
+      }
+      s.v = 2;
+      try { localStorage.setItem(STORE_KEY, JSON.stringify(s)); } catch { /* yok */ }
     }
     return s;
   } catch {
@@ -1444,6 +1456,7 @@ function wireSettings() {
 
 function accentPair(id) {
   const map = {
+    kirmizi: ['#e11d48', '#ff5f3a'],
     alev: ['#ff3b30', '#ff9500'],
     gunbatimi: ['#f43f5e', '#f59e0b'],
     okyanus: ['#2563eb', '#06b6d4'],
