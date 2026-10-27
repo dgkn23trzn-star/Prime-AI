@@ -62,6 +62,8 @@ barındırmaya (GitHub Pages, Netlify…) koyup telefonda açmak yeterlidir; tar
 - **Mobil ayarlar:** tema, vurgu rengi, yanıt dili, kısa yanıtlar, yaratıcılık, tuş sesi,
   API anahtarı yönetimi ve bağlantı testi.
 
+İndirme sayfası: [PRIME AI Mobil 1.0.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.0.0)
+
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 
 ---
