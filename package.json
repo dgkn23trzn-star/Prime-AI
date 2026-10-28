@@ -1,7 +1,7 @@
 {
   "name": "prime-ai",
   "productName": "PRIME AI",
-  "version": "1.29.0",
+  "version": "1.29.1",
   "description": "Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması",
   "main": "electron/main.js",
   "author": "PRIME AI",

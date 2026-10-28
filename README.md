@@ -36,7 +36,7 @@ powershell -ExecutionPolicy Bypass -File scripts\kisayol-tusu.ps1
 
 ## Kurulum (Linux)
 
-Release sayfasındaki **PRIME-AI-1.29.0-linux-x64.tar.gz** dosyasını indirip açın, sonra klasörde:
+Release sayfasındaki **PRIME-AI-1.29.1-linux-x64.tar.gz** dosyasını indirip açın, sonra klasörde:
 
 ```bash
 chmod +x prime-ai      # ilk açılışta gerekebilir
@@ -95,7 +95,7 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.6.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.0/PRIME-AI-Mobil-1.6.0.apk)**
+  **[PRIME-AI-Mobil-1.6.1.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.apk)**
   (338 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme

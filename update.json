@@ -1,28 +1,25 @@
 {
   "schema": 1,
   "desktop": {
-    "version": "1.29.0",
-    "date": "2026-10-28",
+    "version": "1.29.1",
+    "date": "2026-10-29",
     "notes": [
-      "Güncelleme denetimi: yeni sürüm çıkınca uygulama kendiliğinden haber verir.",
-      "Yeni sürüm ortada, bulanık zeminli bir pencerede gösterilir.",
-      "Güncelle düğmesi kurulumu arka planda yapar ve uygulamayı yeniden açar."
+      "Güncelleme penceresi açılınca 8 saniyelik geri sayım başlar: dokunmazsan indirme ve sessiz kurulum kendiliğinden yapılır, uygulama yeni sürümle yeniden açılır. “Daha sonra” geri sayımı durdurur.",
+      "İngilizce arayüzde Türkçe kalan metinler düzeltildi: giriş düğmesi, anahtar tespiti, “getiriliyor…”, tema adı ve asistan sesi başlığı.",
+      "Sohbetler, API anahtarları ve ayarlar aynen korunur."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.0/PRIME-AI-Setup-1.29.0.exe",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-Setup-1.29.1.exe",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.1"
   },
   "mobile": {
-    "version": "1.6.0",
-    "date": "2026-10-28",
+    "version": "1.6.1",
+    "date": "2026-10-29",
     "notes": [
-      "Kamera modu tamamen sesli: yazma yeri yok, konuşunca cümlen biter bitmez gönderilir.",
-      "Konu bağımsız: kamerayla ilgili sorularda kareyi anlatır, ilgisiz sorularda normal cevap verir.",
-      "AI konuşurken mikrofon kapanır, bitince kendiliğinden yeniden açılır; altta mikrofon ve kapat tuşları var.",
-      "Ayarlar → Kayıtlı varlıklar: belleğe alınan nesneleri kaydırarak galeri gibi gez.",
-      "Çekmecede Sohbetler ve Kameralı Sohbetler ayrı sekmeler.",
-      "Kamera ekranı yenilendi: kare çerçeve, etrafında temaya uygun noktalar; düşünürken dalgalanır, konuşurken titrer."
+      "Güncelleme penceresi açılınca 8 saniyelik geri sayım başlar: APK indirilir ve kurulum ekranı kendiliğinden açılır. “Daha sonra” geri sayımı durdurur.",
+      "Uygulama kendi sürümünü yanlış bildiriyordu; güncelleme her açılışta tekrar sorulabiliyordu. Artık doğru sürüm görünüyor.",
+      "İngilizce arayüzde kalan Türkçe metinler düzeltildi."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.0/PRIME-AI-Mobil-1.6.0.apk",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.6.0"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.6.1"
   }
 }
