@@ -13,6 +13,15 @@
 </head>
 <body>
 
+<!-- ================= AMBİYANS: yıldızlar, kırmızı küreler, kayan yıldız =================
+     Dekoratif katman; tıklamaları engellemez (pointer-events: none).
+     İçerik script.js içinde üretilir. -->
+<div class="sky" id="sky" aria-hidden="true">
+  <div class="sky-stars" id="skyStars"></div>
+  <div class="sky-orbs" id="skyOrbs"></div>
+  <div class="sky-shooting" id="skyShooting"></div>
+</div>
+
 <!-- ============================ HEADER ============================ -->
 <header class="site-header" id="header">
   <div class="container nav-wrap">
@@ -21,14 +30,15 @@
       <span class="brand-name">PRIME<strong>AI</strong></span>
     </a>
 
-    <a class="btn btn-red btn-sm nav-cta" href="#indir">Prime AI İndir</a>
+    <!-- Tek indirme girişi: sağdaki menüde ayrıca “İndir” bağlantısı yok,
+         böylece sayfada indirmeye götüren tek bir üst düğme var. -->
+    <a class="btn btn-red btn-sm nav-cta" href="#indir"><span class="cta-full">Prime AI İndir</span><span class="cta-short">İndir</span></a>
 
     <nav class="nav-links" id="navLinks" aria-label="Ana menü">
       <a href="#ozellikler">Özellikler</a>
       <a href="#nasil">Nasıl Çalışır?</a>
       <a href="#api">API key</a>
       <a href="#galeri">Galeri</a>
-      <a href="#indir" class="btn btn-red btn-sm">İndir</a>
     </nav>
 
     <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat" aria-expanded="false">
@@ -355,10 +365,9 @@
       </article>
     </div>
 
-    <div class="cta-actions reveal">
-      <a class="btn btn-red btn-lg" href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener">Tüm sürümler</a>
-      <a class="btn btn-ghost btn-lg" href="https://github.com/dgkn23trzn-star/Prime-AI" target="_blank" rel="noopener">Kaynak kod (GitHub)</a>
-    </div>
+    <p class="dl-note reveal">
+      Tüm sürümler ve kaynak kod <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener">GitHub deposunda</a>.
+    </p>
   </div>
 </section>
 
@@ -388,15 +397,6 @@
       <a href="#api">API key</a>
       <a href="#galeri">Galeri</a>
       <a href="#indir">İndir</a>
-    </nav>
-
-    <nav class="f-col" aria-label="İndirme">
-      <h4>İndirme</h4>
-      <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-Setup-1.29.1.exe" target="_blank" rel="noopener">Windows</a>
-      <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-1.29.1-linux-x64.tar.gz" target="_blank" rel="noopener">Linux</a>
-      <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.apk" target="_blank" rel="noopener">Android APK</a>
-      <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.zip" target="_blank" rel="noopener">Web / PWA</a>
-      <a href="https://github.com/dgkn23trzn-star/Prime-AI" target="_blank" rel="noopener">GitHub deposu</a>
     </nav>
   </div>
 

@@ -111,6 +111,9 @@ p { margin: 0 0 1em; }
 .brand-name strong { color: var(--red); font-weight: 700; }
 
 .nav-cta { margin-left: 6px; }
+/* Mobilde düğme kısalır ama gizlenmez: indirmeye giden tek üst düğme her
+   ekran genişliğinde görünür kalsın. */
+.nav-cta .cta-short { display: none; }
 
 .nav-links {
   margin-left: auto;
@@ -570,7 +573,7 @@ p { margin: 0 0 1em; }
 }
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr 1fr;
+  grid-template-columns: 1.7fr 1fr;
   gap: 40px;
   padding-bottom: 34px;
   border-bottom: 1px solid var(--line);
@@ -800,9 +803,13 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
 .api-mobile-copy h3 { font-size: 1.45rem; margin: 6px 0 10px; }
 .api-mobile-copy p { color: var(--muted); font-size: 14.5px; line-height: 1.65; }
 
-.api-phones { display: flex; gap: 18px; justify-content: center; align-items: flex-end; }
+.api-phones { display: flex; gap: 18px; justify-content: center; align-items: flex-end; flex-wrap: wrap; max-width: 100%; }
+/* Izgara hücreleri min-content'ten küçülemiyor; mobilde telefon ikilisi
+   dar ekranda taşmasın diye küçülmeye izin verilir. */
+.api-mobile > * { min-width: 0; }
 .api-phone {
   width: 170px;
+  max-width: 100%;
   border-radius: 22px;
   overflow: hidden;
   border: 1px solid var(--line);
@@ -826,6 +833,102 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
   .api-phones { gap: 12px; }
 }
 
+/* ================= AMBİYANS KATMANI =================
+   Yıldızlar, kırmızı ışık küreleri ve ara sıra kayan yıldız.
+   Sabit katman; sayfa kaydırılınca da yerinde durur. */
+.sky {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.sky-stars, .sky-orbs, .sky-shooting {
+  position: absolute;
+  inset: 0;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: #fff;
+  opacity: .5;
+  animation: twinkle var(--tw, 4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes twinkle {
+  0%, 100% { opacity: .18; transform: scale(.8); }
+  50% { opacity: .95; transform: scale(1.15); }
+}
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(26px);
+  opacity: .62;
+  will-change: transform;
+  animation: orb-drift var(--dur, 26s) ease-in-out infinite alternate;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes orb-drift {
+  0% { transform: translate3d(0, 0, 0) scale(1); }
+  50% { transform: translate3d(var(--dx, 40px), var(--dy, -50px), 0) scale(1.14); }
+  100% { transform: translate3d(var(--dx2, -35px), var(--dy2, 45px), 0) scale(.92); }
+}
+
+.shooter {
+  position: absolute;
+  width: var(--len, 150px);
+  height: 2px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 120, 100, .9) 55%, #fff 100%);
+  filter: drop-shadow(0 0 6px rgba(255, 59, 71, .85));
+  transform: rotate(18deg);
+  animation: shoot var(--fall, 1.5s) cubic-bezier(.3, .1, .5, 1) forwards;
+}
+@keyframes shoot {
+  0% { transform: translate3d(0, 0, 0) rotate(18deg); opacity: 0; }
+  8% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { transform: translate3d(calc(-1 * var(--travel, 60vw)), var(--drop, 34vh), 0) rotate(18deg); opacity: 0; }
+}
+
+/* Bölüm zeminleri yarı saydam: yıldızlar arkalarından hafifçe görünür. */
+.hero {
+  background:
+    radial-gradient(900px 520px at 78% 8%, rgba(255, 59, 71, .16), transparent 62%),
+    radial-gradient(700px 500px at 8% 42%, rgba(179, 18, 31, .2), transparent 65%),
+    rgba(6, 6, 7, .78);
+}
+.section-alt { background: rgba(11, 11, 14, .86); }
+.section-cta {
+  background:
+    radial-gradient(700px 420px at 50% 0%, rgba(255, 59, 71, .16), transparent 70%),
+    rgba(11, 11, 14, .86);
+}
+.site-footer { background: rgba(5, 5, 7, .9); }
+.site-header.scrolled { background: rgba(6, 6, 7, .82); }
+
+.dl-note {
+  position: relative;
+  text-align: center;
+  margin: 24px 0 0;
+  font-size: 14px;
+  color: var(--muted);
+}
+.dl-note a { color: #ff9d8f; border-bottom: 1px solid rgba(255, 59, 71, .4); }
+.dl-note a:hover { color: #fff; }
+
+/* Animasyonların hiç ilerlemediği ortamlarda (script.js no-anim) sadeleştir. */
+.no-anim .shooter { display: none; }
+.no-anim .star, .no-anim .orb { animation: none; }
+
+@media (max-width: 760px) {
+  .orb { filter: blur(18px); opacity: .42; }
+  .shooter { height: 1.5px; }
+}
+
 /* --------------------------- Duyarlı --------------------------- */
 @media (max-width: 980px) {
   .hero-inner { grid-template-columns: 1fr; gap: 40px; padding-top: 8px; }
@@ -837,8 +940,15 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
 }
 
 @media (max-width: 760px) {
-  .nav-cta { display: none; }
-  .nav-toggle { display: flex; }
+  .nav-cta {
+    display: inline-flex;
+    margin-left: auto;
+    padding: 9px 15px;
+    font-size: 14px;
+  }
+  .nav-cta .cta-full { display: none; }
+  .nav-cta .cta-short { display: inline; }
+  .nav-toggle { display: flex; margin-left: 12px; }
   .nav-links {
     position: absolute;
     top: calc(100% + 8px);
@@ -849,7 +959,7 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
     gap: 4px;
     padding: 14px;
     border-radius: 16px;
-    background: rgba(10, 10, 12, .97);
+    background: #0a0a0c;
     border: 1px solid var(--line);
     box-shadow: var(--shadow);
     display: none;

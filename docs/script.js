@@ -258,5 +258,85 @@ setTimeout(() => {
   revealables.forEach((el) => el.classList.add('visible'));
 }, 3000);
 
+/* --------------------------- Ambiyans katmanı ---------------------------
+   Yıldızlar, 10 kırmızı ışık küresi ve ara sıra geçen kayan yıldız.
+   Hepsi dekoratif: pointer-events yok, içerik etkilenmez. */
+(function ambience() {
+  const sky = $('sky');
+  if (!sky) return;
+  const starsWrap = $('skyStars');
+  const orbsWrap = $('skyOrbs');
+  const shootWrap = $('skyShooting');
+  if (!starsWrap || !orbsWrap || !shootWrap) return;
+
+  const rand = (a, b) => a + Math.random() * (b - a);
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const small = window.innerWidth < 760;
+
+  /* --- Yıldızlar: hafifçe parıldayan noktalar (bir kısmı kızıl) --- */
+  const stars = document.createDocumentFragment();
+  const starCount = small ? 70 : 130;
+  for (let i = 0; i < starCount; i++) {
+    const s = document.createElement('span');
+    s.className = 'star';
+    const size = rand(1, small ? 1.8 : 2.4);
+    s.style.width = size.toFixed(1) + 'px';
+    s.style.height = size.toFixed(1) + 'px';
+    s.style.left = rand(0, 100).toFixed(2) + '%';
+    s.style.top = rand(0, 100).toFixed(2) + '%';
+    s.style.setProperty('--tw', rand(3, 7).toFixed(2) + 's');
+    s.style.setProperty('--delay', (-rand(0, 7)).toFixed(2) + 's');
+    if (Math.random() < .3) s.style.background = '#ff9c86';
+    stars.appendChild(s);
+  }
+  starsWrap.appendChild(stars);
+
+  /* --- 10 kırmızı / koyu kırmızı ışık küresi, yavaşça geziniyor --- */
+  const tints = [
+    'rgba(255, 59, 71, .55)',
+    'rgba(179, 18, 31, .6)',
+    'rgba(255, 106, 61, .42)',
+    'rgba(150, 12, 26, .62)'
+  ];
+  for (let i = 0; i < 10; i++) {
+    const o = document.createElement('span');
+    o.className = 'orb';
+    const size = rand(small ? 130 : 190, small ? 250 : 430);
+    const tint = tints[i % tints.length];
+    o.style.width = size.toFixed(0) + 'px';
+    o.style.height = size.toFixed(0) + 'px';
+    o.style.left = rand(-6, 92).toFixed(2) + '%';
+    o.style.top = rand(-8, 94).toFixed(2) + '%';
+    o.style.background = 'radial-gradient(circle at 50% 50%, ' + tint + ', rgba(0, 0, 0, 0) 70%)';
+    o.style.setProperty('--dur', rand(20, 40).toFixed(1) + 's');
+    o.style.setProperty('--delay', (-rand(0, 20)).toFixed(1) + 's');
+    o.style.setProperty('--dx', rand(-130, 130).toFixed(0) + 'px');
+    o.style.setProperty('--dy', rand(-140, 140).toFixed(0) + 'px');
+    o.style.setProperty('--dx2', rand(-120, 120).toFixed(0) + 'px');
+    o.style.setProperty('--dy2', rand(-130, 130).toFixed(0) + 'px');
+    orbsWrap.appendChild(o);
+  }
+
+  /* --- Kayan yıldız: 7-16 saniyede bir, tek seferlik --- */
+  if (reduced) return;
+  function spawnShooter() {
+    const el = document.createElement('span');
+    el.className = 'shooter';
+    const len = rand(90, 200);
+    el.style.width = len.toFixed(0) + 'px';
+    el.style.left = rand(45, 96).toFixed(1) + '%';
+    el.style.top = rand(0, 38).toFixed(1) + '%';
+    el.style.setProperty('--travel', rand(45, 72).toFixed(0) + 'vw');
+    el.style.setProperty('--drop', rand(18, 40).toFixed(0) + 'vh');
+    el.style.setProperty('--fall', rand(1.2, 2.1).toFixed(2) + 's');
+    shootWrap.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+  (function loop() {
+    spawnShooter();
+    setTimeout(loop, rand(7000, 16000));
+  })();
+})();
+
 /* --------------------------- İlk durum --------------------------- */
 onScroll();
