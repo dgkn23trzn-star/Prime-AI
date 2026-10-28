@@ -75,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.5.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.0/PRIME-AI-Mobil-1.5.0.apk)**
-  (345 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.5.1.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.1/PRIME-AI-Mobil-1.5.1.apk)**
+  (334 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.5.0.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.5.1.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -123,7 +123,7 @@ python -m http.server 5173
   izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
   ile elle de bakılır.
 
-İndirme sayfası: [PRIME AI Mobil 1.5.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.0)
+İndirme sayfası: [PRIME AI Mobil 1.5.1](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.1)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 

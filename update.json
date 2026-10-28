@@ -12,16 +12,17 @@
     "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
   },
   "mobile": {
-    "version": "1.5.0",
+    "version": "1.5.1",
     "date": "2026-10-28",
     "notes": [
       "Kamera ile konuşma: canlı görüntüyü anlatır, rengini söyler, yanıtı sesli okur.",
+      "AI artık kendi sesini duyup kendini kesmiyor; araya girince susmaya devam ediyor.",
       "Nesne belleği: “bunun adı …” dediğin şeyi fotoğrafıyla hatırlar, farklı açıdan da tanır.",
       "Yapay zekâ sesi: üç kadın ve üç erkek ton, hız ayarı, yanıtları sesli okuma.",
       "Mikrofon ayarları: dinleme dili, konuşunca gönder, araya girince sus.",
       "Profili için galeriden fotoğraf seçebilirsin."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.0/PRIME-AI-Mobil-1.5.0.apk",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.0"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.1/PRIME-AI-Mobil-1.5.1.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.1"
   }
 }

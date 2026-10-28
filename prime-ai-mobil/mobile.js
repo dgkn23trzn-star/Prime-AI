@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.5.0';
+const VERSION = '1.5.1';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -1375,6 +1375,8 @@ const VOICE_PITCH = { k1: 1.16, k2: 1.3, k3: 1.08, e1: 0.8, e2: 0.92, e3: 0.66 }
 let micTarget = 'chat';       // 'chat' | 'cam'
 let micActive = false;
 let recognizer = null;
+let speakStartedAt = 0;
+let spokenText = '';
 
 function nativeVoice() {
   return (window.PrimeVoice && typeof window.PrimeVoice.speak === 'function') ? window.PrimeVoice : null;
@@ -1426,9 +1428,27 @@ function isSpeaking() {
   try { return !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch { return false; }
 }
 
+function normSpeech(s) {
+  return String(s || '').toLowerCase().replace(/[^\p{L}0-9 ]+/gu, ' ').replace(/\s+/g, ' ').trim();
+}
+
+/* AI konuşurken kullanıcı araya girerse sesi keser; kendi sesini duyup
+   kendini kesmemesi için ilk 0,9 saniye ve kendi metniyle eşleşen parçalar yok sayılır. */
+function maybeBargeIn(text) {
+  if (!state.bargeIn || !isSpeaking()) return false;
+  const said = normSpeech(text);
+  if (said.length < 3) return false;
+  if (Date.now() - speakStartedAt < 900) return false;
+  if (spokenText && (spokenText.startsWith(said) || spokenText.includes(said))) return false;
+  stopSpeaking();
+  return true;
+}
+
 function speakText(text) {
   const clean = speakable(text);
   if (!clean) return;
+  speakStartedAt = Date.now();
+  spokenText = normSpeech(clean);
   const rate = Number(state.voiceRate) || 1;
   const nv = nativeVoice();
   if (nv) {
@@ -1540,7 +1560,7 @@ function startWebMic() {
         else interim += r[0].transcript;
       }
       if (interim) {
-        if (state.bargeIn && isSpeaking()) stopSpeaking();
+        maybeBargeIn(interim);
         showTranscript(interim);
       }
       if (final.trim()) handleUtterance(final);
@@ -1581,7 +1601,7 @@ window.__primeVoice = function (raw) {
   if (!d || !d.type) return;
   if (d.type === 'start') { setMicUI(true); return; }
   if (d.type === 'partial') {
-    if (state.bargeIn && isSpeaking()) stopSpeaking();
+    maybeBargeIn(d.text || '');
     showTranscript(d.text || '');
     return;
   }
