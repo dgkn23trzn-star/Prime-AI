@@ -14,6 +14,11 @@ hariç): dosyalar APK'nın içindedir.
   şey açık değilse uygulamadan çıkar.
 - `PrimeAndroid.setDark(...)` ile durum çubuğu seçili temaya uyar; görsel
   seçici (`onShowFileChooser`) sohbetin görsel ekleme düğmesine bağlıdır.
+- `Voice.java` ses köprüsüdür (`PrimeVoice`): metin okuma (TextToSpeech) ve
+  mikrofon (SpeechRecognizer). Altı ses profili (üç kadın, üç erkek) ton/hız ve
+  varsa farklı cihaz sesleriyle üretilir; olaylar `window.__primeVoice(...)`
+  ile sayfaya iletilir. `PrimeAndroid.ensureCamera()` kamera iznini ister,
+  `onPermissionRequest` kamerayı/mikrofonu WebView'e açar.
 
 ## Asistan tuşu (ana ekranda duran top)
 

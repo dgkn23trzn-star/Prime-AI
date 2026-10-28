@@ -67,6 +67,9 @@ try {
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
       </button>
       <textarea id="input" rows="1" placeholder="PRIME AI'ya sor" enterkeyhint="send" aria-label="Mesaj"></textarea>
+      <button class="composer-btn cam" id="cameraBtn" type="button" aria-label="Kamera ile konuş">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l1.6-2h6.8L17 8h3v11H4z" /><circle cx="12" cy="13.4" r="3.1" /></svg>
+      </button>
       <button class="composer-btn mic" id="micBtn" type="button" aria-label="Sesle yaz">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
       </button>
@@ -75,6 +78,7 @@ try {
       </button>
     </form>
     <input type="file" id="fileInput" accept="image/*" hidden />
+    <input type="file" id="avatarInput" accept="image/*" hidden />
   </div>
 
 </div>
@@ -123,6 +127,8 @@ try {
       <div class="profile-text">
         <input id="nameInput" class="line-input" placeholder="Adın" maxlength="32" aria-label="Adın" />
         <span class="muted" id="profileSub">Sohbetler yalnızca bu telefonda saklanır</span>
+        <button class="text-btn" id="avatarPick" type="button">Profil fotoğrafı ekle</button>
+        <button class="text-btn" id="avatarClear" type="button" hidden>Fotoğrafı kaldır</button>
       </div>
     </div>
 
@@ -189,6 +195,62 @@ try {
       </div>
     </div>
 
+    <p class="group-label">Mikrofon</p>
+    <div class="card">
+      <label class="row">
+        <div class="row-text"><strong>Konuşunca gönder</strong><span>Mikrofonla söylediğin cümle kendiliğinden gönderilir</span></div>
+        <span class="switch"><input type="checkbox" id="micAutoSend" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>Dinleme dili</strong><span>Mikrofonun anlayacağı dil</span></div>
+        <select id="micLang">
+          <option value="">Yanıt diliyle aynı</option>
+          <option value="tr-TR">Türkçe</option>
+          <option value="en-US">English</option>
+          <option value="de-DE">Deutsch</option>
+          <option value="ru-RU">Русский</option>
+          <option value="ja-JP">日本語</option>
+        </select>
+      </div>
+      <label class="row">
+        <div class="row-text"><strong>Araya girince sus</strong><span>Sen konuşmaya başlayınca yapay zekânın sesi kesilir</span></div>
+        <span class="switch"><input type="checkbox" id="bargeIn" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>Mikrofon durumu</strong><span id="micState">Hazır — komut bekliyor</span></div>
+        <button class="text-btn" id="micTest" type="button">Dinle</button>
+      </div>
+    </div>
+
+    <p class="group-label">Ses</p>
+    <div class="card">
+      <label class="row">
+        <div class="row-text"><strong>Yanıtları sesli oku</strong><span>PRIME AI yazdığı yanıtı seslendirir</span></div>
+        <span class="switch"><input type="checkbox" id="voiceOn" /><i></i></span>
+      </label>
+      <div class="row">
+        <div class="row-text"><strong>AI sesi</strong><span>Kadın ve erkek, üçer ton</span></div>
+        <select id="voicePick"></select>
+      </div>
+      <div class="row">
+        <div class="row-text"><strong>Konuşma hızı</strong><span id="voiceRateValue">1.0×</span></div>
+        <input type="range" id="voiceRate" min="0.7" max="1.4" step="0.1" />
+      </div>
+      <button class="row link-row" id="voiceTry" type="button">
+        <div class="row-text"><strong>Sesi dene</strong><span>Seçili sesle örnek bir cümle okur</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
+    </div>
+
+    <p class="group-label">Bellek</p>
+    <div class="card">
+      <div class="row column">
+        <div class="row-text"><strong>Adını söylediğin nesneler</strong><span>Kamerada gördüğünde adıyla tanır; bellek bu telefonda kalır</span></div>
+        <div class="mem-list" id="memList"></div>
+        <p class="hint" id="memEmpty">Henüz kayıt yok. Kamerada bir şey gösterip “bunun adı …” dediğinde buraya eklenir.</p>
+      </div>
+    </div>
+
     <p class="group-label">API</p>
     <div class="card" id="apiCard">
       <div class="api-list" id="apiList"></div>
@@ -252,7 +314,7 @@ try {
     <p class="group-label">Hakkında</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.4.0</span></div>
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.5.0</span></div>
       </div>
       <button class="row link-row" id="updCheckRow">
         <div class="row-text"><strong>Güncellemeyi denetle</strong><span id="updCheckSub">Yeni sürüm var mı diye bakar</span></div>
@@ -269,6 +331,50 @@ try {
     </div>
 
     <p class="fineprint">Kendi anahtarınla çalışır. Anahtarlar ve sohbetler yalnızca cihazında saklanır; PRIME AI sunucusuna hiçbir şey gönderilmez.</p>
+  </div>
+</section>
+
+<!-- =========================================================
+     KAMERA İLE KONUŞ — kameradaki görüntüyü modele gönderir.
+     Hem yazarak hem mikrofonla sorulur; yanıt sesli okunur.
+     ========================================================= -->
+<section class="sheet cam-sheet" id="camSheet" hidden aria-label="Kamera ile konuş">
+  <header class="sheet-head">
+    <button class="icon-btn" id="camClose" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <h2>Kamera ile konuş</h2>
+    <button class="icon-btn" id="camFlip" aria-label="Kamerayı çevir">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9a8 8 0 0 1 13-3l3 3M20 15a8 8 0 0 1-13 3l-3-3" /><path d="M20 5v4h-4M4 19v-4h4" /></svg>
+    </button>
+  </header>
+
+  <div class="cam-body">
+    <div class="cam-stage">
+      <video id="camVideo" playsinline muted autoplay></video>
+      <span class="cam-scan" aria-hidden="true"></span>
+      <p class="cam-hint" id="camHint">Kamerayı açıyorum…</p>
+      <div class="cam-answer" id="camAnswer" hidden></div>
+    </div>
+
+    <p class="cam-said" id="camSaid" hidden></p>
+
+    <form class="cam-input" id="camForm" autocomplete="off">
+      <input id="camText" type="text" placeholder="Ne göreceğini yaz ya da mikrofonu kullan" aria-label="Kameraya soru" />
+      <button class="composer-btn" id="camSend" type="submit" aria-label="Gönder">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
+      </button>
+    </form>
+
+    <div class="cam-actions">
+      <button class="cam-btn ghost" id="camMemory" type="button">Belleğe ekle</button>
+      <button class="cam-btn live" id="camMic" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+        Konuş
+      </button>
+    </div>
+
+    <p class="fineprint" id="camTip">Kare yalnızca sorduğunda gönderilir. “Belleğe ekle” demedikçe görüntü cihazda saklanmaz.</p>
   </div>
 </section>
 

@@ -13,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.4.0.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.5.0.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -80,6 +80,15 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
 - **Yanıt sigortası:** akış kurulamazsa (gövde yok, 5xx, 30 saniye veri gelmezse) istek
   bir kez akışsız gönderilir; seçili model o anahtarda yoksa sağlayıcının varsayılan
   modeli kendiliğinden seçilir. Böylece “anahtar ekledim ama yanıt gelmiyor” durumu kalmaz.
+- **Kamera ile konuşma:** kamera düğmesi canlı önizlemeyi açar; yazarak ya da **Konuş** ile
+  sorulur, o anki kare modele gider (ilk görsel kamera, sonrakiler bellek görselleri). Model
+  ne olduğunu/rengini anlatır ve yanıtı sesli okur. AI konuşurken konuşmaya başlarsan susar.
+- **Nesne belleği:** “bunun adı …” dendiğinde kare küçültülüp adıyla saklanır (en fazla 24,
+  cihazda). Sonraki kamera sorularında adlar ve görseller modele gönderilir.
+- **Ses:** `PrimeVoice` köprüsü TTS ve `SpeechRecognizer` sağlar; üç kadın + üç erkek ton,
+  hız, “Yanıtları sesli oku”, dinleme dili, “Konuşunca gönder”, “Araya girince sus”.
+- **Profil fotoğrafı:** profil avatarına dokunup galeriden seçilir; üst çubuk, menü ve
+  ayarlarda görünür.
 - **Asistan tuşu (ana ekranda top):** **Ayarlar → Asistan → Asistan tuşu**
   açılınca gerekli izinler istenir, uygulama kapanır ve top ana ekranda kalır.
   Topa dokununca mikrofon dinler, yanıt balonda akar ve sesli okunur; topu

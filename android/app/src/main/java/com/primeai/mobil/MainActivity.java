@@ -14,6 +14,7 @@ import android.provider.Settings;
 import android.view.View;
 import android.view.Window;
 import android.webkit.JavascriptInterface;
+import android.webkit.PermissionRequest;
 import android.webkit.ValueCallback;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -45,8 +46,10 @@ public class MainActivity extends Activity {
     private static final int PICK_FILE = 1001;
     private static final int REQ_OVERLAY = 2001;
     private static final int REQ_PERMS = 2002;
+    private static final int REQ_MEDIA = 2003;
 
     private WebView web;
+    private Voice voice;
     private ValueCallback<Uri[]> pendingFiles;
     /* Ekranda gösterme izni verilince asistan kendiliğinden açılsın. */
     private boolean assistantPending = false;
@@ -91,6 +94,8 @@ public class MainActivity extends Activity {
         }
 
         web.addJavascriptInterface(new Bridge(), "PrimeAndroid");
+        voice = new Voice(this, web);
+        web.addJavascriptInterface(voice, "PrimeVoice");
 
         web.setWebViewClient(new WebViewClient() {
             @Override
@@ -120,6 +125,30 @@ public class MainActivity extends Activity {
         });
 
         web.setWebChromeClient(new WebChromeClient() {
+            /* Kamera ve mikrofon istekleri: izin verilmişse WebView'e geçirilir. */
+            @Override
+            public void onPermissionRequest(final PermissionRequest request) {
+                final String[] resources = request.getResources();
+                runOnUiThread(() -> {
+                    ArrayList<String> ask = new ArrayList<>();
+                    for (String r : resources) {
+                        if (PermissionRequest.RESOURCE_VIDEO_CAPTURE.equals(r)
+                                && !hasPermission(Manifest.permission.CAMERA)) {
+                            ask.add(Manifest.permission.CAMERA);
+                        }
+                        if (PermissionRequest.RESOURCE_AUDIO_CAPTURE.equals(r) && !hasMic()) {
+                            ask.add(Manifest.permission.RECORD_AUDIO);
+                        }
+                    }
+                    if (!ask.isEmpty()) {
+                        requestPermissions(ask.toArray(new String[0]), REQ_MEDIA);
+                        request.deny();
+                        return;
+                    }
+                    request.grant(resources);
+                });
+            }
+
             @Override
             public boolean onShowFileChooser(WebView view, ValueCallback<Uri[]> callback, FileChooserParams params) {
                 if (pendingFiles != null) {
@@ -290,6 +319,22 @@ public class MainActivity extends Activity {
                 public void run() { openInstallSettings(); }
             });
             return updateStateJson().toString();
+        }
+
+        /* ------------------------- kamera izni ------------------------- */
+
+        /** "granted" | "ask": izin yoksa istenir, sonuç __primeMediaGranted ile bildirilir. */
+        @JavascriptInterface
+        public String ensureCamera() {
+            if (hasPermission(Manifest.permission.CAMERA)) return "granted";
+            runOnUiThread(() -> requestPermissions(
+                    new String[]{Manifest.permission.CAMERA, Manifest.permission.RECORD_AUDIO}, REQ_MEDIA));
+            return "ask";
+        }
+
+        @JavascriptInterface
+        public boolean hasCamera() {
+            return hasPermission(Manifest.permission.CAMERA);
         }
 
         @JavascriptInterface
@@ -513,6 +558,13 @@ public class MainActivity extends Activity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQ_MEDIA) {
+            final boolean cam = hasPermission(Manifest.permission.CAMERA);
+            try {
+                web.evaluateJavascript("window.__primeMediaGranted&&window.__primeMediaGranted(" + cam + ")", null);
+            } catch (Exception ignored) { }
+            return;
+        }
         if (requestCode == REQ_PERMS) {
             if (!hasMic()) Toast.makeText(this, "Mikrofon izni olmadan top dinleyemez; istediğinde Ayarlar'dan açabilirsin.", Toast.LENGTH_LONG).show();
             if (hasMic()) {
@@ -573,6 +625,10 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+        if (voice != null) {
+            voice.shutdown();
+            voice = null;
+        }
         if (web != null) {
             web.loadUrl("about:blank");
             web.destroy();

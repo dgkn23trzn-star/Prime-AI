@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.4.0';
+const VERSION = '1.5.0';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -319,7 +319,7 @@ function T(key, vars) {
 }
 
 const DEF = {
-  v: 4,
+  v: 5,
   name: '',
   theme: 'dark',
   accent: 'kirmizi',
@@ -338,7 +338,16 @@ const DEF = {
   activeChatId: null,
   lang: '',
   langDone: false,
-  tutorialDone: false
+  tutorialDone: false,
+  avatar: '',
+  memories: [],
+  voiceOn: true,
+  voiceId: 'k1',
+  voiceRate: 1,
+  micAutoSend: true,
+  micLang: '',
+  bargeIn: true,
+  camFacing: 'environment'
 };
 
 /* ----------------------------- Durum ----------------------------- */
@@ -356,6 +365,10 @@ function loadState() {
     const s = { ...DEF, ...raw };
     s.apis = Array.isArray(s.apis) ? s.apis.filter((a) => a && PROVIDERS[a.provider]) : [];
     s.chats = Array.isArray(s.chats) ? s.chats.filter((c) => c && Array.isArray(c.msgs)) : [];
+    s.memories = Array.isArray(s.memories)
+      ? s.memories.filter((m) => m && m.name && m.thumb).slice(0, 24)
+      : [];
+    s.avatar = typeof s.avatar === 'string' ? s.avatar : '';
     for (const a of s.apis) {
       if (!a.sid) a.sid = uid();
       a.key = String(a.key || '');
@@ -1194,7 +1207,9 @@ async function sendMessage(text, images, opts) {
     scrollToEnd(false);
   };
 
+  stopSpeaking();   // yeni soru: okunan yanıt kesilir
   let failure = '';
+  let reply = '';
   try {
     await streamReply(historyForApi(chat, chat.msgs.length - 1), (delta) => {
       aiMsg.content += delta;
@@ -1202,12 +1217,14 @@ async function sendMessage(text, images, opts) {
     }, ctrl.signal, opts && opts.extra);
     aiMsg.content = aiMsg.content.trim();
     if (!aiMsg.content) aiMsg.content = 'Yanıt gelmedi. Anahtarını ve modelini kontrol edip yeniden dene.';
+    reply = aiMsg.content;
     saveState();
   } catch (err) {
     const aborted = ctrl.signal.aborted;
     const msg = String((err && err.message) || err);
     if (!aborted) failure = msg;
     aiMsg.content = aiMsg.content.trim();
+    reply = aiMsg.content;
     if (!aiMsg.content) chat.msgs = chat.msgs.filter((m) => m !== aiMsg);
     saveState();
   } finally {
@@ -1232,7 +1249,10 @@ async function sendMessage(text, images, opts) {
     }
     scrollToEnd(true);
     updateSendState();
+    /* Yanıtları sesli okuma açıksa yanıt burada seslendirilir. */
+    if (reply && state.voiceOn && !(opts && opts.silent)) speakText(reply);
   }
+  return reply;
 }
 
 function stopStreaming() {
@@ -1339,45 +1359,493 @@ async function addImageFile(file) {
   updateSendState();
 }
 
-/* ----------------------------- Sesle yazma ----------------------------- */
+/* ----------------------------- Ses (mikrofon + okuma) -----------------------------
+   Mikrofon: Android'de PrimeVoice köprüsü (SpeechRecognizer), tarayıcıda Web
+   Speech. Okuma: PrimeVoice TTS; tarayıcıda speechSynthesis. */
+const VOICE_FALLBACK = [
+  { id: 'k1', label: 'Kadın 1 · sıcak' },
+  { id: 'k2', label: 'Kadın 2 · canlı' },
+  { id: 'k3', label: 'Kadın 3 · sakin' },
+  { id: 'e1', label: 'Erkek 1 · derin' },
+  { id: 'e2', label: 'Erkek 2 · doğal' },
+  { id: 'e3', label: 'Erkek 3 · ağır' }
+];
+const VOICE_PITCH = { k1: 1.16, k2: 1.3, k3: 1.08, e1: 0.8, e2: 0.92, e3: 0.66 };
+
+let micTarget = 'chat';       // 'chat' | 'cam'
+let micActive = false;
 let recognizer = null;
-function toggleMic() {
-  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!Rec) { toast('Bu tarayıcı sesle yazmayı desteklemiyor.', true); return; }
-  const btn = $('micBtn');
+
+function nativeVoice() {
+  return (window.PrimeVoice && typeof window.PrimeVoice.speak === 'function') ? window.PrimeVoice : null;
+}
+
+function voiceProfiles() {
+  const nv = nativeVoice();
+  if (nv && nv.profiles) {
+    try {
+      const list = JSON.parse(nv.profiles() || '[]');
+      if (Array.isArray(list) && list.length) return list;
+    } catch { /* köprü yok */ }
+  }
+  return VOICE_FALLBACK;
+}
+
+function fillVoiceSelect() {
+  const sel = $('voicePick');
+  if (!sel) return;
+  sel.innerHTML = '';
+  for (const v of voiceProfiles()) {
+    const o = document.createElement('option');
+    o.value = v.id;
+    o.textContent = v.label || v.id;
+    sel.appendChild(o);
+  }
+  sel.value = VOICE_PITCH[state.voiceId] ? state.voiceId : 'k1';
+}
+
+/* Konuşma için metni sadeleştirir: kod ve işaretler okunmaz. */
+function speakable(text) {
+  return String(text || '')
+    .replace(/```[\s\S]*?```/g, ' (kod bloğu) ')
+    .replace(/`[^`]*`/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/[*_#>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .replace(/\s+([,.;:!?])/g, '$1')
+    .trim()
+    .slice(0, 1200);
+}
+
+function isSpeaking() {
+  const nv = nativeVoice();
+  if (nv && nv.speaking) {
+    try { if (nv.speaking()) return true; } catch { /* yok */ }
+  }
+  try { return !!(window.speechSynthesis && window.speechSynthesis.speaking); } catch { return false; }
+}
+
+function speakText(text) {
+  const clean = speakable(text);
+  if (!clean) return;
+  const rate = Number(state.voiceRate) || 1;
+  const nv = nativeVoice();
+  if (nv) {
+    try { nv.speak(clean, state.voiceId || 'k1', rate); return; } catch { /* yedeğe düş */ }
+  }
+  if (!window.speechSynthesis) return;
+  try {
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(clean);
+    u.pitch = VOICE_PITCH[state.voiceId] || 1;
+    u.rate = rate;
+    u.lang = ({ tr: 'tr-TR', en: 'en-US', de: 'de-DE', ru: 'ru-RU', ja: 'ja-JP' })[state.replyLang] || 'tr-TR';
+    speechSynthesis.speak(u);
+  } catch { /* yok */ }
+}
+
+function stopSpeaking() {
+  const nv = nativeVoice();
+  if (nv && nv.stop) { try { nv.stop(); } catch { /* yok */ } }
+  try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch { /* yok */ }
+}
+
+function micLangCode() {
+  if (state.micLang) return state.micLang;
+  return ({ tr: 'tr-TR', en: 'en-US', de: 'de-DE', ru: 'ru-RU', ja: 'ja-JP' })[state.replyLang] || 'tr-TR';
+}
+
+function setMicUI(on) {
+  micActive = !!on;
+  const chatBtn = $('micBtn');
+  const camBtn = $('camMic');
+  if (chatBtn) chatBtn.classList.toggle('listening', micActive && micTarget === 'chat');
+  if (camBtn) camBtn.classList.toggle('listening', micActive && micTarget === 'cam');
+  const stateLabel = $('micState');
+  if (stateLabel) stateLabel.textContent = micActive ? 'Dinliyorum… konuş' : 'Hazır — komut bekliyor';
+}
+
+function showTranscript(text) {
+  const value = String(text || '');
+  if (micTarget === 'cam') {
+    const field = $('camText');
+    if (field) field.value = value;
+    return;
+  }
+  const input = $('input');
+  input.value = value;
+  autoGrow();
+  updateSendState();
+}
+
+function handleUtterance(text) {
+  const clean = String(text || '').trim();
+  if (!clean) return;
+  if (micTarget === 'cam') {
+    $('camText').value = '';
+    cameraTurn(clean);
+    return;
+  }
+  if (state.micAutoSend) {
+    stopMic();
+    $('input').value = '';
+    sendMessage(clean, pendingImages.slice());
+    return;
+  }
+  $('input').value = clean;
+  autoGrow();
+  updateSendState();
+}
+
+function startMic(target) {
+  micTarget = target === 'cam' ? 'cam' : 'chat';
+  if (state.bargeIn) stopSpeaking();
+  const nv = nativeVoice();
+  if (nv && nv.micAvailable && nv.micAvailable()) {
+    try { nv.listen(micLangCode()); } catch { /* yok */ }
+    setMicUI(true);
+    return;
+  }
+  startWebMic();
+}
+
+function stopMic() {
+  const nv = nativeVoice();
+  if (nv && nv.listenStop) { try { nv.listenStop(); } catch { /* yok */ } }
   if (recognizer) {
-    recognizer.stop();
+    try { recognizer.stop(); } catch { /* yok */ }
     recognizer = null;
-    btn.classList.remove('listening');
+  }
+  setMicUI(false);
+}
+
+function startWebMic() {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Rec) {
+    toast('Bu cihazda mikrofon desteği yok. Android uygulamasında çalışır.', true);
     return;
   }
   try {
     const rec = new Rec();
-    rec.lang = ({ tr: 'tr-TR', en: 'en-US', de: 'de-DE', ru: 'ru-RU', ja: 'ja-JP' })[state.replyLang] || 'tr-TR';
+    rec.lang = micLangCode();
     rec.interimResults = true;
     rec.continuous = false;
-    const base = $('input').value;
     rec.onresult = (e) => {
-      let text = '';
-      for (let i = e.resultIndex; i < e.results.length; i += 1) text += e.results[i][0].transcript;
-      $('input').value = (base ? base + ' ' : '') + text;
-      autoGrow();
-      updateSendState();
+      let interim = '';
+      let final = '';
+      for (let i = e.resultIndex; i < e.results.length; i += 1) {
+        const r = e.results[i];
+        if (r.isFinal) final += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      if (interim) {
+        if (state.bargeIn && isSpeaking()) stopSpeaking();
+        showTranscript(interim);
+      }
+      if (final.trim()) handleUtterance(final);
     };
     rec.onerror = (e) => {
-      if (e.error !== 'aborted') toast('Sesle yazma hatası: ' + e.error, true);
+      if (e.error !== 'aborted') toast('Mikrofon: ' + e.error, true);
+      setMicUI(false);
     };
     rec.onend = () => {
       recognizer = null;
-      btn.classList.remove('listening');
-      updateSendState();
+      setMicUI(false);
     };
     rec.start();
     recognizer = rec;
-    btn.classList.add('listening');
+    setMicUI(true);
   } catch (err) {
     toast('Mikrofon açılamadı.', true);
+    setMicUI(false);
   }
+}
+
+function toggleMic() {
+  if (micActive) { stopMic(); return; }
+  startMic('chat');
+}
+
+function toggleCamMic() {
+  if (micActive) { stopMic(); return; }
+  startMic('cam');
+}
+
+/* Android köprüsünden gelen konuşma olayları. */
+window.__primeVoice = function (raw) {
+  let d = raw;
+  if (typeof raw === 'string') {
+    try { d = JSON.parse(raw); } catch { return; }
+  }
+  if (!d || !d.type) return;
+  if (d.type === 'start') { setMicUI(true); return; }
+  if (d.type === 'partial') {
+    if (state.bargeIn && isSpeaking()) stopSpeaking();
+    showTranscript(d.text || '');
+    return;
+  }
+  if (d.type === 'final') { handleUtterance(d.text); return; }
+  if (d.type === 'error') { setMicUI(false); if (d.text) toast(d.text, true); return; }
+  if (d.type === 'end') setMicUI(false);
+};
+
+/* ----------------------------- Kamera ile konuş ----------------------------- */
+let camStream = null;
+let camReady = false;
+let camBusy = false;
+let lastCameraFrame = null;
+
+function openCamera() {
+  stopMic();
+  closeDrawer();
+  $('settings').hidden = true;
+  $('modelSheet').hidden = true;
+  $('apiEdit').hidden = true;
+  $('camSheet').hidden = false;
+  $('camAnswer').hidden = true;
+  $('camSaid').hidden = true;
+  $('camHint').hidden = false;
+  $('camHint').textContent = 'Kamerayı açıyorum…';
+  fillVoiceSelect();
+  const bridge = window.PrimeAndroid;
+  if (bridge && bridge.ensureCamera) {
+    let st = 'granted';
+    try { st = bridge.ensureCamera(); } catch { /* yok */ }
+    if (st !== 'granted') {
+      $('camHint').textContent = 'Kamera izni isteniyor… İzin verince kamera açılır.';
+      return;
+    }
+  }
+  startCameraStream();
+}
+
+/* İzin sonucu Android'den gelir. */
+window.__primeMediaGranted = function (ok) {
+  if ($('camSheet').hidden) return;
+  if (ok) startCameraStream();
+  else $('camHint').textContent = 'Kamera izni verilmedi. Telefon ayarlarından izin verebilirsin.';
+};
+
+async function startCameraStream() {
+  stopCameraStream();
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: state.camFacing || 'environment', width: { ideal: 1280 }, height: { ideal: 1280 } },
+      audio: false
+    });
+    const video = $('camVideo');
+    video.srcObject = camStream;
+    await video.play().catch(() => {});
+    camReady = true;
+    $('camHint').hidden = true;
+  } catch (err) {
+    camReady = false;
+    $('camHint').hidden = false;
+    $('camHint').textContent = 'Kamera açılamadı: ' + String((err && err.message) || err);
+  }
+}
+
+function stopCameraStream() {
+  camReady = false;
+  if (camStream) {
+    for (const track of camStream.getTracks()) { try { track.stop(); } catch { /* yok */ } }
+    camStream = null;
+  }
+  const video = $('camVideo');
+  if (video) video.srcObject = null;
+}
+
+function closeCamera() {
+  stopMic();
+  stopCameraStream();
+  stopSpeaking();
+  $('camSheet').hidden = true;
+}
+
+async function flipCamera() {
+  state.camFacing = (state.camFacing === 'environment') ? 'user' : 'environment';
+  saveState();
+  await startCameraStream();
+}
+
+function captureFrame(max) {
+  const video = $('camVideo');
+  if (!camReady || !video || !video.videoWidth) return null;
+  const limit = max || 896;
+  const scale = Math.min(1, limit / Math.max(video.videoWidth, video.videoHeight));
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(video.videoWidth * scale);
+  canvas.height = Math.round(video.videoHeight * scale);
+  canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+  return { dataUrl: canvas.toDataURL('image/jpeg', 0.82), mime: 'image/jpeg' };
+}
+
+async function cameraTurn(text) {
+  const clean = String(text || '').trim();
+  if (!clean || camBusy) return;
+  const frame = captureFrame();
+  if (!frame) { toast('Kamera hazır değil.', true); return; }
+  lastCameraFrame = frame;
+  camBusy = true;
+  $('camSaid').textContent = 'Sen: ' + clean;
+  $('camSaid').hidden = false;
+  $('camAnswer').hidden = true;
+
+  const memories = state.memories.slice(0, 4);
+  const images = [frame];
+  for (const m of memories) images.push({ dataUrl: m.thumb, mime: 'image/jpeg' });
+  const names = state.memories.slice(0, 12).map((m) => m.name);
+  const hint =
+    'Kullanıcı kameradan bir görüntü gönderdi' +
+    (images.length > 1 ? '; ilk görsel kameradan, sonrakiler daha önce adlandırdığı nesneler' : '') + '. ' +
+    'Görüntüde ne olduğunu kısa, doğal cümlelerle anlat: nesnenin ne olduğunu, rengini ve belirgin özelliğini söyle. ' +
+    (names.length ? 'Kullanıcının adlandırdığı nesneler: ' + names.join(', ') + '. Görüntüdeki bunlardan biriyse adını kullan. ' : '') +
+    'Kullanıcı bir soru sorduysa önce onu yanıtla, sonra gördüğünü anlat. Kod yazma.';
+
+  let reply = '';
+  try {
+    reply = await sendMessage(clean, images, { extra: hint, silent: !state.voiceOn });
+  } finally {
+    camBusy = false;
+  }
+  if (reply) {
+    $('camAnswer').innerHTML = md(reply);
+    $('camAnswer').hidden = false;
+    learnMemory(clean, frame);
+  }
+}
+
+/* ----------------------------- Nesne belleği -----------------------------
+   “bunun adı Pamuk” gibi bir cümle duyulunca o kare adıyla saklanır. Sonraki
+   kamera sorularında hem ad listesi hem küçük görseller modele gönderilir. */
+function learnMemory(text, frame) {
+  if (!frame) return;
+  const m = String(text || '').match(/(?:ad[ıi]|ismi|ismini)\s+([^.,!?;:\n]{2,24})/iu);
+  if (!m) return;
+  const name = m[1].replace(/^["'“”‘’]|["'“”‘’]$/g, '').replace(/\s+/g, ' ').trim();
+  if (name.length < 2) return;
+  if (/^(ne|ney|kim|bu|şu)$/i.test(name)) return;
+  saveMemory(name, frame, text);
+}
+
+/* Görseli yükler. decode() arka plandaki sekmede askıda kalabildiği için
+   onload kullanılır; 2,5 saniyede gelmezse küçültme atlanır. */
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('görsel okunamadı'));
+    img.src = src;
+  });
+}
+
+async function shrinkImage(dataUrl, max) {
+  const side = max || 192;
+  const img = await Promise.race([
+    loadImage(dataUrl).catch(() => null),
+    new Promise((resolve) => setTimeout(() => resolve(null), 2500))
+  ]);
+  if (!img || !img.width) return dataUrl;
+  const scale = Math.min(1, side / Math.max(img.width || side, img.height || side));
+  if (scale >= 1 && String(dataUrl).length < 40000) return dataUrl;
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round((img.width || side) * scale));
+  canvas.height = Math.max(1, Math.round((img.height || side) * scale));
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', 0.72);
+}
+
+async function saveMemory(name, frame, said) {
+  const clean = String(name || '').trim().slice(0, 32);
+  if (!clean || !frame || !frame.dataUrl) return null;
+  const thumb = await shrinkImage(frame.dataUrl, 192);
+  const item = { id: uid(), name: clean, thumb, said: String(said || '').slice(0, 120), ts: Date.now() };
+  state.memories.unshift(item);
+  state.memories = state.memories.slice(0, 24);
+  if (!saveState()) {
+    state.memories = state.memories.filter((x) => x.id !== item.id);
+    toast('Bellek dolu: yer açıp tekrar dene.', true);
+    return null;
+  }
+  renderMemories();
+  toast('Belleğe eklendi: ' + clean);
+  return item;
+}
+
+function renderMemories() {
+  const wrap = $('memList');
+  const empty = $('memEmpty');
+  if (!wrap) return;
+  wrap.innerHTML = '';
+  if (empty) empty.hidden = state.memories.length > 0;
+  for (const m of state.memories) {
+    const row = document.createElement('div');
+    row.className = 'mem-item';
+    const img = document.createElement('img');
+    img.className = 'mem-thumb';
+    img.src = m.thumb;
+    img.alt = m.name;
+    const meta = document.createElement('div');
+    meta.className = 'mem-meta';
+    const strong = document.createElement('strong');
+    strong.textContent = m.name;
+    const sub = document.createElement('span');
+    sub.textContent = m.said || 'kameradan kaydedildi';
+    meta.append(strong, sub);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'mem-del';
+    del.setAttribute('aria-label', m.name + ' kaydını sil');
+    del.innerHTML = '<svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 12h10l1-12"/></svg>';
+    del.addEventListener('click', () => {
+      state.memories = state.memories.filter((x) => x.id !== m.id);
+      saveState();
+      renderMemories();
+      toast('Kayıt silindi.');
+    });
+    row.append(img, meta, del);
+    wrap.appendChild(row);
+  }
+}
+
+/* ----------------------------- Profil fotoğrafı ----------------------------- */
+function renderAvatar() {
+  const initial = initialOf(state.name);
+  const photo = state.avatar || '';
+  for (const id of ['avatarBtn', 'drawerAvatar', 'profileAvatar']) {
+    const el = $(id);
+    if (!el) continue;
+    if (photo) {
+      el.style.backgroundImage = 'url("' + photo + '")';
+      el.textContent = '';
+      el.classList.add('has-photo');
+    } else {
+      el.style.backgroundImage = '';
+      el.textContent = initial;
+      el.classList.remove('has-photo');
+    }
+  }
+  const clear = $('avatarClear');
+  if (clear) clear.hidden = !photo;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+async function pickAvatar(file) {
+  if (!file || !/^image\//.test(file.type)) { toast('Yalnızca görsel seçilebilir.', true); return; }
+  const raw = await fileToDataUrl(file);
+  state.avatar = await shrinkImage(raw, 192);
+  saveState();
+  renderAvatar();
+  toast('Profil fotoğrafı güncellendi.');
 }
 
 /* ----------------------------- Asistan topu ----------------------------- */
@@ -1739,8 +2207,15 @@ function closeSettings() {
 function syncSettingsUI() {
   applyMobLang();
   $('nameInput').value = state.name || '';
-  $('profileAvatar').textContent = initialOf(state.name);
-  $('drawerAvatar').textContent = initialOf(state.name);
+  renderAvatar();
+  fillVoiceSelect();
+  $('voiceOn').checked = !!state.voiceOn;
+  $('voiceRate').value = String(state.voiceRate);
+  $('voiceRateValue').textContent = Number(state.voiceRate).toFixed(1).replace('.', ',') + '×';
+  $('micAutoSend').checked = !!state.micAutoSend;
+  $('micLang').value = state.micLang || '';
+  $('bargeIn').checked = !!state.bargeIn;
+  renderMemories();
   $('drawerName').textContent = state.name ? state.name : 'PRIME AI';
   applyTheme();
   syncAssistantKey();
@@ -1909,10 +2384,7 @@ function wireSettings() {
   $('nameInput').addEventListener('input', (e) => {
     state.name = e.target.value.slice(0, 32);
     saveState();
-    const initial = initialOf(state.name);
-    $('profileAvatar').textContent = initial;
-    $('drawerAvatar').textContent = initial;
-    $('avatarBtn').textContent = initial;
+    renderAvatar();
     $('drawerName').textContent = state.name || 'PRIME AI';
     updateGreeting();
   });
@@ -2285,6 +2757,62 @@ function wireChrome() {
   $('settingsBack').addEventListener('click', closeSettings);
   $('langRow').addEventListener('click', () => openLangScreen(false));
   $('langCancel').addEventListener('click', () => { closeLangScreen(); openSettings(); });
+
+  /* Mikrofon, ses, kamera ve profil fotoğrafı */
+  $('voiceOn').addEventListener('change', (e) => {
+    state.voiceOn = e.target.checked;
+    saveState();
+    if (!state.voiceOn) stopSpeaking();
+  });
+  $('voicePick').addEventListener('change', (e) => {
+    state.voiceId = e.target.value;
+    saveState();
+    speakText('Merhaba, ben PRIME AI. Bu ses nasıl?');
+  });
+  $('voiceRate').addEventListener('input', (e) => {
+    state.voiceRate = Number(e.target.value);
+    $('voiceRateValue').textContent = Number(state.voiceRate).toFixed(1).replace('.', ',') + '×';
+    saveState();
+  });
+  $('voiceTry').addEventListener('click', () => {
+    speakText('Merhaba, ben PRIME AI. Kameradaki nesneleri anlatabilir, adlarını hatırlayabilirim.');
+  });
+  $('micAutoSend').addEventListener('change', (e) => { state.micAutoSend = e.target.checked; saveState(); });
+  $('micLang').addEventListener('change', (e) => { state.micLang = e.target.value; saveState(); });
+  $('bargeIn').addEventListener('change', (e) => { state.bargeIn = e.target.checked; saveState(); });
+  $('micTest').addEventListener('click', () => { if (micActive) stopMic(); else startMic('chat'); });
+
+  $('avatarPick').addEventListener('click', () => $('avatarInput').click());
+  $('profileAvatar').addEventListener('click', () => $('avatarInput').click());
+  $('avatarClear').addEventListener('click', () => {
+    state.avatar = '';
+    saveState();
+    renderAvatar();
+    toast('Profil fotoğrafı kaldırıldı.');
+  });
+  $('avatarInput').addEventListener('change', async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (file) await pickAvatar(file);
+  });
+
+  $('cameraBtn').addEventListener('click', openCamera);
+  $('camClose').addEventListener('click', closeCamera);
+  $('camFlip').addEventListener('click', flipCamera);
+  $('camMic').addEventListener('click', toggleCamMic);
+  $('camForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = $('camText').value.trim();
+    if (!text) { toggleCamMic(); return; }
+    $('camText').value = '';
+    cameraTurn(text);
+  });
+  $('camMemory').addEventListener('click', async () => {
+    const frame = lastCameraFrame || captureFrame();
+    if (!frame) { toast('Önce kameraya bir şey göster.', true); return; }
+    const name = prompt('Nesnenin adı ne?');
+    if (name) await saveMemory(name, frame, 'elle eklendi');
+  });
 
   $('composer').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -2752,6 +3280,7 @@ function syncAssistantKey() {
 /* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
 window.__primeBack = function () {
   if (!$('updModal').hidden) { closeUpdateCard(); return true; }
+  if (!$('camSheet').hidden) { closeCamera(); return true; }
   if (!$('modelSheet').hidden) { closeModelSheet(); return true; }
   if (!$('apiEdit').hidden) { backToSettings(); return true; }
   if (!$('langScreen').hidden) {
@@ -2782,6 +3311,9 @@ function boot() {
   wireModelSheet();
   wireApiEdit();
   syncAssistantKey();
+  fillVoiceSelect();
+  renderAvatar();
+  renderMemories();
   renderModelChip();
   renderThread();
   renderChatList();

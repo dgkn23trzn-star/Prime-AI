@@ -1037,3 +1037,155 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 #apiEdit #editModelRow { padding: 12px 0 8px; border-top: 1px solid var(--line); }
 #apiEdit #editModelRow svg { width: 18px; height: 18px; color: var(--muted); }
 .edit-actions { padding-top: 6px; }
+
+/* ==================================================================
+   KAMERA İLE KONUŞ — canlı önizleme, soru, sesli yanıt
+   ================================================================== */
+.cam-sheet { z-index: 68; }
+.cam-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 12px 14px calc(var(--safe-bottom) + 18px);
+}
+.cam-stage {
+  position: relative;
+  flex: 0 0 auto;
+  aspect-ratio: 3 / 4;
+  max-height: 46vh;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--line);
+}
+#camVideo {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.cam-scan {
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--a2) 22%, transparent) 48%, transparent 100%);
+  animation: camScan 3.4s ease-in-out infinite;
+  opacity: .55;
+}
+@keyframes camScan {
+  0%, 100% { transform: translateY(-42%); }
+  50% { transform: translateY(42%); }
+}
+.cam-hint {
+  position: absolute; inset: 0;
+  margin: 0;
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  text-align: center;
+  font-size: 13px;
+  color: #fff;
+  background: rgba(4, 4, 8, .72);
+}
+.cam-answer {
+  position: absolute;
+  left: 10px; right: 10px; bottom: 10px;
+  max-height: 52%;
+  overflow-y: auto;
+  padding: 11px 13px;
+  border-radius: 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: #f4f4f7;
+  background: rgba(10, 10, 16, .78);
+  border: 1px solid rgba(255, 255, 255, .14);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+.cam-answer p { margin: 0 0 6px; }
+.cam-answer p:last-child { margin-bottom: 0; }
+.cam-answer code { font-size: 12px; }
+.cam-said {
+  margin: 0;
+  padding: 9px 12px;
+  border-radius: 14px;
+  font-size: 12.5px;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.cam-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 6px 6px 14px;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  flex: 0 0 auto;
+}
+.cam-input input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  outline: none;
+  font-size: 14.5px;
+  color: var(--text);
+}
+.cam-input .composer-btn { color: #fff; background: linear-gradient(140deg, var(--a1), var(--a2)); }
+.cam-actions { display: flex; gap: 9px; flex: 0 0 auto; }
+.cam-btn {
+  flex: 1;
+  min-height: 52px;
+  border-radius: 16px;
+  font-size: 15px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--text);
+}
+.cam-btn svg { width: 20px; height: 20px; }
+.cam-btn.ghost { color: var(--muted); font-weight: 550; }
+.cam-btn.live {
+  color: #fff;
+  border-color: transparent;
+  background: linear-gradient(120deg, var(--a1), var(--a2));
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--a1) 36%, transparent);
+}
+.cam-btn.live.listening { animation: pulse 1.4s infinite; }
+
+/* Profil fotoğrafı ve bellek listesi */
+.avatar.has-photo, .drawer-avatar.has-photo {
+  background-size: cover;
+  background-position: center;
+  color: transparent;
+  text-indent: -9999px;
+  overflow: hidden;
+}
+.mem-list { display: flex; flex-direction: column; gap: 8px; margin: 6px 0 4px; }
+.mem-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 15px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line);
+}
+.mem-thumb {
+  width: 42px; height: 42px;
+  border-radius: 11px;
+  object-fit: cover;
+  flex: 0 0 auto;
+  background: var(--surface-2);
+}
+.mem-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.mem-meta strong { font-size: 13.5px; font-weight: 600; }
+.mem-meta span { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mem-del { width: 30px; height: 30px; border-radius: 50%; color: var(--muted); flex: 0 0 auto; }
+.mem-del svg { width: 16px; height: 16px; }

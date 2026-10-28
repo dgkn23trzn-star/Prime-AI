@@ -75,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.4.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.4.0/PRIME-AI-Mobil-1.4.0.apk)**
-  (331 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.5.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.0/PRIME-AI-Mobil-1.5.0.apk)**
+  (345 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.4.0.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.5.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -104,6 +104,18 @@ python -m http.server 5173
 - **Yanıt gelmezse:** akış kurulamazsa istek bir kez akışsız gönderilir, 30 saniye yanıt
   gelmezse bağlantı kesilip yeniden denenir, seçili model geçersizse sağlayıcının varsayılan
   modeli kendiliğinden seçilir.
+- **Kamera ile konuşma:** yazı alanının yanındaki kamera düğmesi canlı önizlemeyi açar. Yazarak
+  ya da **Konuş** ile sorduğunda ekrandaki kare modele gönderilir; model ne olduğunu, rengini ve
+  belirgin özelliğini anlatır, yanıtı sesli okur. AI konuşurken sen konuşmaya başlarsan susar.
+- **Nesne belleği:** “bunun adı Pamuk” dediğinde o kare adıyla belleğe kaydedilir; sonraki kamera
+  sorularında ad listesi ve küçük görseller modele gider, böylece farklı açıdan da tanınır.
+  **Ayarlar → Bellek**'te görüp silebilirsin (en fazla 24 kayıt, yalnızca cihazda).
+- **Yapay zekâ sesi:** **Ayarlar → Ses**'te üç kadın + üç erkek tonu arasından seçim, hız ayarı ve
+  “Yanıtları sesli oku” anahtarı. **Mikrofon** bölümünde dinleme dili, “Konuşunca gönder” ve
+  “Araya girince sus” var. Ses, Android'in metin-okuma motoruyla üretilir (anahtar gerekmez);
+  tarayıcıda cihazın konuşma sentezi kullanılır.
+- **Profil fotoğrafı:** **Ayarlar →** profildeki avatarın üstüne dokunup galeriden fotoğraf seç;
+  üst çubuk, menü ve ayarlarda görünür, istediğinde kaldırılır.
 
 - **Uygulama içi güncelleme:** yeni sürüm çıkınca **ekranın ortasında, arkası bulanık** bir
   pencere açılır. **Güncelle** APK'yı uygulamanın içinde indirir (yüzde gösterir), kurulum
@@ -111,7 +123,7 @@ python -m http.server 5173
   izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
   ile elle de bakılır.
 
-İndirme sayfası: [PRIME AI Mobil 1.4.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.4.0)
+İndirme sayfası: [PRIME AI Mobil 1.5.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.0)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 
