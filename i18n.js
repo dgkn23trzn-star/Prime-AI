@@ -46,6 +46,8 @@
     'Kullanıcı': 'User',
     'yerel hesap': 'local account',
     'API eklenmedi': 'No API added',
+    'Anahtar eklenmedi': 'No API added',
+    'Kırmızı': 'Red',
     'Beyin seçilmeli': 'Pick a model',
     'Ayarları açın': 'Open settings',
     'Menüyü daralt': 'Collapse menu',
@@ -241,7 +243,7 @@
     'Mikrofon kapalı: sesle yazma kullanılmıyor.': 'Microphone off: voice input is not used.',
     'Sesle yazma yalnızca mikrofon simgesiyle çalışır: topun mikrofon düğmesine tıklayın, konuşun, tekrar tıklayın. Dinleme düğmesi (kırmızı kare) her an kapatır.':
       'Voice input works only with the microphone icon: click the ball’s mic button, speak, then click again. The listening button (red square) stops it anytime.',
-    'Sesli asistan sesi': 'Voice assistant voice',
+    'Sesli asistan sesi': 'Assistant voice',
     'AI sesler': 'AI voices',
     'Gemini sesleri (yedek)': 'Gemini voices (fallback)',
     'ElevenLabs API anahtarı': 'ElevenLabs API key',

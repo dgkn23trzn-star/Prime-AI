@@ -26,6 +26,7 @@
     <nav class="nav-links" id="navLinks" aria-label="Ana menü">
       <a href="#ozellikler">Özellikler</a>
       <a href="#nasil">Nasıl Çalışır?</a>
+      <a href="#api">API key</a>
       <a href="#galeri">Galeri</a>
       <a href="#indir" class="btn btn-red btn-sm">İndir</a>
     </nav>
@@ -70,12 +71,12 @@
       <div class="slider-viewport">
         <div class="slider-track" id="sliderTrack">
           <figure class="slide is-active">
-            <img src="assets/ekran-sohbet.png" alt="Prime AI sohbet ekranı" loading="eager" />
+            <img src="assets/guide/sohbet-en.png" alt="Prime AI sohbet ekranı" loading="eager" />
             <figcaption>Sohbet ekranı — akışlı yanıtlar, model seçimi</figcaption>
           </figure>
           <figure class="slide">
-            <img src="assets/ekran-ayarlar.png" alt="Prime AI ayarlar ekranı" loading="lazy" />
-            <figcaption>Ayarlar — API anahtarları, model ve ses seçimi</figcaption>
+            <img src="assets/guide/api-form-en.png" alt="Prime AI API anahtarı ekleme ekranı" loading="lazy" />
+            <figcaption>API anahtarı — yapıştır, sağlayıcı kendiliğinden seçilir</figcaption>
           </figure>
           <figure class="slide">
             <img src="assets/ekran-masaustu.png" alt="Prime AI masaüstü asistan topu" loading="lazy" />
@@ -188,6 +189,80 @@
   </div>
 </section>
 
+<!-- ======================= API ANAHTARI (İNGİLİZCE) ======================= -->
+<!-- Bu bölüm İngilizce: kullanıcı isteğiyle ekran görüntüleri de İngilizce
+     arayüzden alındı. Görsellerin altında adım yazısı görselin üstünde durur. -->
+<section class="section" id="api">
+  <div class="container">
+    <header class="section-head reveal">
+      <span class="kicker">API KEY</span>
+      <h2>How to add your API key</h2>
+      <p>Prime AI runs on your own key. It takes about a minute — Google Gemini is free.</p>
+    </header>
+
+    <div class="api-grid">
+      <article class="api-card reveal">
+        <button class="api-shot g-item" data-full="assets/guide/step1-settings.png">
+          <img src="assets/guide/step1-settings.png" alt="Settings → AI Key screen with the New API card" loading="lazy" />
+          <span class="api-step">1</span>
+          <span class="api-cap">Open <b>Settings → AI Key</b></span>
+        </button>
+        <div class="api-body">
+          <h3>Open the AI key screen</h3>
+          <p>Hit <b>Settings</b> in the sidebar and switch to the <b>AI Key</b> tab. Every key on this device lives here;
+            the <b>New API</b> card is the empty slot you fill next.</p>
+        </div>
+      </article>
+
+      <article class="api-card reveal">
+        <button class="api-shot g-item" data-full="assets/guide/step2-key.png">
+          <img src="assets/guide/step2-key.png" alt="New API form with a Google Gemini key pasted" loading="lazy" />
+          <span class="api-step">2</span>
+          <span class="api-cap">Paste the key — provider detected</span>
+        </button>
+        <div class="api-body">
+          <h3>Paste your Gemini key</h3>
+          <p>Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>
+            — it starts with <b>AIza…</b>. Tap <b>New API</b>, paste it and Prime AI picks the provider itself;
+            tap <b>fetch models</b> to load the model list.</p>
+        </div>
+      </article>
+
+      <article class="api-card reveal">
+        <button class="api-shot g-item" data-full="assets/guide/step3-chat.png">
+          <img src="assets/guide/step3-chat.png" alt="Chat ready after the API key is saved" loading="lazy" />
+          <span class="api-step">3</span>
+          <span class="api-cap">Save — then just ask</span>
+        </button>
+        <div class="api-body">
+          <h3>Save and start chatting</h3>
+          <p>Hit <b>Save</b>; the “AI not connected yet” banner disappears. Type, speak or show your camera.
+            You can change or delete the key any time from the same screen.</p>
+        </div>
+      </article>
+    </div>
+
+    <div class="api-mobile reveal">
+      <div class="api-mobile-copy">
+        <span class="kicker">ON ANDROID</span>
+        <h3>Same key, mobile guide</h3>
+        <p>The phone app opens the same guide on first launch: open the key page, copy the key, paste it — done.
+          The key never leaves the phone.</p>
+      </div>
+      <div class="api-phones">
+        <figure class="api-phone">
+          <img src="assets/guide/mobil-rehber-1-en.png" alt="PRIME AI mobile welcome guide" loading="lazy" />
+          <figcaption>First launch</figcaption>
+        </figure>
+        <figure class="api-phone">
+          <img src="assets/guide/mobil-api-en.png" alt="PRIME AI mobile add your API key step" loading="lazy" />
+          <figcaption>Paste your key</figcaption>
+        </figure>
+      </div>
+    </div>
+  </div>
+</section>
+
 <!-- ============================ GALERİ ============================ -->
 <section class="section" id="galeri">
   <div class="container">
@@ -198,12 +273,12 @@
     </header>
 
     <div class="gallery" id="gallery">
-      <button class="g-item reveal" data-full="assets/ekran-sohbet.png"><img src="assets/ekran-sohbet.png" alt="Sohbet ekranı" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-ayarlar.png"><img src="assets/ekran-ayarlar.png" alt="Ayarlar ekranı" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-masaustu.png"><img src="assets/ekran-masaustu.png" alt="Masaüstü asistanı" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-eylemler.png"><img src="assets/ekran-eylemler.png" alt="Sohbet eylemleri" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-sesler.png"><img src="assets/ekran-sesler.png" alt="AI ses seçici" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-sesli.png"><img src="assets/ekran-sesli.png" alt="Sesle sohbet" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/sohbet-en.png"><img src="assets/guide/sohbet-en.png" alt="Sohbet ekranı" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/ayarlar-en.png"><img src="assets/guide/ayarlar-en.png" alt="AI Key ayarları" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/api-form-en.png"><img src="assets/guide/api-form-en.png" alt="Yeni API anahtarı formu" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/asistan-ses-en.png"><img src="assets/guide/asistan-ses-en.png" alt="Asistan sesi ayarları" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/app-ayarlar-en.png"><img src="assets/guide/app-ayarlar-en.png" alt="Mikrofon ve ses girişi ayarları" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/ekran-masaustu.png"><img src="assets/ekran-masaustu.png" alt="Masaüstü asistanı topu" loading="lazy" /></button>
     </div>
   </div>
 </section>
@@ -310,6 +385,7 @@
       <h4>Hızlı erişim</h4>
       <a href="#ozellikler">Özellikler</a>
       <a href="#nasil">Nasıl Çalışır?</a>
+      <a href="#api">API key</a>
       <a href="#galeri">Galeri</a>
       <a href="#indir">İndir</a>
     </nav>

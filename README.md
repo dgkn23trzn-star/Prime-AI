@@ -2,7 +2,7 @@
 
 Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü (.exe)**, **tarayıcı** ve **telefon** olarak çalışır.
 
-**🌐 Tanıtım sitesi (canlı):** [dgkn23trzn-star.github.io/Prime-AI](https://dgkn23trzn-star.github.io/Prime-AI/)
+**🌐 Prime AI:** [https://dgkn23trzn-star.github.io/Prime-AI/](https://dgkn23trzn-star.github.io/Prime-AI/)
 
 Site kaynakları [`docs/`](docs/) klasöründedir (GitHub Pages bu klasörü yayınlar): siyah-kırmızı
 karanlık tema, ekran görüntüsü slider'ı, özellikler, nasıl çalışır, galeri ve Windows / Android /
@@ -60,10 +60,13 @@ npm start           # geliştirme modunda çalıştır
 Uygulama açılıştan birkaç saniye sonra (ve günde birkaç kez) GitHub'daki
 [`update.json`](update.json) dosyasını okur. Yeni sürüm varsa **ekranın tam ortasında,
 arkası bulanık** bir pencere açılır: sürüm numaraları, yenilikler ve **Şimdi güncelle**
-düğmesi görünür. Düğmeye basınca kurulum dosyası arka planda indirilir (yüzde gösterilir),
-uygulama kapanır, sessiz kurulum yapılır ve yeni sürüm kendiliğinden açılır. İndirilemeyen
-durumlarda pencere GitHub indirme sayfasını açmayı önerir. **Hakkında → Güncellemeleri
-kontrol et** ile elle de denetlenebilir.
+düğmesi görünür. Dosya arka planda indirilir (yüzde gösterilir), uygulama kapanır, **sessiz
+kurulum** yapılır ve yeni sürüm kendiliğinden açılır. Pencere açılınca **8 saniyelik geri
+sayım** başlar; kimse dokunmazsa indirme ve kurulum kendiliğinden başlar — “Daha sonra”
+denenirse geri sayım durur. İndirilemeyen durumlarda pencere GitHub indirme sayfasını açmayı
+önerir. **Hakkında → Güncellemeleri kontrol et** ile elle de denetlenebilir. Aynı davranış
+Android uygulamasında da vardır: indirme biter bitmez sistem kurulum ekranı açılır (Android
+sessiz kuruluma izin vermediği için son “Kur” dokunuşunu işletim sistemi ister).
 
 **Yeni sürüm yayınlarken** sıra şudur:
 

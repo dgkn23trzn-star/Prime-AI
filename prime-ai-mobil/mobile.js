@@ -3172,6 +3172,8 @@ let updBusy = false;
 let updPhase = 'idle';
 let updCheckedAt = 0;
 let updTimer = null;
+let updAutoTimer = null;
+let updAutoLeft = 0;
 
 function cmpVersion(a, b) {
   const parts = (value) => String(value == null ? '' : value)
@@ -3243,9 +3245,36 @@ function updPollStop() {
 }
 
 function closeUpdateCard() {
+  updAutoStop();
+  if (!updBusy) updStatusText('');
   const modal = $('updModal');
   if (!modal) return;
   modal.hidden = true;
+}
+
+/* Geri sayım: "Daha sonra"ya dokunulmazsa indirme ve kurulum kendiliğinden başlar. */
+function updAutoLine(seconds) {
+  return state.lang === 'tr'
+    ? 'Kendiliğinden kurulum: ' + seconds + ' sn · vazgeçmek için "Daha sonra"'
+    : 'Installing automatically in ' + seconds + 's · press "Later" to skip';
+}
+
+function updAutoStop() {
+  if (updAutoTimer) { clearInterval(updAutoTimer); updAutoTimer = null; }
+  updAutoLeft = 0;
+}
+
+function updAutoStart(seconds) {
+  updAutoStop();
+  if (!updateBridge()) return;
+  updAutoLeft = seconds;
+  updStatusText(updAutoLine(updAutoLeft));
+  updAutoTimer = setInterval(() => {
+    if (updBusy) { updAutoStop(); return; }
+    updAutoLeft -= 1;
+    if (updAutoLeft <= 0) { updAutoStop(); startAppUpdate(); return; }
+    updStatusText(updAutoLine(updAutoLeft));
+  }, 1000);
 }
 
 function showUpdateCard(info) {
@@ -3267,6 +3296,7 @@ function showUpdateCard(info) {
   }
   const modal = $('updModal');
   if (modal) modal.hidden = false;
+  updAutoStart(8);
 }
 
 function updateBridge() {
@@ -3392,6 +3422,7 @@ function startAppUpdate() {
 
   if (!url) { updStatusText('İndirme adresi bulunamadı.', true); return; }
 
+  updAutoStop();
   const now = $('updNow');
   const later = $('updLater');
   updBusy = true;

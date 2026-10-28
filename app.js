@@ -1402,7 +1402,7 @@ function setAuthMode(mode) {
   $('authForm').dataset.mode = mode;
   document.querySelectorAll('.auth-tab').forEach((b) => b.classList.toggle('active', b.dataset.authTab === mode));
   $('authPass2Field').hidden = mode !== 'register';
-  $('authSubmit').textContent = mode === 'register' ? 'Hesap oluştur' : 'Giriş yap';
+  $('authSubmit').textContent = mode === 'register' ? t('Hesap oluştur') : t('Giriş yap');
   $('authPass').setAttribute('autocomplete', mode === 'register' ? 'new-password' : 'current-password');
   $('authError').hidden = true;
   $('authName').focus();
@@ -5283,7 +5283,7 @@ async function fetchElevenVoices() {
   const key = elevenKey();
   const st = $('asstElevenStatus');
   if (!key) { toast(t('Önce ElevenLabs API anahtarını girin.'), true); return; }
-  if (st) st.textContent = '· sesler getiriliyor…';
+  if (st) st.textContent = tx('· sesler getiriliyor…', '· loading voices…');
   try {
     const res = await fetch(ELEVEN_BASE + '/v2/voices', { headers: { 'xi-api-key': key } });
     if (!res.ok) throw new Error(await httpError(res));
@@ -7106,7 +7106,7 @@ function bindApp() {
   keyInput.addEventListener('input', () => {
     const key = keyInput.value.trim();
     const detected = detectProviderFromKey(key);
-    setKeyHint(detected ? '✓ ' + getProvider(detected).label + ' anahtarı olarak algılandı.' : '', !!detected);
+    setKeyHint(detected ? '✓ ' + getProvider(detected).label + tx(' anahtarı olarak algılandı.', ' key detected.') : '', !!detected);
     if (detected && $('apiForm').hidden === false && $('providerSelect').value !== detected) {
       $('providerSelect').value = detected;          // change olayı tetiklenmez: yapıştırılan anahtar korunur
       if (!draft) draft = { sid: null, provider: detected, key: '', model: '' };
@@ -7151,7 +7151,7 @@ function bindApp() {
     const btn = $('fetchModelsBtn');
     const id = $('providerSelect').value;
     const key = $('apiKeyInput').value.trim();
-    btn.textContent = 'getiriliyor…';
+    btn.textContent = t('getiriliyor…');
     $('modelStatus').textContent = '';
     try {
       const list = await fetchModels(id, key);
@@ -7640,6 +7640,7 @@ function updateSetProgress(pct) {
 }
 
 function updateReset() {
+  updateAutoStop();
   updateBusy = false;
   updateFinished = false;
   if ($('updateProgress')) $('updateProgress').hidden = true;
@@ -7659,7 +7660,43 @@ function updateReset() {
   }
 }
 
+/* Geri sayım: kullanıcı "Daha sonra" demezse güncelleme kendiliğinden kurulur. */
+function updateAutoLine(seconds) {
+  return tx('Kendiliğinden kurulum: ' + seconds + ' sn · vazgeçmek için “Daha sonra”',
+    'Installing automatically in ' + seconds + 's · press “Later” to skip');
+}
+
+let updateAutoTimer = null;
+let updateCountdownLeft = 0;
+
+function updateAutoStop() {
+  if (updateAutoTimer) {
+    clearInterval(updateAutoTimer);
+    updateAutoTimer = null;
+  }
+  updateCountdownLeft = 0;
+}
+
+function updateAutoStart(seconds) {
+  updateAutoStop();
+  updateCountdownLeft = seconds;
+  const step = () => {
+    if (updateBusy || updateFinished) { updateAutoStop(); return; }
+    updateCountdownLeft -= 1;
+    if (updateCountdownLeft <= 0) {
+      updateAutoStop();
+      startUpdate();
+      return;
+    }
+    updateStatus(updateAutoLine(updateCountdownLeft));
+  };
+  updateStatus(updateAutoLine(updateCountdownLeft));
+  updateAutoTimer = setInterval(step, 1000);
+}
+
 function hideUpdateCard() {
+  updateAutoStop();
+  if (!updateBusy) updateStatus('');
   const modal = $('updateModal');
   if (!modal) return;
   modal.classList.remove('open');
@@ -7690,6 +7727,9 @@ function showUpdateCard(info) {
     if (button && !button.disabled) button.focus();
   }, 30);
   logInfo('Güncelleme: ' + (info.current || '?') + ' → ' + (info.latest || '?') + ' hazır.');
+  /* İstenen davranış: indirme + sessiz kurulum kendiliğinden başlar.
+     "Daha sonra" geri sayımı durdurur. */
+  updateAutoStart(8);
 }
 
 function formatMegabytes(bytes) {
