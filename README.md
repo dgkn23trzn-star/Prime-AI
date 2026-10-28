@@ -34,11 +34,22 @@ de `dist/win-unpacked/PRIME AI.exe` kopyasını açar; uygulama zaten açıksa i
 powershell -ExecutionPolicy Bypass -File scripts\kisayol-tusu.ps1
 ```
 
+## Kurulum (Linux)
+
+Release sayfasındaki **PRIME-AI-1.29.0-linux-x64.tar.gz** dosyasını indirip açın, sonra klasörde:
+
+```bash
+chmod +x prime-ai      # ilk açılışta gerekebilir
+./prime-ai
+```
+Paket taşınabilirdir (x64, Electron); kurulum gerektirmez. Masaüstüne kısayol koymak için `.desktop` dosyası ekleyebilirsiniz.
+
 ### Yeniden derleme
 
 ```bash
 npm install
-npm run dist        # → dist/PRIME-AI-Setup-<sürüm>.exe
+npm run dist        # → dist/PRIME-AI-Setup-<sürüm>.exe (Windows)
+npm run dist:linux  # → dist/PRIME-AI-<sürüm>-linux-x64.tar.gz (Linux)
 node scripts/make-icon.js   # logodan yuvarlak 512x512 uygulama ikonu üretir
 npx electron scripts/smoke.js   # görünmez pencerede açılış testi
 npm start           # geliştirme modunda çalıştır
