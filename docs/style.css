@@ -507,7 +507,8 @@ p { margin: 0 0 1em; }
 .dl-grid {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+  /* Dört platform tek satırda dengeli durur (3+1 boşluğu olmasın). */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 18px;
 }
 .dl-card {
@@ -708,6 +709,7 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
 @media (max-width: 980px) {
   .hero-inner { grid-template-columns: 1fr; gap: 40px; padding-top: 8px; }
   .hero { padding-top: 120px; }
+  .dl-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .hero-stats span { max-width: 24ch; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .f-brand { grid-column: 1 / -1; }
@@ -746,6 +748,7 @@ html.no-anim .reveal { opacity: 1 !important; transform: none !important; }
 }
 
 @media (max-width: 460px) {
+  .dl-grid { grid-template-columns: 1fr; }
   .hero-stats { gap: 18px; }
   .hero-stats strong { font-size: 1.4rem; }
   .btn-lg { padding: 14px 24px; font-size: 15.5px; }
