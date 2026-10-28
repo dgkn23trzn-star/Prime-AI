@@ -12,14 +12,14 @@
     "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
   },
   "mobile": {
-    "version": "1.2.0",
+    "version": "1.3.0",
     "date": "2026-10-28",
     "notes": [
-      "İlk açılışta artık önce dil ekranı geliyor: Türkçe, English, Deutsch, Русский, 日本語.",
-      "Dil seçilince API rehberi o dilde açılıyor; anahtar ekleme adımı hemen geliyor.",
-      "Dil, Ayarlar → Dil bölümünden her zaman değiştirilebiliyor."
+      "Sohbetteki model rozetine dokununca artık API ayarları açılmıyor; etkin anahtarın modelleri listede geliyor.",
+      "Model, listeden tek dokunuşla değişiyor ve tüm sohbetlerde geçerli oluyor.",
+      "Ayarlar → API kartındaki sağlayıcı satırı da aynı model listesini açıyor."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.2.0/PRIME-AI-Mobil-1.2.0.apk",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.2.0"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.3.0/PRIME-AI-Mobil-1.3.0.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.3.0"
   }
 }

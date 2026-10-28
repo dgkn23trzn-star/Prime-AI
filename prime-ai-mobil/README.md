@@ -13,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.2.0.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.3.0.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -69,6 +69,11 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
 
 - **Sohbet:** akış (streaming) yanıt, markdown/kod blokları, kopyala ve yeniden
   üret, görsel ekleme (en fazla 3), sesle yazma (destekleyen tarayıcılarda).
+- **Model seçimi:** sohbetin üstündeki model rozetine dokununca etkin API
+  anahtarının modelleri tam ekran listede açılır; seçim anında uygulanır ve API
+  ayarlarına gitmek gerekmez. Aynı liste **Ayarlar → API** kartındaki sağlayıcı
+  satırından da açılır; birden çok anahtar varsa üstteki sekmelerle geçilir,
+  **Yenile** listeyi sağlayıcıdan yeniden çeker.
 - **Asistan tuşu (ana ekranda top):** **Ayarlar → Asistan → Asistan tuşu**
   açılınca gerekli izinler istenir, uygulama kapanır ve top ana ekranda kalır.
   Topa dokununca mikrofon dinler, yanıt balonda akar ve sesli okunur; topu

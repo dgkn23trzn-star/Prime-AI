@@ -129,7 +129,7 @@ try {
     <p class="group-label">Görünüm</p>
     <div class="card">
       <button class="row link-row" id="langRow">
-        <div class="row-text"><strong data-t="langRow">Dil</strong><span data-t="langRowSub">Rehber ve yanıt dili</span></div>
+        <div class="row-text"><strong>Dil</strong><span>Rehber ve yanıt dili</span></div>
         <span class="row-value" id="langValue">Türkçe</span>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
       </button>
@@ -251,7 +251,7 @@ try {
     <p class="group-label">Hakkında</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.2.0</span></div>
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.3.0</span></div>
       </div>
       <button class="row link-row" id="updCheckRow">
         <div class="row-text"><strong>Güncellemeyi denetle</strong><span id="updCheckSub">Yeni sürüm var mı diye bakar</span></div>
@@ -268,6 +268,45 @@ try {
     </div>
 
     <p class="fineprint">Kendi anahtarınla çalışır. Anahtarlar ve sohbetler yalnızca cihazında saklanır; PRIME AI sunucusuna hiçbir şey gönderilmez.</p>
+  </div>
+</section>
+
+<!-- =========================================================
+     MODEL SEÇ — sohbetin altındaki model rozetinden ve API
+     listesindeki model satırından açılır. Etkin anahtarın
+     sağlayıcısının modellerini listeler; seçim anında uygulanır.
+     ========================================================= -->
+<section class="sheet model-sheet" id="modelSheet" hidden aria-label="Model seç">
+  <header class="sheet-head">
+    <button class="icon-btn" id="modelClose" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+    <h2>Model seç</h2>
+    <span class="sheet-spacer"></span>
+  </header>
+
+  <div class="sheet-body">
+    <div class="model-slots" id="modelSlots" hidden></div>
+
+    <div class="card">
+      <div class="row">
+        <span class="api-badge" id="modelBadge">API</span>
+        <div class="row-text">
+          <strong id="modelProvider">Anahtar eklenmedi</strong>
+          <span id="modelKeyMask">Model seçmek için önce API anahtarı ekle</span>
+        </div>
+        <button class="text-btn" id="modelRefresh" type="button">Yenile</button>
+      </div>
+    </div>
+
+    <p class="group-label">Bu anahtarla kullanılabilen modeller</p>
+    <div class="card">
+      <div class="model-list" id="modelList"></div>
+      <p class="hint" id="modelMsg"></p>
+    </div>
+
+    <button class="outline-btn wide" id="modelApiBtn" type="button">API anahtarlarını yönet</button>
+    <p class="fineprint">Seçtiğin model tüm sohbetlerde kullanılır; yanıtlar bu modelden gelir.</p>
   </div>
 </section>
 

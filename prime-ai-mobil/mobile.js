@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -91,8 +91,6 @@ const MOB_I18N = {
   tr: {
     langTitle: 'Dil seç',
     langLead: 'Rehber ve yanıtlar bu dilde olacak. Sonra Ayarlar’dan değiştirebilirsin.',
-    langRow: 'Dil',
-    langRowSub: 'Rehber ve yanıt dili',
     langCancel: 'Vazgeç',
     tut1Title: 'PRIME AI’ya hoş geldin',
     tut1Lead: 'Telefonunda çalışan yapay zekâ asistanı. Üç adımda hazır:',
@@ -134,8 +132,6 @@ const MOB_I18N = {
   en: {
     langTitle: 'Choose your language',
     langLead: 'The guide and replies will use this language. You can change it later in Settings.',
-    langRow: 'Language',
-    langRowSub: 'Guide and reply language',
     langCancel: 'Cancel',
     tut1Title: 'Welcome to PRIME AI',
     tut1Lead: 'An AI assistant that runs on your phone. Ready in three steps:',
@@ -177,8 +173,6 @@ const MOB_I18N = {
   de: {
     langTitle: 'Sprache wählen',
     langLead: 'Anleitung und Antworten nutzen diese Sprache. Du kannst sie später in den Einstellungen ändern.',
-    langRow: 'Sprache',
-    langRowSub: 'Sprache der Anleitung und Antworten',
     langCancel: 'Abbrechen',
     tut1Title: 'Willkommen bei PRIME AI',
     tut1Lead: 'Ein KI-Assistent, der auf deinem Handy läuft. In drei Schritten bereit:',
@@ -220,8 +214,6 @@ const MOB_I18N = {
   ru: {
     langTitle: 'Выберите язык',
     langLead: 'Инструкция и ответы будут на этом языке. Позже его можно сменить в настройках.',
-    langRow: 'Язык',
-    langRowSub: 'Язык инструкции и ответов',
     langCancel: 'Отмена',
     tut1Title: 'Добро пожаловать в PRIME AI',
     tut1Lead: 'ИИ-ассистент, работающий на вашем телефоне. Готов за три шага:',
@@ -263,8 +255,6 @@ const MOB_I18N = {
   ja: {
     langTitle: '言語を選択',
     langLead: 'ガイドと返答はこの言語になります。あとで設定から変更できます。',
-    langRow: '言語',
-    langRowSub: 'ガイドと返答の言語',
     langCancel: 'キャンセル',
     tut1Title: 'PRIME AI へようこそ',
     tut1Lead: 'スマホで動くAIアシスタント。3ステップで準備完了：',
@@ -1334,6 +1324,134 @@ function renderModelChip() {
   dot.className = 'model-dot ' + (slotReady(slot) ? 'live' : 'warn');
 }
 
+/* ----------------------------- Model seçimi -----------------------------
+   Sohbetteki model rozeti ve API listesindeki model satırı bu sayfayı açar.
+   Liste, etkin anahtarın sağlayıcısından gelir; seçim anında uygulanır ve
+   API ayarlarına gitmek gerekmez. */
+const MODEL_CACHE = new Map();
+
+function openModelSheet(sid) {
+  closeDrawer();
+  $('settings').hidden = true;
+  if (sid && state.apis.some((a) => a.sid === sid)) state.activeSid = sid;
+  $('modelSheet').hidden = false;
+  renderModelSheet();
+  loadModelSheetModels(false);
+}
+
+function closeModelSheet() {
+  $('modelSheet').hidden = true;
+}
+
+function renderModelSheet() {
+  const slot = activeSlot();
+  const slots = $('modelSlots');
+  slots.innerHTML = '';
+  slots.hidden = state.apis.length < 2;
+  for (const s of state.apis) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'model-slot' + (slot && s.sid === slot.sid ? ' active' : '');
+    b.textContent = PROVIDERS[s.provider].label;
+    b.addEventListener('click', () => {
+      state.activeSid = s.sid;
+      saveState();
+      renderModelChip();
+      renderApiList();
+      renderModelSheet();
+      loadModelSheetModels(false);
+    });
+    slots.appendChild(b);
+  }
+
+  if (!slot) {
+    $('modelBadge').textContent = 'API';
+    $('modelProvider').textContent = 'Henüz anahtar yok';
+    $('modelKeyMask').textContent = 'Model seçmek için önce API anahtarı ekle';
+    $('modelRefresh').disabled = true;
+    $('modelList').innerHTML = '';
+    $('modelMsg').textContent = '';
+    $('modelMsg').className = 'hint';
+    return;
+  }
+
+  const cfg = PROVIDERS[slot.provider];
+  $('modelBadge').textContent = cfg.badge;
+  $('modelProvider').textContent = cfg.label;
+  $('modelKeyMask').textContent = maskKey(slot.key) + ' · ' + (modelOf(slot) || 'model seçilmedi');
+  $('modelRefresh').disabled = false;
+  renderModelOptions();
+}
+
+function renderModelOptions() {
+  const slot = activeSlot();
+  const wrap = $('modelList');
+  wrap.innerHTML = '';
+  if (!slot) return;
+  const current = modelOf(slot);
+  const cached = MODEL_CACHE.get(slot.sid);
+  const models = cached && cached.length ? cached : (current ? [current] : []);
+  if (!models.length) {
+    wrap.innerHTML = '<p class="hint bad">Bu anahtar için model listesi alınamadı; “Yenile” ile tekrar dene.</p>';
+    return;
+  }
+  for (const id of models) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'model-item' + (id === current ? ' active' : '');
+    b.dataset.model = id;
+    b.innerHTML = '<span class="model-name">' + esc(id) + '</span>' +
+      '<svg class="model-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg>';
+    b.addEventListener('click', () => selectModel(id));
+    wrap.appendChild(b);
+  }
+}
+
+async function loadModelSheetModels(force) {
+  const slot = activeSlot();
+  if (!slot) return;
+  if (MODEL_CACHE.get(slot.sid) && !force) { renderModelOptions(); return; }
+  $('modelMsg').textContent = 'Modeller getiriliyor…';
+  $('modelMsg').className = 'hint';
+  $('modelRefresh').disabled = true;
+  try {
+    const models = await fetchModels(slot.provider, slot.key);
+    MODEL_CACHE.set(slot.sid, models);
+    $('modelMsg').textContent = models.length + ' model bulundu.';
+    $('modelMsg').className = 'hint good';
+  } catch (err) {
+    $('modelMsg').textContent = 'Liste alınamadı: ' +
+      String((err && err.message) || err).slice(0, 90) + ' Mevcut model seçili kalır.';
+    $('modelMsg').className = 'hint bad';
+  } finally {
+    $('modelRefresh').disabled = false;
+  }
+  renderModelOptions();
+}
+
+function selectModel(id) {
+  const slot = activeSlot();
+  if (!slot || !id) return;
+  slot.model = id;
+  state.activeSid = slot.sid;
+  saveState();
+  renderModelChip();
+  renderApiList();
+  closeModelSheet();
+  toast(PROVIDERS[slot.provider].label + ' · ' + id);
+}
+
+function wireModelSheet() {
+  $('modelClose').addEventListener('click', closeModelSheet);
+  $('modelRefresh').addEventListener('click', () => loadModelSheetModels(true));
+  $('modelApiBtn').addEventListener('click', () => {
+    closeModelSheet();
+    openSettings();
+    $('apiCard').scrollIntoView({ block: 'center' });
+    if (!state.apis.length) $('apiAdd').open = true;
+  });
+}
+
 /* ----------------------------- Ayarlar ----------------------------- */
 function openSettings() {
   closeDrawer();
@@ -1386,13 +1504,17 @@ function renderApiList() {
     badge.className = 'api-badge';
     badge.textContent = cfg.badge;
 
-    const meta = document.createElement('span');
-    meta.className = 'api-meta';
+    /* Satıra dokunmak model listesini açar; API ekleme formuna götürmez. */
+    const meta = document.createElement('button');
+    meta.type = 'button';
+    meta.className = 'api-meta api-meta-btn';
+    meta.setAttribute('aria-label', cfg.label + ' için model seç');
     const strong = document.createElement('strong');
     strong.textContent = cfg.label;
     const sub = document.createElement('span');
     sub.textContent = (modelOf(slot) || 'model seçilmedi') + ' · ' + maskKey(slot.key);
     meta.append(strong, sub);
+    meta.addEventListener('click', () => openModelSheet(slot.sid));
 
     const use = document.createElement('button');
     use.type = 'button';
@@ -1919,10 +2041,7 @@ function wireChrome() {
 
   $('micBtn').addEventListener('click', toggleMic);
 
-  $('modelChip').addEventListener('click', () => {
-    openSettings();
-    $('apiCard').scrollIntoView({ block: 'center', behavior: 'smooth' });
-  });
+  $('modelChip').addEventListener('click', () => openModelSheet());
 
   document.querySelectorAll('#chipWrap .chip').forEach((chip) => {
     chip.addEventListener('click', () => {
@@ -2360,6 +2479,7 @@ function syncAssistantKey() {
 /* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
 window.__primeBack = function () {
   if (!$('updModal').hidden) { closeUpdateCard(); return true; }
+  if (!$('modelSheet').hidden) { closeModelSheet(); return true; }
   if (!$('langScreen').hidden) {
     /* İlk kurulumda dil seçilmeden geçilmez. */
     if (!langFirstRun) { closeLangScreen(); openSettings(); }
@@ -2385,6 +2505,7 @@ function boot() {
   wireChrome();
   wireSettings();
   wireTutorial();
+  wireModelSheet();
   syncAssistantKey();
   renderModelChip();
   renderThread();
