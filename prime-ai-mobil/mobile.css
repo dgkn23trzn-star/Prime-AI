@@ -1028,3 +1028,12 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 .model-item.active .model-check { opacity: 1; }
 .model-list .hint { margin: 2px 0 8px; }
 .api-meta-btn { text-align: left; background: none; border: 0; padding: 0; color: inherit; }
+
+/* ==================================================================
+   API DÜZENLE — çift dokunuşla açılan düzenleme sayfası
+   ================================================================== */
+.api-meta-btn { touch-action: manipulation; }
+#apiEdit .api-form { padding-bottom: 14px; }
+#apiEdit #editModelRow { padding: 12px 0 8px; border-top: 1px solid var(--line); }
+#apiEdit #editModelRow svg { width: 18px; height: 18px; color: var(--muted); }
+.edit-actions { padding-top: 6px; }

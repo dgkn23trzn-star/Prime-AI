@@ -192,6 +192,7 @@ try {
     <p class="group-label">API</p>
     <div class="card" id="apiCard">
       <div class="api-list" id="apiList"></div>
+      <p class="hint" id="apiEditTip">Anahtarı düzenlemek için satırına iki kez dokun.</p>
       <div class="api-empty" id="apiEmpty">
         <p>Henüz API anahtarı yok. Anahtar ekleyince sohbet başlar.</p>
         <button class="text-btn" id="openTutorial">API rehberini aç</button>
@@ -251,7 +252,7 @@ try {
     <p class="group-label">Hakkında</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.3.0</span></div>
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.4.0</span></div>
       </div>
       <button class="row link-row" id="updCheckRow">
         <div class="row-text"><strong>Güncellemeyi denetle</strong><span id="updCheckSub">Yeni sürüm var mı diye bakar</span></div>
@@ -268,6 +269,44 @@ try {
     </div>
 
     <p class="fineprint">Kendi anahtarınla çalışır. Anahtarlar ve sohbetler yalnızca cihazında saklanır; PRIME AI sunucusuna hiçbir şey gönderilmez.</p>
+  </div>
+</section>
+
+<!-- =========================================================
+     API DÜZENLE — Ayarlar → API listesinde bir anahtara iki kez
+     dokununca açılır. Sağlayıcı, anahtar ve model buradan değişir.
+     ========================================================= -->
+<section class="sheet" id="apiEdit" hidden aria-label="API'yi düzenle">
+  <header class="sheet-head">
+    <button class="icon-btn" id="editBack" aria-label="Geri">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    </button>
+    <h2>API’yi düzenle</h2>
+    <span class="sheet-spacer"></span>
+  </header>
+
+  <div class="sheet-body">
+    <div class="card">
+      <div class="api-form">
+        <label>Sağlayıcı
+          <select id="editProvider"></select>
+        </label>
+        <p class="hint" id="editHint"></p>
+        <label>API anahtarı
+          <input id="editKey" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="Anahtarı yapıştır" />
+        </label>
+        <button class="row link-row" id="editModelRow" type="button">
+          <div class="row-text"><strong>Model</strong><span id="editModel">model seçilmedi</span></div>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+        </button>
+        <p class="hint" id="editMsg"></p>
+        <div class="api-form-row edit-actions">
+          <button class="outline-btn" id="editDelete" type="button">Sil</button>
+          <button class="filled-btn" id="editSave" type="button">Kaydet</button>
+        </div>
+      </div>
+    </div>
+    <p class="fineprint">Anahtar yalnızca bu telefonda saklanır. Sağlayıcıyı değiştirirsen model de sıfırlanır.</p>
   </div>
 </section>
 

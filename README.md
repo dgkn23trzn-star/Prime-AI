@@ -75,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.3.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.3.0/PRIME-AI-Mobil-1.3.0.apk)**
-  (328 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.4.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.4.0/PRIME-AI-Mobil-1.4.0.apk)**
+  (331 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.3.0.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.4.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -99,6 +99,11 @@ python -m http.server 5173
   modelleri tam ekran listede çıkar; seçim anında uygulanır, API ayarlarına gitmek gerekmez.
   Liste **Ayarlar → API** kartındaki sağlayıcı satırından da açılır; birden çok anahtar varsa
   üstteki sekmelerle geçilir, **Yenile** model listesini sağlayıcıdan yeniden çeker.
+- **API düzenleme:** **Ayarlar → API** listesinde bir anahtara **iki kez dokununca** düzenleme
+  sayfası açılır; sağlayıcı, anahtar ve model oradan değiştirilir, gerekiyorsa anahtar silinir.
+- **Yanıt gelmezse:** akış kurulamazsa istek bir kez akışsız gönderilir, 30 saniye yanıt
+  gelmezse bağlantı kesilip yeniden denenir, seçili model geçersizse sağlayıcının varsayılan
+  modeli kendiliğinden seçilir.
 
 - **Uygulama içi güncelleme:** yeni sürüm çıkınca **ekranın ortasında, arkası bulanık** bir
   pencere açılır. **Güncelle** APK'yı uygulamanın içinde indirir (yüzde gösterir), kurulum
@@ -106,7 +111,7 @@ python -m http.server 5173
   izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
   ile elle de bakılır.
 
-İndirme sayfası: [PRIME AI Mobil 1.3.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.3.0)
+İndirme sayfası: [PRIME AI Mobil 1.4.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.4.0)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 

@@ -13,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.3.0.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.4.0.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -74,6 +74,12 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
   ayarlarına gitmek gerekmez. Aynı liste **Ayarlar → API** kartındaki sağlayıcı
   satırından da açılır; birden çok anahtar varsa üstteki sekmelerle geçilir,
   **Yenile** listeyi sağlayıcıdan yeniden çeker.
+- **API düzenleme:** **Ayarlar → API** listesinde bir anahtara **iki kez dokununca**
+  düzenleme sayfası açılır: sağlayıcı, anahtar ve model değiştirilir, anahtar silinir.
+  Tek dokunuş model listesini açmaya devam eder.
+- **Yanıt sigortası:** akış kurulamazsa (gövde yok, 5xx, 30 saniye veri gelmezse) istek
+  bir kez akışsız gönderilir; seçili model o anahtarda yoksa sağlayıcının varsayılan
+  modeli kendiliğinden seçilir. Böylece “anahtar ekledim ama yanıt gelmiyor” durumu kalmaz.
 - **Asistan tuşu (ana ekranda top):** **Ayarlar → Asistan → Asistan tuşu**
   açılınca gerekli izinler istenir, uygulama kapanır ve top ana ekranda kalır.
   Topa dokununca mikrofon dinler, yanıt balonda akar ve sesli okunur; topu

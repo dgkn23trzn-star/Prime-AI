@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.3.0';
+const VERSION = '1.4.0';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -623,6 +623,13 @@ async function httpError(res) {
   return 'HTTP ' + res.status + ' ' + detail;
 }
 
+/* Hata mesajına HTTP kodunu da ekler: 4xx'te tekrar denemek anlamsız. */
+async function httpFailure(res) {
+  const err = new Error(await httpError(res));
+  err.status = res.status;
+  return err;
+}
+
 function rankModels(ids, prefer) {
   const score = (m) => {
     const l = m.toLowerCase();
@@ -658,37 +665,143 @@ async function fetchModels(providerId, key) {
   return rankModels(ids, cfg.prefer);
 }
 
-async function sseFetch(url, headers, payload, onData, signal) {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
-    body: JSON.stringify(payload),
-    signal
-  });
-  if (!res.ok) throw new Error(await httpError(res));
-  if (!res.body) throw new Error('Sunucu akış gövdesi döndürmedi.');
+/* Akış 30 saniye boyunca hiç veri göndermezse bağlantı kesilir: yoksa
+   noktalar sonsuza kadar döner ve kullanıcı "API çalışmıyor" görür. */
+const STREAM_IDLE_MS = 30000;
 
-  const reader = res.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  const consume = (block) => {
-    const data = block.split(/\r?\n/).filter((l) => l.startsWith('data:'))
-      .map((l) => l.slice(5).trim()).join('\n');
-    if (data && data !== '[DONE]') onData(data);
-  };
-  for (;;) {
-    const { value, done } = await reader.read();
-    if (done) break;
-    buffer += decoder.decode(value, { stream: true });
-    const parts = buffer.split(/\r?\n\r?\n/);
-    buffer = parts.pop() || '';
-    for (const p of parts) consume(p);
+async function sseFetch(url, headers, payload, onData, signal) {
+  const idleMs = Number(window.__primeStreamIdle) > 0 ? Number(window.__primeStreamIdle) : STREAM_IDLE_MS;
+  const ctrl = new AbortController();
+  let idle = false;
+  const relay = () => { try { ctrl.abort(); } catch { /* yok */ } };
+  if (signal) {
+    if (signal.aborted) relay();
+    else signal.addEventListener('abort', relay, { once: true });
   }
-  buffer += decoder.decode();
-  if (buffer.trim()) consume(buffer);
+  let timer = 0;
+  const bump = () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => { idle = true; relay(); }, idleMs);
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, headers),
+      body: JSON.stringify(payload),
+      signal: ctrl.signal
+    });
+    if (!res.ok) throw await httpFailure(res);
+    if (!res.body) throw new Error('Sunucu akış gövdesi döndürmedi.');
+    bump();
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    const consume = (block) => {
+      const data = block.split(/\r?\n/).filter((l) => l.startsWith('data:'))
+        .map((l) => l.slice(5).trim()).join('\n');
+      if (data && data !== '[DONE]') onData(data);
+    };
+    for (;;) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      bump();
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split(/\r?\n\r?\n/);
+      buffer = parts.pop() || '';
+      for (const p of parts) consume(p);
+    }
+    buffer += decoder.decode();
+    if (buffer.trim()) consume(buffer);
+  } catch (err) {
+    if (idle) {
+      const stopped = new Error('Yanıt 30 saniye içinde gelmedi.');
+      stopped.status = 0;
+      throw stopped;
+    }
+    throw err;
+  } finally {
+    clearTimeout(timer);
+    if (signal) signal.removeEventListener('abort', relay);
+  }
 }
 
+/* Akış desteklenmezse ya da yanıt hiç gelmezse aynı istek tek seferde
+   (stream olmadan) denenir; kullanıcı boş ekran yerine yanıtı görür. */
 async function streamOnce(slot, history, onText, signal, extra) {
+  const cfg = PROVIDERS[slot.provider];
+  const base = cfg.base;
+  const key = String(slot.key || '').trim();
+  const model = modelOf(slot);
+  if (!model) throw new Error('Model seçilmedi. Ayarlar → API bölümünden model seç.');
+
+  let got = 0;
+  const feed = (t) => { if (t) { got += t.length; onText(t); } };
+  try {
+    await streamRaw(slot, history, feed, signal, extra);
+    return;
+  } catch (err) {
+    if (signal && signal.aborted) throw err;
+    if (got) throw err;                              // yarıda kalan yanıtı tekrarlamayız
+    if (err && err.status && err.status < 500) throw err;  // anahtar/istek hatası
+    const text = await plainReply(cfg, base, key, model, history, extra, signal);
+    if (!String(text || '').trim()) throw err;
+    onText(text);
+  }
+}
+
+/* Akışsız istek: aynı gövde, tek yanıt. */
+async function plainReply(cfg, base, key, model, history, extra, signal) {
+  if (cfg.kind === 'gemini') {
+    const res = await fetch(base + '/models/' + encodeURIComponent(model) + ':generateContent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+      body: JSON.stringify(geminiBody(model, history, extra)),
+      signal
+    });
+    if (!res.ok) throw await httpFailure(res);
+    const data = await res.json();
+    const cand = (data.candidates || [])[0] || {};
+    const text = ((cand.content || {}).parts || []).map((p) => p.text || '').join('');
+    const blocked = String((data.promptFeedback || {}).blockReason || '');
+    if (!text.trim()) throw new Error(geminiEmptyWhy(model, blocked || cand.finishReason));
+    return text;
+  }
+
+  if (cfg.kind === 'anthropic') {
+    const body = anthropicBody(model, history, extra);
+    body.stream = false;
+    const res = await fetch(base + '/messages', {
+      method: 'POST',
+      headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders(cfg, key)),
+      body: JSON.stringify(body),
+      signal
+    });
+    if (!res.ok) throw await httpFailure(res);
+    const data = await res.json();
+    const text = (data.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('');
+    if (!text.trim()) throw new Error('Model boş yanıt döndürdü.');
+    return text;
+  }
+
+  const body = openAIBody(model, history, extra);
+  body.stream = false;
+  const res = await fetch(base + '/chat/completions', {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, authHeaders(cfg, key), extraHeaders(base)),
+    body: JSON.stringify(body),
+    signal
+  });
+  if (!res.ok) throw await httpFailure(res);
+  const data = await res.json();
+  const msg = ((data.choices || [])[0] || {}).message || {};
+  const text = typeof msg.content === 'string' ? msg.content : '';
+  if (!text.trim()) throw new Error('Model boş yanıt döndürdü.');
+  return text;
+}
+
+async function streamRaw(slot, history, onText, signal, extra) {
   const cfg = PROVIDERS[slot.provider];
   const base = cfg.base;
   const key = String(slot.key || '').trim();
@@ -753,12 +866,19 @@ function isQuotaError(err) {
   return /(\b429\b|quota|kota|resource_exhausted|rate[ _-]?limit|too many requests|insufficient_quota|billing|credit balance)/.test(s);
 }
 
+/* Model adı geçersizse (silinmiş/yeniden adlandırılmış model) bunu ayırt eder. */
+function isModelError(err) {
+  const msg = String((err && err.message) || err);
+  if (err && err.status === 404) return true;
+  return /model[^.]{0,48}(not found|does not exist|not supported|decommissioned|invalid|unknown|bulunamadı|geçersiz|desteklenmiyor)/i.test(msg);
+}
+
 async function streamReply(history, onText, signal, extra) {
   const tried = [];
   let emitted = false;
   const emit = (t) => { if (t) emitted = true; onText(t); };
 
-  for (let attempt = 0; attempt < 3; attempt += 1) {
+  for (let attempt = 0; attempt < 4; attempt += 1) {
     const slot = activeSlot();
     if (!slotReady(slot)) {
       throw new Error('API anahtarı yok. Ayarlar → API bölümünden anahtar ekle.');
@@ -767,7 +887,25 @@ async function streamReply(history, onText, signal, extra) {
       return await streamOnce(slot, history, emit, signal, extra);
     } catch (err) {
       if (signal && signal.aborted) throw err;
-      if (!isQuotaError(err) || emitted) throw err;
+      if (emitted) throw err;
+
+      /* Seçili model o anahtarda yoksa sağlayıcının varsayılanıyla bir kez denenir. */
+      if (isModelError(err)) {
+        const cfg = PROVIDERS[slot.provider];
+        const fallback = cfg.defaultModel;
+        const tag = 'model:' + slot.sid;
+        if (fallback && slot.model !== fallback && !tried.includes(tag)) {
+          tried.push(tag);
+          slot.model = fallback;
+          saveState();
+          renderModelChip();
+          toast('Model bulunamadı, ' + fallback + ' ile denendi.', true);
+          continue;
+        }
+        throw err;
+      }
+
+      if (!isQuotaError(err)) throw err;
       tried.push(slot.sid);
       const next = state.apis.find((a) => !tried.includes(a.sid) && slotReady(a) && a.sid !== slot.sid);
       if (!next) throw err;
@@ -777,7 +915,7 @@ async function streamReply(history, onText, signal, extra) {
       toast('Kota doldu, ' + PROVIDERS[next.provider].label + ' anahtarına geçildi.');
     }
   }
-  throw new Error('Tüm anahtarların kotası doldu. Ayarlar → API bölümünden yeni anahtar ekle.');
+  throw new Error('Yanıt alınamadı. Ayarlar → API bölümünde anahtarı ve modeli kontrol et.');
 }
 
 /* ----------------------------- Markdown ----------------------------- */
@@ -1333,6 +1471,7 @@ const MODEL_CACHE = new Map();
 function openModelSheet(sid) {
   closeDrawer();
   $('settings').hidden = true;
+  $('apiEdit').hidden = true;
   if (sid && state.apis.some((a) => a.sid === sid)) state.activeSid = sid;
   $('modelSheet').hidden = false;
   renderModelSheet();
@@ -1341,6 +1480,11 @@ function openModelSheet(sid) {
 
 function closeModelSheet() {
   $('modelSheet').hidden = true;
+  /* Model, API düzenleme sayfasından seçildiyse oraya dönülür. */
+  if (backToEdit && editSid) {
+    backToEdit = false;
+    openApiEdit(editSid);
+  }
 }
 
 function renderModelSheet() {
@@ -1441,6 +1585,135 @@ function selectModel(id) {
   toast(PROVIDERS[slot.provider].label + ' · ' + id);
 }
 
+/* ----------------------------- API düzenleme -----------------------------
+   Ayarlar → API listesinde bir anahtara iki kez dokununca açılır; sağlayıcı,
+   anahtar ve model oradan değiştirilir. */
+let editSid = null;
+let backToEdit = false;
+let apiTapTimer = 0;
+let apiTapSid = '';
+
+/* Tek dokunma model listesini, iki dokunma düzenlemeyi açar. */
+function tapApiRow(sid) {
+  if (apiTapTimer && apiTapSid === sid) {
+    clearTimeout(apiTapTimer);
+    apiTapTimer = 0;
+    apiTapSid = '';
+    openApiEdit(sid);
+    return;
+  }
+  apiTapSid = sid;
+  apiTapTimer = setTimeout(() => {
+    apiTapTimer = 0;
+    apiTapSid = '';
+    openModelSheet(sid);
+  }, 300);
+}
+
+function fillProviderOptions(sel) {
+  sel.innerHTML = '';
+  for (const id of Object.keys(PROVIDERS)) {
+    const opt = document.createElement('option');
+    opt.value = id;
+    opt.textContent = PROVIDERS[id].label;
+    sel.appendChild(opt);
+  }
+}
+
+function editProviderHint(id) {
+  const cfg = PROVIDERS[id];
+  $('editKey').placeholder = cfg.needsKey === false ? 'Gerekmez' : 'Anahtarı yapıştır';
+  $('editHint').innerHTML = cfg.keyUrl
+    ? esc(cfg.keyHint) + ' <a href="' + cfg.keyUrl + '" target="_blank" rel="noopener">' + esc(cfg.keyUrlLabel) + '</a>'
+    : esc(cfg.keyHint);
+}
+
+function openApiEdit(sid) {
+  const slot = state.apis.find((a) => a.sid === sid);
+  if (!slot) return;
+  if (apiTapTimer) { clearTimeout(apiTapTimer); apiTapTimer = 0; apiTapSid = ''; }
+  editSid = sid;
+  backToEdit = false;
+  closeDrawer();
+  $('settings').hidden = true;
+  $('modelSheet').hidden = true;
+  $('apiEdit').hidden = false;
+  fillProviderOptions($('editProvider'));
+  $('editProvider').value = slot.provider;
+  editProviderHint(slot.provider);
+  $('editKey').value = slot.key || '';
+  $('editModel').textContent = modelOf(slot) || 'model seçilmedi';
+  $('editMsg').textContent = '';
+  $('editMsg').className = 'hint';
+}
+
+function closeApiEdit() {
+  $('apiEdit').hidden = true;
+}
+
+function backToSettings() {
+  editSid = null;
+  backToEdit = false;
+  closeApiEdit();
+  openSettings();
+  $('apiCard').scrollIntoView({ block: 'center' });
+}
+
+function saveApiEdit() {
+  const slot = state.apis.find((a) => a.sid === editSid);
+  if (!slot) { backToSettings(); return; }
+  const provider = $('editProvider').value;
+  const cfg = PROVIDERS[provider];
+  const key = $('editKey').value.trim();
+  if (cfg.needsKey !== false && !key) {
+    $('editMsg').textContent = 'API anahtarı gerekli.';
+    $('editMsg').className = 'hint bad';
+    return;
+  }
+
+  const providerChanged = provider !== slot.provider;
+  const keyChanged = key !== String(slot.key || '');
+  slot.provider = provider;
+  slot.key = key;
+  if (providerChanged) slot.model = cfg.defaultModel || '';
+  if (providerChanged || keyChanged) MODEL_CACHE.delete(slot.sid);
+  state.activeSid = slot.sid;
+  saveState();
+  renderApiList();
+  renderModelChip();
+  $('apiEdit').hidden = true;
+  toast('API güncellendi.');
+  /* Yeni anahtarın modelleri hemen görünsün. */
+  openModelSheet(slot.sid);
+}
+
+function deleteApiEdit() {
+  const slot = state.apis.find((a) => a.sid === editSid);
+  if (!slot) { backToSettings(); return; }
+  if (!confirm(PROVIDERS[slot.provider].label + ' anahtarı silinsin mi?')) return;
+  state.apis = state.apis.filter((a) => a.sid !== slot.sid);
+  if (state.activeSid === slot.sid) state.activeSid = state.apis[0] ? state.apis[0].sid : null;
+  MODEL_CACHE.delete(slot.sid);
+  saveState();
+  renderApiList();
+  renderModelChip();
+  backToSettings();
+  toast('Anahtar silindi.');
+}
+
+function wireApiEdit() {
+  $('editBack').addEventListener('click', backToSettings);
+  $('editProvider').addEventListener('change', (e) => editProviderHint(e.target.value));
+  $('editSave').addEventListener('click', saveApiEdit);
+  $('editDelete').addEventListener('click', deleteApiEdit);
+  $('editModelRow').addEventListener('click', () => {
+    if (!editSid) return;
+    backToEdit = true;
+    $('apiEdit').hidden = true;
+    openModelSheet(editSid);
+  });
+}
+
 function wireModelSheet() {
   $('modelClose').addEventListener('click', closeModelSheet);
   $('modelRefresh').addEventListener('click', () => loadModelSheetModels(true));
@@ -1508,13 +1781,13 @@ function renderApiList() {
     const meta = document.createElement('button');
     meta.type = 'button';
     meta.className = 'api-meta api-meta-btn';
-    meta.setAttribute('aria-label', cfg.label + ' için model seç');
+    meta.setAttribute('aria-label', cfg.label + ' için model seç; iki kez dokun: düzenle');
     const strong = document.createElement('strong');
     strong.textContent = cfg.label;
     const sub = document.createElement('span');
     sub.textContent = (modelOf(slot) || 'model seçilmedi') + ' · ' + maskKey(slot.key);
     meta.append(strong, sub);
-    meta.addEventListener('click', () => openModelSheet(slot.sid));
+    meta.addEventListener('click', () => tapApiRow(slot.sid));
 
     const use = document.createElement('button');
     use.type = 'button';
@@ -2480,6 +2753,7 @@ function syncAssistantKey() {
 window.__primeBack = function () {
   if (!$('updModal').hidden) { closeUpdateCard(); return true; }
   if (!$('modelSheet').hidden) { closeModelSheet(); return true; }
+  if (!$('apiEdit').hidden) { backToSettings(); return true; }
   if (!$('langScreen').hidden) {
     /* İlk kurulumda dil seçilmeden geçilmez. */
     if (!langFirstRun) { closeLangScreen(); openSettings(); }
@@ -2506,6 +2780,7 @@ function boot() {
   wireSettings();
   wireTutorial();
   wireModelSheet();
+  wireApiEdit();
   syncAssistantKey();
   renderModelChip();
   renderThread();
