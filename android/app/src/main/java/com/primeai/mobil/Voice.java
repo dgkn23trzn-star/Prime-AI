@@ -68,9 +68,9 @@ public class Voice {
                 ttsReady = true;
                 try { tts.setLanguage(Locale.getDefault()); } catch (Exception ignored) { }
                 tts.setOnUtteranceProgressListener(new UtteranceProgressListener() {
-                    @Override public void onStart(String id) { speaking = true; }
-                    @Override public void onDone(String id) { speaking = false; }
-                    @Override public void onError(String id) { speaking = false; }
+                    @Override public void onStart(String id) { speaking = true; event("speech", "start"); }
+                    @Override public void onDone(String id) { speaking = false; event("speech", "end"); }
+                    @Override public void onError(String id) { speaking = false; event("speech", "end"); }
                 });
                 final String queued = pendingSpeak;
                 pendingSpeak = null;

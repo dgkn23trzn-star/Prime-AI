@@ -319,7 +319,7 @@ function T(key, vars) {
 }
 
 const DEF = {
-  v: 5,
+  v: 6,
   name: '',
   theme: 'dark',
   accent: 'kirmizi',
@@ -347,7 +347,8 @@ const DEF = {
   micAutoSend: true,
   micLang: '',
   bargeIn: true,
-  camFacing: 'environment'
+  camFacing: 'environment',
+  camMic: true
 };
 
 /* ----------------------------- Durum ----------------------------- */
@@ -1014,15 +1015,30 @@ function activeChat() {
   return state.chats.find((c) => c.id === state.activeChatId) || null;
 }
 
-function ensureChat() {
+function ensureChat(kind) {
   let chat = activeChat();
+  /* "Kameralı sohbet" istendiyse boş bir normal sohbet ona dönüştürülür;
+     dolu bir sohbet varsa kameralı olarak yenisi açılır. */
+  if (chat && kind === 'cam' && chatKind(chat) !== 'cam') {
+    if (chat.msgs.length) chat = null;
+    else {
+      chat.kind = 'cam';
+      saveState();
+      renderChatList();
+      return chat;
+    }
+  }
   if (chat) return chat;
-  chat = { id: uid(), title: 'Yeni sohbet', ts: Date.now(), msgs: [] };
+  chat = { id: uid(), title: 'Yeni sohbet', ts: Date.now(), msgs: [], kind: kind === 'cam' ? 'cam' : 'chat' };
   state.chats.unshift(chat);
   state.activeChatId = chat.id;
   saveState();
   renderChatList();
   return chat;
+}
+
+function chatKind(chat) {
+  return chat && chat.kind === 'cam' ? 'cam' : 'chat';
 }
 
 function chatTitleFrom(text) {
@@ -1167,7 +1183,7 @@ async function sendMessage(text, images, opts) {
     return;
   }
 
-  const chat = ensureChat();
+  const chat = ensureChat(opts && opts.cam ? 'cam' : undefined);
   const userMsg = { role: 'user', content: clean, images: images || [], ts: Date.now() };
   chat.msgs.push(userMsg);
   if (chat.msgs.length === 1) chat.title = chatTitleFrom(clean);
@@ -1461,6 +1477,9 @@ function speakText(text) {
     u.pitch = VOICE_PITCH[state.voiceId] || 1;
     u.rate = rate;
     u.lang = ({ tr: 'tr-TR', en: 'en-US', de: 'de-DE', ru: 'ru-RU', ja: 'ja-JP' })[state.replyLang] || 'tr-TR';
+    u.onstart = () => camSpeechStart();
+    u.onend = () => camSpeechEnd();
+    u.onerror = () => camSpeechEnd();
     speechSynthesis.speak(u);
   } catch { /* yok */ }
 }
@@ -1479,18 +1498,20 @@ function micLangCode() {
 function setMicUI(on) {
   micActive = !!on;
   const chatBtn = $('micBtn');
-  const camBtn = $('camMic');
   if (chatBtn) chatBtn.classList.toggle('listening', micActive && micTarget === 'chat');
-  if (camBtn) camBtn.classList.toggle('listening', micActive && micTarget === 'cam');
   const stateLabel = $('micState');
   if (stateLabel) stateLabel.textContent = micActive ? 'Dinliyorum… konuş' : 'Hazır — komut bekliyor';
+  renderCamMic();
 }
 
 function showTranscript(text) {
   const value = String(text || '');
-  if (micTarget === 'cam') {
-    const field = $('camText');
-    if (field) field.value = value;
+  if (micTarget === 'cam' || camOpen()) {
+    const said = $('camSaid');
+    if (said) {
+      said.textContent = 'Sen: ' + value;
+      said.hidden = !value;
+    }
     return;
   }
   const input = $('input');
@@ -1502,8 +1523,9 @@ function showTranscript(text) {
 function handleUtterance(text) {
   const clean = String(text || '').trim();
   if (!clean) return;
-  if (micTarget === 'cam') {
-    $('camText').value = '';
+  if (micTarget === 'cam' || camOpen()) {
+    /* Kamera modunda yazma alanı yok: cümle biter bitmez gönderilir. */
+    if (micTarget !== 'cam') micTarget = 'cam';
     cameraTurn(clean);
     return;
   }
@@ -1587,9 +1609,47 @@ function toggleMic() {
   startMic('chat');
 }
 
+/* Kamera modundaki mikrofon açma/kapama. Kapalıyken uygulama seni duymaz;
+   açınca dinleme kendiliğinden başlar ve her turdan sonra sürer. */
+function camOpen() {
+  const el = $('camSheet');
+  return !!(el && !el.hidden);
+}
+
+function renderCamMic() {
+  const on = !!state.camMic;
+  const btn = $('camMicToggle');
+  const status = $('camStatus');
+  const text = $('camStatusText');
+  if (btn) {
+    btn.classList.toggle('mic-off', !on);
+    btn.classList.toggle('listening', on && micActive && camOpen());
+    btn.setAttribute('aria-pressed', String(on));
+  }
+  if (status) status.classList.toggle('off', !on);
+  if (text) {
+    text.textContent = !on
+      ? 'Mikrofon kapalı — dokunup aç'
+      : (micActive ? 'Dinliyorum… konuş, biter bitmez gönderirim' : 'Hazır — mikrofon hazırda bekliyor');
+  }
+}
+
 function toggleCamMic() {
-  if (micActive) { stopMic(); return; }
-  startMic('cam');
+  state.camMic = !state.camMic;
+  saveState();
+  if (state.camMic) resumeCamMic(60);
+  else { stopMic(); toast('Mikrofon kapatıldı — seni duymuyorum.'); }
+  renderCamMic();
+}
+
+/* Kamera açık ve mikrofon açıksa dinleme sürer; durmuşsa yeniden başlar. */
+function resumeCamMic(delay) {
+  const go = () => {
+    if (!camOpen() || !state.camMic || micActive || camBusy || isSpeaking()) return;
+    startMic('cam');
+    renderCamMic();
+  };
+  if (delay) setTimeout(go, delay); else go();
 }
 
 /* Android köprüsünden gelen konuşma olayları. */
@@ -1599,6 +1659,11 @@ window.__primeVoice = function (raw) {
     try { d = JSON.parse(raw); } catch { return; }
   }
   if (!d || !d.type) return;
+  if (d.type === 'speech') {
+    /* Android TTS: konuşma başladı/bitti. Kamera modunda mikrofona yön verir. */
+    if (d.text === 'start') camSpeechStart(); else camSpeechEnd();
+    return;
+  }
   if (d.type === 'start') { setMicUI(true); return; }
   if (d.type === 'partial') {
     maybeBargeIn(d.text || '');
@@ -1628,6 +1693,9 @@ function openCamera() {
   $('camHint').hidden = false;
   $('camHint').textContent = 'Kamerayı açıyorum…';
   fillVoiceSelect();
+  buildCamDots();
+  syncCamStage();
+  renderCamMic();
   const bridge = window.PrimeAndroid;
   if (bridge && bridge.ensureCamera) {
     let st = 'granted';
@@ -1659,6 +1727,8 @@ async function startCameraStream() {
     await video.play().catch(() => {});
     camReady = true;
     $('camHint').hidden = true;
+    /* Kamera hazırsa ve mikrofon açıksa dinlemeye kendiliğinden başlanır. */
+    resumeCamMic(700);
   } catch (err) {
     camReady = false;
     $('camHint').hidden = false;
@@ -1681,6 +1751,61 @@ function closeCamera() {
   stopCameraStream();
   stopSpeaking();
   $('camSheet').hidden = true;
+  $('camMicToggle').classList.remove('listening');
+}
+
+/* Kamera sahnesinin durumu: idle (boşta), thinking (model düşünüyor),
+   speaking (AI sesli yanıt veriyor). Noktalar bu sınıfa göre hareket eder. */
+function setCamStage(mode) {
+  const stage = $('camStage');
+  if (!stage) return;
+  stage.classList.remove('is-idle', 'is-thinking', 'is-speaking');
+  stage.classList.add(mode === 'thinking' ? 'is-thinking' : mode === 'speaking' ? 'is-speaking' : 'is-idle');
+}
+
+function syncCamStage() {
+  if (!camOpen()) return;
+  if (camBusy) setCamStage('thinking');
+  else if (isSpeaking()) setCamStage('speaking');
+  else setCamStage('idle');
+}
+
+/* AI sesli konuşmaya başlayınca mikrofon kapatılır (kendi sesini duymasın),
+   konuşması bitince dinleme kendiliğinden yeniden açılır. */
+function camSpeechStart() {
+  if (!camOpen()) return;
+  if (micActive) stopMic();
+  setCamStage('speaking');
+  renderCamMic();
+}
+
+function camSpeechEnd() {
+  if (!camOpen()) return;
+  if (camBusy) { setCamStage('thinking'); return; }
+  setCamStage('idle');
+  if (state.camMic) resumeCamMic(350);
+  renderCamMic();
+}
+
+/* Kamera çerçevesinin etrafına temaya uygun noktalar dizilir.
+   Kamera açıkken bu halka görünür; noktalar animasyonla yaşar. */
+function buildCamDots() {
+  const wrap = $('camDots');
+  if (!wrap || wrap.childElementCount) return;
+  const total = 28;
+  for (let i = 0; i < total; i += 1) {
+    const dot = document.createElement('i');
+    dot.className = 'cam-dot';
+    const edge = i % 4;
+    const along = (2 + Math.random() * 96).toFixed(1) + '%';
+    const near = (1 + Math.random() * 6).toFixed(1) + '%';
+    if (edge === 0) { dot.style.top = near; dot.style.left = along; }
+    else if (edge === 1) { dot.style.bottom = near; dot.style.left = along; }
+    else if (edge === 2) { dot.style.left = near; dot.style.top = along; }
+    else { dot.style.right = near; dot.style.top = along; }
+    dot.style.animationDelay = (-Math.random() * 9).toFixed(2) + 's';
+    wrap.appendChild(dot);
+  }
 }
 
 async function flipCamera() {
@@ -1719,15 +1844,19 @@ async function cameraTurn(text) {
   const hint =
     'Kullanıcı kameradan bir görüntü gönderdi' +
     (images.length > 1 ? '; ilk görsel kameradan, sonrakiler daha önce adlandırdığı nesneler' : '') + '. ' +
-    'Görüntüde ne olduğunu kısa, doğal cümlelerle anlat: nesnenin ne olduğunu, rengini ve belirgin özelliğini söyle. ' +
+    'Soru görüntüyle ilgiliyse gördüğünü kısa, doğal cümlelerle anlat: nesnenin ne olduğunu, rengini ve belirgin özelliğini söyle. ' +
     (names.length ? 'Kullanıcının adlandırdığı nesneler: ' + names.join(', ') + '. Görüntüdeki bunlardan biriyse adını kullan. ' : '') +
-    'Kullanıcı bir soru sorduysa önce onu yanıtla, sonra gördüğünü anlat. Kod yazma.';
+    'Soru görüntüyle ilgisizse (selam, farklı bir konu, genel bir soru, kod isteği) görüntüyü hiç anmadan soruya normalce cevap ver; '
+    + 'ilgisiz sorularda kareyi açıklama. Kod yazma.';
 
+  setCamStage('thinking');
   let reply = '';
   try {
-    reply = await sendMessage(clean, images, { extra: hint, silent: !state.voiceOn });
+    reply = await sendMessage(clean, images, { cam: true, extra: hint, silent: !state.voiceOn });
   } finally {
     camBusy = false;
+    syncCamStage();
+    if (!isSpeaking() && state.camMic && camOpen()) resumeCamMic(400);
   }
   if (reply) {
     $('camAnswer').innerHTML = md(reply);
@@ -1741,12 +1870,22 @@ async function cameraTurn(text) {
    kamera sorularında hem ad listesi hem küçük görseller modele gönderilir. */
 function learnMemory(text, frame) {
   if (!frame) return;
-  const m = String(text || '').match(/(?:ad[ıi]|ismi|ismini)\s+([^.,!?;:\n]{2,24})/iu);
-  if (!m) return;
-  const name = m[1].replace(/^["'“”‘’]|["'“”‘’]$/g, '').replace(/\s+/g, ' ').trim();
-  if (name.length < 2) return;
-  if (/^(ne|ney|kim|bu|şu)$/i.test(name)) return;
-  saveMemory(name, frame, text);
+  const said = String(text || '');
+  const m = said.match(/(?:ad[ıi]|ismi|ismini)\s+([^.,!?;:\n]{2,24})/iu);
+  let name = '';
+  if (m) {
+    name = m[1].replace(/^["'“”‘’]|["'“”‘’]$/g, '').replace(/\s+/g, ' ').trim();
+    if (/^(ne|ney|kim|bu|şu)$/i.test(name)) name = '';
+  }
+  /* “belleğe geçir / kaydet / hatırla” denildiyse adsız da olsa kare saklanır. */
+  const wantsKeep = /belle|hatırla|hatirla|kaydet/i.test(said);
+  if (!name && !wantsKeep) return;
+  if (!name) {
+    let n = state.memories.length + 1;
+    name = 'Nesne ' + n;
+    while (state.memories.some((x) => x.name === name)) { n += 1; name = 'Nesne ' + n; }
+  }
+  saveMemory(name, frame, said);
 }
 
 /* Görseli yükler. decode() arka plandaki sekmede askıda kalabildiği için
@@ -1829,6 +1968,95 @@ function renderMemories() {
   }
 }
 
+/* ------------------- Kayıtlı varlıklar: galeri + görüntüleyici ------------------- */
+let assetIndex = 0;
+
+function renderAssets() {
+  const grid = $('assetsGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const items = state.memories;
+  const count = $('assetsCount');
+  if (count) count.textContent = items.length + ' kayıt';
+  const empty = $('assetsEmpty');
+  if (empty) empty.hidden = items.length > 0;
+  items.forEach((m, i) => {
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.className = 'assets-cell';
+    const img = document.createElement('img');
+    img.src = m.thumb;
+    img.alt = m.name;
+    img.loading = 'lazy';
+    const cap = document.createElement('span');
+    cap.textContent = m.name;
+    cell.append(img, cap);
+    cell.addEventListener('click', () => openAsset(i));
+    grid.appendChild(cell);
+  });
+}
+
+function openAssets() {
+  renderAssets();
+  $('settings').hidden = true;
+  $('assets').hidden = false;
+}
+
+function closeAssets() {
+  $('assets').hidden = true;
+  openSettings();
+}
+
+function openAsset(i) {
+  if (!state.memories.length) return;
+  assetIndex = Math.max(0, Math.min(i | 0, state.memories.length - 1));
+  $('assetViewer').hidden = false;
+  paintAsset();
+}
+
+function paintAsset() {
+  const m = state.memories[assetIndex];
+  if (!m) { $('assetViewer').hidden = true; return; }
+  $('viewerImg').src = m.thumb;
+  $('viewerName').textContent = m.name + (m.said ? ' — ' + m.said : '');
+  $('viewerCount').textContent = (assetIndex + 1) + ' / ' + state.memories.length;
+}
+
+function stepAsset(d) {
+  const n = state.memories.length;
+  if (!n) { closeAsset(); return; }
+  assetIndex = (assetIndex + (d | 0) + n) % n;
+  paintAsset();
+}
+
+function closeAsset() {
+  $('assetViewer').hidden = true;
+}
+
+/* Görüntüleyicide sola/sağa kaydırarak gezinme. */
+function wireAssetSwipe() {
+  const el = document.querySelector('#assetViewer .viewer-card');
+  if (!el || el.dataset.wired) return;
+  el.dataset.wired = '1';
+  let x0 = null;
+  el.addEventListener('touchstart', (e) => {
+    x0 = e.touches && e.touches.length ? e.touches[0].clientX : null;
+  }, { passive: true });
+  el.addEventListener('touchend', (e) => {
+    if (x0 == null) return;
+    const t = e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : null;
+    const dx = t ? t.clientX - x0 : 0;
+    x0 = null;
+    if (Math.abs(dx) > 44) stepAsset(dx < 0 ? 1 : -1);
+  }, { passive: true });
+  document.addEventListener('keydown', (e) => {
+    if ($('assetViewer').hidden) return;
+    if (e.key === 'ArrowLeft') stepAsset(-1);
+    else if (e.key === 'ArrowRight') stepAsset(1);
+    else if (e.key === 'Escape') closeAsset();
+  });
+}
+
 /* ----------------------------- Profil fotoğrafı ----------------------------- */
 function renderAvatar() {
   const initial = initialOf(state.name);
@@ -1871,6 +2099,7 @@ async function pickAvatar(file) {
 /* ----------------------------- Asistan topu ----------------------------- */
 /* ----------------------------- Çekmece ----------------------------- */
 function openDrawer() {
+  drawerTab = chatKind(activeChat()) === 'cam' ? 'cam' : 'chat';
   $('drawer').hidden = false;
   $('scrim').hidden = false;
   renderChatList();
@@ -1881,14 +2110,29 @@ function closeDrawer() {
   $('scrim').hidden = true;
 }
 
+let drawerTab = 'chat';   // çekmecedeki sekme: 'chat' | 'cam'
+
+function renderDrawerTabs() {
+  document.querySelectorAll('#drawerTabs .drawer-tab').forEach((b) => {
+    const on = (b.dataset.kind === drawerTab);
+    b.classList.toggle('on', on);
+    b.setAttribute('aria-selected', String(on));
+  });
+}
+
 function renderChatList() {
   const list = $('chatList');
   list.innerHTML = '';
-  const chats = [...state.chats].sort((a, b) => (b.ts || 0) - (a.ts || 0));
+  renderDrawerTabs();
+  const chats = [...state.chats]
+    .filter((c) => chatKind(c) === drawerTab)
+    .sort((a, b) => (b.ts || 0) - (a.ts || 0));
   if (!chats.length) {
     const empty = document.createElement('p');
     empty.className = 'chat-empty';
-    empty.textContent = 'Henüz sohbet yok.';
+    empty.textContent = drawerTab === 'cam'
+      ? 'Henüz kameralı sohbet yok. Kamerayı açıp konuşmaya başladığında buraya düşer.'
+      : 'Henüz sohbet yok.';
     list.appendChild(empty);
     return;
   }
@@ -1928,6 +2172,7 @@ function renderChatList() {
 
 function newChat() {
   state.activeChatId = null;
+  drawerTab = 'chat';
   saveState();
   $('thread').innerHTML = '';
   $('welcome').hidden = false;
@@ -2818,21 +3063,33 @@ function wireChrome() {
 
   $('cameraBtn').addEventListener('click', openCamera);
   $('camClose').addEventListener('click', closeCamera);
+  $('camStop').addEventListener('click', closeCamera);
   $('camFlip').addEventListener('click', flipCamera);
-  $('camMic').addEventListener('click', toggleCamMic);
-  $('camForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const text = $('camText').value.trim();
-    if (!text) { toggleCamMic(); return; }
-    $('camText').value = '';
-    cameraTurn(text);
-  });
+  $('camMicToggle').addEventListener('click', toggleCamMic);
   $('camMemory').addEventListener('click', async () => {
     const frame = lastCameraFrame || captureFrame();
     if (!frame) { toast('Önce kameraya bir şey göster.', true); return; }
     const name = prompt('Nesnenin adı ne?');
     if (name) await saveMemory(name, frame, 'elle eklendi');
   });
+
+  /* Çekmece sekmeleri: Sohbetler / Kameralı Sohbetler */
+  document.querySelectorAll('#drawerTabs .drawer-tab').forEach((b) => {
+    b.addEventListener('click', () => {
+      drawerTab = b.dataset.kind === 'cam' ? 'cam' : 'chat';
+      renderChatList();
+    });
+  });
+
+  /* Kayıtlı varlıklar: ayarlar → galeri → tam ekran gezinme */
+  $('assetsOpen').addEventListener('click', openAssets);
+  $('assetsBack').addEventListener('click', closeAssets);
+  $('viewerClose').addEventListener('click', closeAsset);
+  $('viewerVeil').addEventListener('click', closeAsset);
+  $('viewerPrev').addEventListener('click', () => stepAsset(-1));
+  $('viewerNext').addEventListener('click', () => stepAsset(1));
+  wireAssetSwipe();
+  renderCamMic();
 
   $('composer').addEventListener('submit', (e) => {
     e.preventDefault();

@@ -12,17 +12,17 @@
     "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
   },
   "mobile": {
-    "version": "1.5.1",
+    "version": "1.6.0",
     "date": "2026-10-28",
     "notes": [
-      "Kamera ile konuşma: canlı görüntüyü anlatır, rengini söyler, yanıtı sesli okur.",
-      "AI artık kendi sesini duyup kendini kesmiyor; araya girince susmaya devam ediyor.",
-      "Nesne belleği: “bunun adı …” dediğin şeyi fotoğrafıyla hatırlar, farklı açıdan da tanır.",
-      "Yapay zekâ sesi: üç kadın ve üç erkek ton, hız ayarı, yanıtları sesli okuma.",
-      "Mikrofon ayarları: dinleme dili, konuşunca gönder, araya girince sus.",
-      "Profili için galeriden fotoğraf seçebilirsin."
+      "Kamera modu tamamen sesli: yazma yeri yok, konuşunca cümlen biter bitmez gönderilir.",
+      "Konu bağımsız: kamerayla ilgili sorularda kareyi anlatır, ilgisiz sorularda normal cevap verir.",
+      "AI konuşurken mikrofon kapanır, bitince kendiliğinden yeniden açılır; altta mikrofon ve kapat tuşları var.",
+      "Ayarlar → Kayıtlı varlıklar: belleğe alınan nesneleri kaydırarak galeri gibi gez.",
+      "Çekmecede Sohbetler ve Kameralı Sohbetler ayrı sekmeler.",
+      "Kamera ekranı yenilendi: kare çerçeve, etrafında temaya uygun noktalar; düşünürken dalgalanır, konuşurken titrer."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.1/PRIME-AI-Mobil-1.5.1.apk",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.1"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.0/PRIME-AI-Mobil-1.6.0.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.6.0"
   }
 }

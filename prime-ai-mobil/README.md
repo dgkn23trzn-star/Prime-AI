@@ -13,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.5.1.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.6.0.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -80,11 +80,18 @@ Rehber sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabil
 - **Yanıt sigortası:** akış kurulamazsa (gövde yok, 5xx, 30 saniye veri gelmezse) istek
   bir kez akışsız gönderilir; seçili model o anahtarda yoksa sağlayıcının varsayılan
   modeli kendiliğinden seçilir. Böylece “anahtar ekledim ama yanıt gelmiyor” durumu kalmaz.
-- **Kamera ile konuşma:** kamera düğmesi canlı önizlemeyi açar; yazarak ya da **Konuş** ile
-  sorulur, o anki kare modele gider (ilk görsel kamera, sonrakiler bellek görselleri). Model
-  ne olduğunu/rengini anlatır ve yanıtı sesli okur. AI konuşurken konuşmaya başlarsan susar.
-- **Nesne belleği:** “bunun adı …” dendiğinde kare küçültülüp adıyla saklanır (en fazla 24,
-  cihazda). Sonraki kamera sorularında adlar ve görseller modele gönderilir.
+- **Kamera ile konuşma (tamamen sesli):** kamera düğmesi canlı önizlemeyi açar; yazma yeri ve
+  mikrofon tuşu yoktur. Konuşunca cümle biter bitmez kareyle birlikte gönderilir ve yanıt sesli
+  okunur. Soru kamerayla ilgiliyse kare anlatılır, ilgisizse kare hiç anılmadan normal cevap
+  verilir. AI konuşurken mikrofon kapanır, bitince kendiliğinden yeniden açılır; altta mikrofon
+  açma/kapama ve kamera kapatma tuşları vardır. Çerçeve karedir, etrafındaki temaya uygun
+  noktalar düşünürken dalgalanır, konuşurken titrer, boşta çok yavaş hareket eder.
+- **Nesne belleği:** “bunun adı …” dendiğinde ya da “belleğe geçir/kaydet” dendiğinde kare
+  küçültülüp adıyla saklanır (en fazla 24, cihazda). Sonraki kamera sorularında adlar ve
+  görseller modele gönderilir. **Ayarlar → Kayıtlı varlıklar** galerisinde resme dokunup
+  sola-sağa kaydırarak gezilir.
+- **Çekmece sekmeleri:** menüde **Sohbetler** ve **Kameralı Sohbetler** ayrı sekmelerdir;
+  kamera modunda açılan sohbetler kameralı sekmede durur.
 - **Ses:** `PrimeVoice` köprüsü TTS ve `SpeechRecognizer` sağlar; üç kadın + üç erkek ton,
   hız, “Yanıtları sesli oku”, dinleme dili, “Konuşunca gönder”, “Araya girince sus”.
 - **Profil fotoğrafı:** profil avatarına dokunup galeriden seçilir; üst çubuk, menü ve

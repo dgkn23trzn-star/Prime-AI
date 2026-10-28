@@ -97,8 +97,11 @@ try {
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
     Yeni sohbet
   </button>
-  <p class="drawer-label">Sohbetler</p>
-  <nav class="chat-list" id="chatList"></nav>
+  <div class="drawer-tabs" id="drawerTabs" role="tablist" aria-label="Sohbet türü">
+    <button type="button" class="drawer-tab on" data-kind="chat" role="tab" aria-selected="true">Sohbetler</button>
+    <button type="button" class="drawer-tab" data-kind="cam" role="tab" aria-selected="false">Kameralı Sohbetler</button>
+  </div>
+  <nav class="chat-list" id="chatList" aria-live="polite"></nav>
   <div class="drawer-foot">
     <button id="drawerSettings">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" /><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1.11-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09A1.7 1.7 0 0 0 4.6 9a1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.7 1.7 0 0 0 9 4.6h.08A1.7 1.7 0 0 0 10 3.05V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55 1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.7 1.7 0 0 0 19.4 9v.08a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.51 1Z" /></svg>
@@ -242,13 +245,17 @@ try {
       </button>
     </div>
 
-    <p class="group-label">Bellek</p>
+    <p class="group-label">Kayıtlı Varlıklar</p>
     <div class="card">
       <div class="row column">
-        <div class="row-text"><strong>Adını söylediğin nesneler</strong><span>Kamerada gördüğünde adıyla tanır; bellek bu telefonda kalır</span></div>
+        <div class="row-text"><strong>Adını söylediğin nesneler</strong><span>Kamerada gördüğünde adıyla tanır; bu telefonda saklanır</span></div>
         <div class="mem-list" id="memList"></div>
-        <p class="hint" id="memEmpty">Henüz kayıt yok. Kamerada bir şey gösterip “bunun adı …” dediğinde buraya eklenir.</p>
+        <p class="hint" id="memEmpty">Henüz kayıt yok. Kamerada bir şey gösterip “bunun adı …” dediğinde ya da “belleğe geçir” dediğinde buraya eklenir.</p>
       </div>
+      <button class="row link-row" id="assetsOpen" type="button">
+        <div class="row-text"><strong>Kayıtlı varlıkları gör</strong><span>Resimleri kaydırarak incele</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
     </div>
 
     <p class="group-label">API</p>
@@ -350,33 +357,73 @@ try {
   </header>
 
   <div class="cam-body">
-    <div class="cam-stage">
-      <video id="camVideo" playsinline muted autoplay></video>
-      <span class="cam-scan" aria-hidden="true"></span>
-      <p class="cam-hint" id="camHint">Kamerayı açıyorum…</p>
-      <div class="cam-answer" id="camAnswer" hidden></div>
+    <div class="cam-stage is-idle" id="camStage">
+      <div class="cam-frame">
+        <video id="camVideo" playsinline muted autoplay></video>
+        <span class="cam-scan" aria-hidden="true"></span>
+        <p class="cam-hint" id="camHint">Kamerayı açıyorum…</p>
+        <div class="cam-answer" id="camAnswer" hidden></div>
+      </div>
+      <div class="cam-dots" id="camDots" aria-hidden="true"></div>
+    </div>
+
+    <div class="cam-status" id="camStatus">
+      <span class="cam-status-dot" aria-hidden="true"></span>
+      <span id="camStatusText">Dinliyorum… konuşabilirsin</span>
     </div>
 
     <p class="cam-said" id="camSaid" hidden></p>
 
-    <form class="cam-input" id="camForm" autocomplete="off">
-      <input id="camText" type="text" placeholder="Ne göreceğini yaz ya da mikrofonu kullan" aria-label="Kameraya soru" />
-      <button class="composer-btn" id="camSend" type="submit" aria-label="Gönder">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" /></svg>
-      </button>
-    </form>
-
     <div class="cam-actions">
-      <button class="cam-btn ghost" id="camMemory" type="button">Belleğe ekle</button>
-      <button class="cam-btn live" id="camMic" type="button">
+      <button class="cam-btn live" id="camMicToggle" type="button" aria-pressed="true">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V6a3 3 0 0 0-3-3Z" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
-        Konuş
+        <span id="camMicLabel">Mikrofon</span>
       </button>
+      <button class="cam-btn ghost" id="camMemory" type="button">Belleğe ekle</button>
+      <button class="cam-btn ghost" id="camStop" type="button">Kapat</button>
     </div>
 
-    <p class="fineprint" id="camTip">Kare yalnızca sorduğunda gönderilir. “Belleğe ekle” demedikçe görüntü cihazda saklanmaz.</p>
+    <p class="fineprint" id="camTip">Konuşunca cümlen biter bitmez kareyle birlikte gönderilir. İstersen “bunun adı …” de, kendiliğinden belleğe alsın; “belleğe geçir” dersen de kaydeder.</p>
   </div>
 </section>
+
+<!-- =========================================================
+     KAYITLI VARLIKLAR — belleğe alınan nesnelerin galerisi.
+     Üzerine dokununca tam ekran görüntüleyici açılır; sağa-sola
+     kaydırarak ya da ok tuşlarıyla gezilir.
+     ========================================================= -->
+<section class="sheet" id="assets" hidden aria-label="Kayıtlı varlıklar">
+  <header class="sheet-head">
+    <button class="icon-btn" id="assetsBack" aria-label="Geri">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    </button>
+    <h2>Kayıtlı varlıklar</h2>
+    <span class="sheet-spacer"></span>
+  </header>
+  <div class="sheet-body">
+    <p class="hint" id="assetsCount">0 kayıt</p>
+    <div class="assets-grid" id="assetsGrid"></div>
+    <p class="hint" id="assetsEmpty">Henüz kayıt yok. Kamerada bir şey gösterip “bunun adı …” dediğinde buraya düşer.</p>
+  </div>
+</section>
+
+<div class="viewer" id="assetViewer" hidden>
+  <div class="viewer-veil" id="viewerVeil"></div>
+  <div class="viewer-card" role="dialog" aria-modal="true" aria-label="Varlık görüntüsü">
+    <img id="viewerImg" alt="Kayıtlı varlık" />
+    <p class="viewer-name" id="viewerName"></p>
+    <span class="viewer-count" id="viewerCount">1 / 1</span>
+    <button class="viewer-nav prev" id="viewerPrev" type="button" aria-label="Önceki">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+    </button>
+    <button class="viewer-nav next" id="viewerNext" type="button" aria-label="Sonraki">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+    </button>
+    <button class="viewer-close" id="viewerClose" type="button" aria-label="Kapat">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18" /></svg>
+    </button>
+  </div>
+</div>
 
 <!-- =========================================================
      API DÜZENLE — Ayarlar → API listesinde bir anahtara iki kez

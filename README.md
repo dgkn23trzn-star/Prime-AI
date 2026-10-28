@@ -75,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.5.1.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.5.1/PRIME-AI-Mobil-1.5.1.apk)**
-  (334 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.6.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.0/PRIME-AI-Mobil-1.6.0.apk)**
+  (338 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.5.1.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.6.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -104,12 +104,22 @@ python -m http.server 5173
 - **Yanıt gelmezse:** akış kurulamazsa istek bir kez akışsız gönderilir, 30 saniye yanıt
   gelmezse bağlantı kesilip yeniden denenir, seçili model geçersizse sağlayıcının varsayılan
   modeli kendiliğinden seçilir.
-- **Kamera ile konuşma:** yazı alanının yanındaki kamera düğmesi canlı önizlemeyi açar. Yazarak
-  ya da **Konuş** ile sorduğunda ekrandaki kare modele gönderilir; model ne olduğunu, rengini ve
-  belirgin özelliğini anlatır, yanıtı sesli okur. AI konuşurken sen konuşmaya başlarsan susar.
-- **Nesne belleği:** “bunun adı Pamuk” dediğinde o kare adıyla belleğe kaydedilir; sonraki kamera
-  sorularında ad listesi ve küçük görseller modele gider, böylece farklı açıdan da tanınır.
-  **Ayarlar → Bellek**'te görüp silebilirsin (en fazla 24 kayıt, yalnızca cihazda).
+- **Kamera ile konuşma (tamamen sesli):** kamera düğmesi canlı önizlemeyi açar; **yazma yeri ve
+  mikrofon tuşu yoktur**. Konuşunca cümlen biter bitmez kareyle birlikte gönderilir, model sesli
+  cevap verir. Soru kamerayla **ilgiliyse** kareyi anlatır (ne olduğu, rengi, belirgin özelliği),
+  **ilgisizse** kareyi hiç anmadan o konuda normal cevap verir. AI konuşurken mikrofon kendi
+  sesini duymasın diye kapanır, bitince kendiliğinden yeniden açılır; alttaki mikrofon tuşuyla
+  seni duyması kapatılıp açılabilir, **Kapat** tuşuyla kamera kapanır. Kare çerçevesinin etrafında
+  temaya uygun noktalar vardır: model düşünürken dalgalanır, konuşurken titrer, boşta çok yavaş
+  hareket eder.
+- **Nesne belleği:** “bunun adı Pamuk” dediğinde ya da “belleğe geçir / kaydet” dediğinde o kare
+  adıyla belleğe kaydedilir (kendiliğinden de alır); sonraki kamera sorularında ad listesi ve
+  küçük görseller modele gider, böylece farklı açıdan da tanınır.
+- **Kayıtlı varlıklar:** **Ayarlar → Kayıtlı varlıklar** galerisinde kayıtlı nesneler görünür;
+  resme dokununca tam ekran açılır, **sola-sağa kaydırarak** ya da ok tuşlarıyla gezinilir.
+- **Çekmece sekmeleri:** sol üstteki üç çizgi menüde **Sohbetler** ve **Kameralı Sohbetler**
+  ayrı sekmelerdir; kamerada konuştuğun sohbetler kameralı sekmede durur, yeni sohbet açıp
+  kamera moduna geçersen o sohbet kameralı sayılır.
 - **Yapay zekâ sesi:** **Ayarlar → Ses**'te üç kadın + üç erkek tonu arasından seçim, hız ayarı ve
   “Yanıtları sesli oku” anahtarı. **Mikrofon** bölümünde dinleme dili, “Konuşunca gönder” ve
   “Araya girince sus” var. Ses, Android'in metin-okuma motoruyla üretilir (anahtar gerekmez);
@@ -123,7 +133,7 @@ python -m http.server 5173
   izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
   ile elle de bakılır.
 
-İndirme sayfası: [PRIME AI Mobil 1.5.1](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.5.1)
+İndirme sayfası: [PRIME AI Mobil 1.6.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.6.0)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 

@@ -1189,3 +1189,201 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 .mem-meta span { font-size: 11.5px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .mem-del { width: 30px; height: 30px; border-radius: 50%; color: var(--muted); flex: 0 0 auto; }
 .mem-del svg { width: 16px; height: 16px; }
+
+/* ==================================================================
+   KARE KAMERA + TEMAYA UYUMLU NOKTALAR
+   Noktalar AI düşünürken dalgalanır, konuşurken titrer,
+   boşta çok yavaş nefes alır.
+   ================================================================== */
+.cam-stage {
+  position: relative;
+  width: min(100%, 62vh, 460px);
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  overflow: visible;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-sizing: border-box;
+  padding: 20px;
+}
+.cam-frame {
+  position: relative;
+  z-index: 1;   /* noktalar kareyi değil, etrafındaki halkayı doldurur */
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: 26px;
+  background: #000;
+  border: 1px solid color-mix(in srgb, var(--a1) 40%, var(--line));
+  transition: border-color .3s ease, box-shadow .3s ease;
+}
+.cam-stage.is-thinking .cam-frame { border-color: var(--a2); box-shadow: 0 0 26px color-mix(in srgb, var(--a2) 24%, transparent); }
+.cam-stage.is-speaking .cam-frame { border-color: var(--a1); box-shadow: 0 0 32px color-mix(in srgb, var(--a1) 32%, transparent); }
+.cam-dots { position: absolute; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.cam-dot {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: var(--a1);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--a1) 55%, transparent);
+  opacity: .5;
+  will-change: transform, opacity;
+}
+.cam-dot:nth-child(3n) { background: var(--a2); box-shadow: 0 0 10px color-mix(in srgb, var(--a2) 55%, transparent); }
+.cam-stage.is-idle .cam-dot { animation: camDotIdle 9s ease-in-out infinite; }
+.cam-stage.is-thinking .cam-dot { animation: camDotThink 2.6s ease-in-out infinite; }
+.cam-stage.is-speaking .cam-dot { animation: camDotTremble .16s linear infinite; }
+@keyframes camDotIdle {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(.9); opacity: .45; }
+  50%      { transform: translate3d(0, -3px, 0) scale(1.06); opacity: .72; }
+}
+@keyframes camDotThink {
+  0%, 100% { transform: translate3d(0, -6px, 0) scale(.86); opacity: .5; }
+  50%      { transform: translate3d(0, 6px, 0) scale(1.16); opacity: 1; }
+}
+@keyframes camDotTremble {
+  0%   { transform: translate3d(-1.5px, 1px, 0) scale(1.12); opacity: 1; }
+  50%  { transform: translate3d(1.5px, -1.5px, 0) scale(1.28); opacity: .82; }
+  100% { transform: translate3d(-1px, -1px, 0) scale(1.16); opacity: 1; }
+}
+
+/* Dinleme durumu ve alt tuş sırası */
+.cam-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 6px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+.cam-status-dot {
+  width: 9px;
+  height: 9px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--a1);
+  animation: pulse 1.6s infinite;
+}
+.cam-status.off .cam-status-dot { background: var(--muted); animation: none; }
+.cam-btn.live.mic-off {
+  color: var(--muted);
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: none;
+}
+.cam-btn.live.listening { animation: pulse 1.4s infinite; }
+
+/* ==================================================================
+   ÇEKMECE — sohbetler ve kameralı sohbetler sekmeleri
+   ================================================================== */
+.drawer-tabs { display: flex; gap: 6px; padding: 0 16px 8px; }
+.drawer-tab {
+  flex: 1;
+  min-height: 36px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border: 1px solid var(--line);
+}
+.drawer-tab.on {
+  color: #fff;
+  background: linear-gradient(120deg, var(--a1), var(--a2));
+  border-color: transparent;
+}
+
+/* ==================================================================
+   KAYITLI VARLIKLAR — galeri ve tam ekran görüntüleyici
+   ================================================================== */
+.assets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.assets-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  padding: 0;
+  border: 0;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--bg-soft);
+  touch-action: manipulation;
+}
+.assets-cell img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.assets-cell span {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  padding: 16px 6px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: linear-gradient(transparent, rgba(0, 0, 0, .8));
+}
+.viewer {
+  position: fixed;
+  inset: 0;
+  z-index: 95;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  touch-action: pan-y;
+}
+.viewer[hidden] { display: none; }
+.viewer-veil {
+  position: absolute;
+  inset: 0;
+  background: rgba(3, 3, 6, .82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.viewer-card {
+  position: relative;
+  width: min(94vw, 640px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.viewer-card img {
+  width: 100%;
+  max-height: 66vh;
+  object-fit: contain;
+  border-radius: 22px;
+  background: #0b0b10;
+  border: 1px solid rgba(255, 255, 255, .14);
+  user-select: none;
+  -webkit-user-drag: none;
+}
+.viewer-name { margin: 0; font-size: 15px; font-weight: 600; color: #f4f4f7; }
+.viewer-count { font-size: 12px; color: #b6b6c0; }
+.viewer-nav, .viewer-close {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: rgba(255, 255, 255, .1);
+  border: 1px solid rgba(255, 255, 255, .2);
+}
+.viewer-nav { top: 28vh; }
+.viewer-nav.prev { left: -4px; }
+.viewer-nav.next { right: -4px; }
+.viewer-close { top: -48px; right: 0; }
+.viewer-nav svg { width: 20px; height: 20px; }
+.viewer-close svg { width: 17px; height: 17px; }
