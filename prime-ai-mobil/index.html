@@ -128,6 +128,11 @@ try {
 
     <p class="group-label">Görünüm</p>
     <div class="card">
+      <button class="row link-row" id="langRow">
+        <div class="row-text"><strong data-t="langRow">Dil</strong><span data-t="langRowSub">Rehber ve yanıt dili</span></div>
+        <span class="row-value" id="langValue">Türkçe</span>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
       <div class="row">
         <div class="row-text"><strong>Tema</strong><span>Siyah-kırmızı varsayılan; beyaz da seçilebilir</span></div>
       </div>
@@ -246,7 +251,7 @@ try {
     <p class="group-label">Hakkında</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.1.0</span></div>
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.2.0</span></div>
       </div>
       <button class="row link-row" id="updCheckRow">
         <div class="row-text"><strong>Güncellemeyi denetle</strong><span id="updCheckSub">Yeni sürüm var mı diye bakar</span></div>
@@ -266,6 +271,21 @@ try {
   </div>
 </section>
 
+<!-- =========================================================
+     DİL — ilk kurulumda rehberden önce açılır. Seçilen dil
+     rehberin ve yanıtların dilini belirler; Ayarlar → Dil'den
+     her zaman değiştirilebilir.
+     ========================================================= -->
+<section class="sheet lang-screen" id="langScreen" hidden aria-label="Dil / Language">
+  <div class="lang-body">
+    <span class="lang-mark" aria-hidden="true">P</span>
+    <h2 class="lang-title" id="langTitle">Dil seç</h2>
+    <p class="lang-lead" id="langLead">Rehber ve yanıtlar bu dilde olacak. Sonra Ayarlar'dan değiştirebilirsin.</p>
+    <div class="lang-list" id="langList"></div>
+    <button class="text-btn lang-cancel" id="langCancel" hidden>Vazgeç</button>
+  </div>
+</section>
+
 <section class="sheet tutorial" id="tutorial" hidden aria-label="API rehberi">
   <header class="sheet-head">
     <button class="icon-btn" id="tutorialClose" aria-label="Kapat">
@@ -278,9 +298,9 @@ try {
   <div class="tut-body">
     <div class="tut-step" data-step="1">
       <div class="tut-art art-hello" aria-hidden="true"><span></span></div>
-      <h2>PRIME AI'ya hoş geldin</h2>
-      <p class="tut-lead">Telefonunda çalışan yapay zekâ asistanı. Üç adımda hazır:</p>
-      <ul class="tut-list">
+      <h2 data-t="tut1Title">PRIME AI'ya hoş geldin</h2>
+      <p class="tut-lead" data-t="tut1Lead">Telefonunda çalışan yapay zekâ asistanı. Üç adımda hazır:</p>
+      <ul class="tut-list" data-th="tut1List">
         <li><b>Kendi anahtarın</b> — ücretsiz Gemini anahtarı yeter.</li>
         <li><b>Asistan hep yanında</b> — ekrandaki topla konuş.</li>
         <li><b>Gizli</b> — sohbetler cihazından çıkmaz.</li>
@@ -289,29 +309,29 @@ try {
 
     <div class="tut-step" data-step="2" hidden>
       <div class="tut-art art-key" aria-hidden="true"><span></span></div>
-      <h2>API anahtarını ekle</h2>
-      <p class="tut-lead">Anahtar, yapay zekânın senin adına çalışmasını sağlar. Google AI Studio'da ücretsiz:</p>
-      <ol class="tut-steps">
+      <h2 data-t="tut2Title">API anahtarını ekle</h2>
+      <p class="tut-lead" data-t="tut2Lead">Anahtar, yapay zekânın senin adına çalışmasını sağlar. Google AI Studio'da ücretsiz:</p>
+      <ol class="tut-steps" data-th="tut2Steps">
         <li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> adresini aç.</li>
         <li>“Create API key” düğmesine dokun, Google hesabınla giriş yap.</li>
         <li>Oluşan <b>AIza…</b> ile başlayan anahtarı kopyala.</li>
       </ol>
-      <a class="filled-btn wide" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Anahtar sayfasını aç</a>
-      <label class="tut-field">Anahtarı buraya yapıştır
+      <a class="filled-btn wide" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" data-t="tut2Btn">Anahtar sayfasını aç</a>
+      <label class="tut-field"><span data-t="tut2Field">Anahtarı buraya yapıştır</span>
         <input id="tutKey" type="text" autocomplete="off" spellcheck="false" placeholder="AIza…" />
       </label>
-      <p class="hint" id="tutKeyMsg">Anahtar yalnızca bu telefonda saklanır.</p>
-      <p class="tut-alt">Başka bir sağlayıcı mı kullanıyorsun? <button class="text-btn" id="tutOther">Listeden seç</button></p>
+      <p class="hint" id="tutKeyMsg" data-t="tut2Hint">Anahtar yalnızca bu telefonda saklanır.</p>
+      <p class="tut-alt"><span data-t="tut2Alt">Başka bir sağlayıcı mı kullanıyorsun?</span> <button class="text-btn" id="tutOther" data-t="tut2AltBtn">Listeden seç</button></p>
     </div>
 
     <div class="tut-step" data-step="3" hidden>
       <div class="tut-art art-model" aria-hidden="true"><span></span></div>
-      <h2>Modeli seç</h2>
-      <p class="tut-lead">Anahtarınla kullanabileceğin modeller listelenir. Hızlı ve ücretsiz olan iyi bir başlangıç.</p>
+      <h2 data-t="tut3Title">Modeli seç</h2>
+      <p class="tut-lead" data-t="tut3Lead">Anahtarınla kullanabileceğin modeller listelenir. Hızlı ve ücretsiz olan iyi bir başlangıç.</p>
       <div class="tut-model-box">
-        <button class="outline-btn wide" id="tutFetch">Modelleri getir</button>
-        <p class="hint" id="tutFetchMsg">İnternet yoksa varsayılan modelle devam edebilirsin.</p>
-        <label class="tut-field" id="tutModelField" hidden>Model
+        <button class="outline-btn wide" id="tutFetch" data-t="tut3Fetch">Modelleri getir</button>
+        <p class="hint" id="tutFetchMsg" data-t="tut3Hint">İnternet yoksa varsayılan modelle devam edebilirsin.</p>
+        <label class="tut-field" id="tutModelField" hidden><span data-t="tut3Field">Model</span>
           <select id="tutModel"></select>
         </label>
       </div>
@@ -319,19 +339,19 @@ try {
 
     <div class="tut-step" data-step="4" hidden>
       <div class="tut-art art-ready" aria-hidden="true"><span></span></div>
-      <h2>Hazırsın</h2>
-      <p class="tut-lead">Asistan topu ekranda dursun mu? Dilediğin zaman Ayarlar → Asistan'dan değiştirebilirsin.</p>
+      <h2 data-t="tut4Title">Hazırsın</h2>
+      <p class="tut-lead" data-t="tut4Lead">Asistan topu ekranda dursun mu? Dilediğin zaman Ayarlar → Asistan'dan değiştirebilirsin.</p>
       <label class="row card">
-        <div class="row-text"><strong>Asistan tuşu ana ekranda olsun</strong><span>Uygulama kapanır, top ana ekranda durur</span></div>
+        <div class="row-text"><strong data-t="tut4Switch">Asistan tuşu ana ekranda olsun</strong><span data-t="tut4SwitchSub">Uygulama kapanır, top ana ekranda durur</span></div>
         <span class="switch"><input type="checkbox" id="tutAssistant" /><i></i></span>
       </label>
-      <p class="fineprint" id="tutInstallTip">İpucu: Tarayıcı menüsünden “Ana ekrana ekle” dersen uygulama gibi açılır.</p>
+      <p class="fineprint" id="tutInstallTip" data-t="tut4Tip">İpucu: Tarayıcı menüsünden “Ana ekrana ekle” dersen uygulama gibi açılır.</p>
     </div>
   </div>
 
   <footer class="tut-foot">
-    <button class="text-btn" id="tutSkip">Şimdilik atla</button>
-    <button class="filled-btn" id="tutNext">Devam</button>
+    <button class="text-btn" id="tutSkip" data-t="skip">Şimdilik atla</button>
+    <button class="filled-btn" id="tutNext" data-t="next">Devam</button>
   </footer>
 </section>
 

@@ -907,3 +907,69 @@ textarea#systemPrompt:focus { border-color: color-mix(in srgb, var(--a1) 50%, va
 @media (prefers-reduced-motion: reduce) {
   .upd-card, .upd-veil { animation: none; }
 }
+
+/* ==================================================================
+   DİL — ilk kurulumda rehberden önce gelen tam ekran seçim
+   ================================================================== */
+.lang-screen { z-index: 70; }
+.lang-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  overflow-y: auto;
+  padding: calc(var(--safe-top) + 26px) 22px calc(var(--safe-bottom) + 26px);
+}
+.lang-mark {
+  width: 58px; height: 58px;
+  margin-bottom: 16px;
+  border-radius: 19px;
+  display: grid; place-items: center;
+  font-size: 26px; font-weight: 750; color: #fff;
+  background: linear-gradient(140deg, var(--a1), var(--a2));
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--a1) 42%, transparent);
+}
+.lang-title { margin: 0 0 6px; font-size: 27px; font-weight: 680; letter-spacing: -.7px; }
+.lang-lead { margin: 0 0 20px; max-width: 360px; font-size: 14px; line-height: 1.5; color: var(--muted); }
+.lang-list { display: flex; flex-direction: column; gap: 9px; }
+.lang-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 0 16px;
+  border-radius: 18px;
+  text-align: left;
+  font-size: 16px;
+  font-weight: 550;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  transition: border-color .16s ease, background .16s ease, transform .12s ease;
+}
+.lang-item:active { transform: scale(.985); }
+.lang-item.active {
+  border-color: color-mix(in srgb, var(--a1) 55%, var(--line));
+  background: color-mix(in srgb, var(--a1) 12%, var(--surface));
+}
+.lang-name { flex: 1; }
+.lang-item .lang-code {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex: 0 0 auto;
+}
+.lang-item .lang-check { width: 19px; height: 19px; color: var(--a2); opacity: 0; flex: 0 0 auto; }
+.lang-item.active .lang-check { opacity: 1; }
+.lang-cancel {
+  align-self: center;
+  margin-top: 16px;
+  font-size: 14px;
+  color: var(--muted);
+}
+.row-value { flex: 0 0 auto; font-size: 13px; color: var(--muted); }

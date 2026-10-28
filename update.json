@@ -12,14 +12,14 @@
     "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
   },
   "mobile": {
-    "version": "1.1.0",
+    "version": "1.2.0",
     "date": "2026-10-28",
     "notes": [
-      "Yeni sürüm çıkınca uygulama tek dokunuşla güncellenir.",
-      "APK uygulamanın içinde indirilir, kurulum bitince yeni sürüm açılır.",
-      "Güncelleme penceresi mobil arayüze göre tasarlandı."
+      "İlk açılışta artık önce dil ekranı geliyor: Türkçe, English, Deutsch, Русский, 日本語.",
+      "Dil seçilince API rehberi o dilde açılıyor; anahtar ekleme adımı hemen geliyor.",
+      "Dil, Ayarlar → Dil bölümünden her zaman değiştirilebiliyor."
     ],
-    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.1.0/PRIME-AI-Mobil-1.1.0.apk",
-    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.1.0"
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.2.0/PRIME-AI-Mobil-1.2.0.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.2.0"
   }
 }

@@ -75,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.1.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.1.0/PRIME-AI-Mobil-1.1.0.apk)**
-  (318 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.2.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.2.0/PRIME-AI-Mobil-1.2.0.apk)**
+  (326 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.1.0.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.2.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -88,7 +88,10 @@ python -m http.server 5173
   açılınca Android’de gerekli izinler istenir, uygulama kapanır ve top **ana ekranda** kalır:
   dokununca mikrofon dinler, yanıt balonu akar ve sesle okunur; başka uygulamaların üstünde de
   çalışır. Balon bilerek kısa ve konuşma dilinde yanıt verir, kod yazmaz.
-- **İlk açılış API rehberi:** yalnızca ilk yüklemede 4 adımda anahtar ve model seçimi gösterilir;
+- **İlk açılış dil seçimi:** ilk yüklemede önce dil ekranı gelir (Türkçe, English, Deutsch, Русский,
+  日本語). Seçilen dil API rehberinin metinlerini ve yanıt dilini belirler; **Ayarlar → Dil** ile
+  her zaman değiştirilebilir.
+- **İlk açılış API rehberi:** dil seçiminden hemen sonra 4 adımda anahtar ve model seçimi gösterilir;
   sonradan **Ayarlar → Hakkında → API rehberi** ile yeniden açılabilir.
 - **Mobil ayarlar:** tema, vurgu rengi, yanıt dili, kısa yanıtlar, yaratıcılık, tuş sesi,
   API anahtarı yönetimi ve bağlantı testi.
@@ -99,7 +102,7 @@ python -m http.server 5173
   izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
   ile elle de bakılır.
 
-İndirme sayfası: [PRIME AI Mobil 1.1.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.1.0)
+İndirme sayfası: [PRIME AI Mobil 1.2.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.2.0)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 

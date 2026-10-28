@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.1.0';
+const VERSION = '1.2.0';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -80,8 +80,256 @@ const KEY_PREFIXES = [
 
 const LANG_NAMES = { tr: 'Türkçe', en: 'English', de: 'Deutsch', ru: 'Русский', ja: '日本語' };
 
+/* ----------------------------- Diller -----------------------------
+   İlk kurulumda rehberden önce dil ekranı açılır. Seçilen dil rehberin
+   metinlerini ve yanıt dilini belirler; Ayarlar → Dil’den değiştirilebilir.
+   Desteklenen diller masaüstü sürümüyle aynıdır. */
+const MOB_LANG_LIST = ['tr', 'en', 'de', 'ru', 'ja'];
+const LANG_CODE_LABEL = { tr: 'TR', en: 'EN', de: 'DE', ru: 'RU', ja: 'JA' };
+
+const MOB_I18N = {
+  tr: {
+    langTitle: 'Dil seç',
+    langLead: 'Rehber ve yanıtlar bu dilde olacak. Sonra Ayarlar’dan değiştirebilirsin.',
+    langRow: 'Dil',
+    langRowSub: 'Rehber ve yanıt dili',
+    langCancel: 'Vazgeç',
+    tut1Title: 'PRIME AI’ya hoş geldin',
+    tut1Lead: 'Telefonunda çalışan yapay zekâ asistanı. Üç adımda hazır:',
+    tut1List: '<li><b>Kendi anahtarın</b> — ücretsiz Gemini anahtarı yeter.</li>' +
+      '<li><b>Asistan hep yanında</b> — ekrandaki topla konuş.</li>' +
+      '<li><b>Gizli</b> — sohbetler cihazından çıkmaz.</li>',
+    tut2Title: 'API anahtarını ekle',
+    tut2Lead: 'Anahtar, yapay zekânın senin adına çalışmasını sağlar. Google AI Studio’da ücretsiz:',
+    tut2Steps: '<li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> adresini aç.</li>' +
+      '<li>“Create API key” düğmesine dokun, Google hesabınla giriş yap.</li>' +
+      '<li>Oluşan <b>AIza…</b> ile başlayan anahtarı kopyala.</li>',
+    tut2Btn: 'Anahtar sayfasını aç',
+    tut2Field: 'Anahtarı buraya yapıştır',
+    tut2Hint: 'Anahtar yalnızca bu telefonda saklanır.',
+    tut2Alt: 'Başka bir sağlayıcı mı kullanıyorsun?',
+    tut2AltBtn: 'Listeden seç',
+    tut3Title: 'Modeli seç',
+    tut3Lead: 'Anahtarınla kullanabileceğin modeller listelenir. Hızlı ve ücretsiz olan iyi bir başlangıç.',
+    tut3Fetch: 'Modelleri getir',
+    tut3Hint: 'İnternet yoksa varsayılan modelle devam edebilirsin.',
+    tut3Field: 'Model',
+    tut4Title: 'Hazırsın',
+    tut4Lead: 'Asistan topu ekranda dursun mu? Dilediğin zaman Ayarlar → Asistan’dan değiştirebilirsin.',
+    tut4Switch: 'Asistan tuşu ana ekranda olsun',
+    tut4SwitchSub: 'Uygulama kapanır, top ana ekranda durur',
+    tut4Tip: 'İpucu: Tarayıcı menüsünden “Ana ekrana ekle” dersen uygulama gibi açılır.',
+    next: 'Devam',
+    start: 'Başla',
+    skip: 'Şimdilik atla',
+    keyOnlyDevice: 'Anahtar yalnızca bu telefonda saklanır.',
+    keyAdded: '{p} anahtarı eklendi.',
+    needKey: 'Önce 2. adımda anahtar yapıştır.',
+    modelsLoading: 'Modeller getiriliyor…',
+    modelsFound: '{n} model bulundu.',
+    modelsFallback: 'Liste alınamadı; varsayılan model seçildi.',
+    ready: 'Hazır. Bir şey sorabilirsin.',
+    noKeyToast: 'Başlamak için Ayarlar → API bölümünden anahtar ekle.'
+  },
+  en: {
+    langTitle: 'Choose your language',
+    langLead: 'The guide and replies will use this language. You can change it later in Settings.',
+    langRow: 'Language',
+    langRowSub: 'Guide and reply language',
+    langCancel: 'Cancel',
+    tut1Title: 'Welcome to PRIME AI',
+    tut1Lead: 'An AI assistant that runs on your phone. Ready in three steps:',
+    tut1List: '<li><b>Your own key</b> — a free Gemini key is enough.</li>' +
+      '<li><b>Always with you</b> — talk to the orb on your screen.</li>' +
+      '<li><b>Private</b> — chats never leave your device.</li>',
+    tut2Title: 'Add your API key',
+    tut2Lead: 'The key lets the AI work for you. It is free on Google AI Studio:',
+    tut2Steps: '<li>Open <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</li>' +
+      '<li>Tap “Create API key” and sign in with your Google account.</li>' +
+      '<li>Copy the key that starts with <b>AIza…</b>.</li>',
+    tut2Btn: 'Open the key page',
+    tut2Field: 'Paste your key here',
+    tut2Hint: 'The key is stored only on this phone.',
+    tut2Alt: 'Using another provider?',
+    tut2AltBtn: 'Pick from the list',
+    tut3Title: 'Choose a model',
+    tut3Lead: 'These are the models your key can use. A fast free one is a good start.',
+    tut3Fetch: 'Fetch models',
+    tut3Hint: 'No internet? You can continue with the default model.',
+    tut3Field: 'Model',
+    tut4Title: 'You are ready',
+    tut4Lead: 'Keep the assistant orb on your screen? You can change this anytime in Settings → Assistant.',
+    tut4Switch: 'Show the assistant key on the home screen',
+    tut4SwitchSub: 'The app closes and the orb stays on your home screen',
+    tut4Tip: 'Tip: “Add to Home screen” in your browser menu opens it like an app.',
+    next: 'Continue',
+    start: 'Start',
+    skip: 'Skip for now',
+    keyOnlyDevice: 'The key is stored only on this phone.',
+    keyAdded: '{p} key added.',
+    needKey: 'Paste your key in step 2 first.',
+    modelsLoading: 'Fetching models…',
+    modelsFound: '{n} models found.',
+    modelsFallback: 'Could not load the list; the default model is selected.',
+    ready: 'Ready. Ask me anything.',
+    noKeyToast: 'Add a key in Settings → API to get started.'
+  },
+  de: {
+    langTitle: 'Sprache wählen',
+    langLead: 'Anleitung und Antworten nutzen diese Sprache. Du kannst sie später in den Einstellungen ändern.',
+    langRow: 'Sprache',
+    langRowSub: 'Sprache der Anleitung und Antworten',
+    langCancel: 'Abbrechen',
+    tut1Title: 'Willkommen bei PRIME AI',
+    tut1Lead: 'Ein KI-Assistent, der auf deinem Handy läuft. In drei Schritten bereit:',
+    tut1List: '<li><b>Eigener Schlüssel</b> — ein kostenloser Gemini-Schlüssel genügt.</li>' +
+      '<li><b>Immer dabei</b> — sprich mit der Kugel auf dem Bildschirm.</li>' +
+      '<li><b>Privat</b> — Chats verlassen dein Gerät nicht.</li>',
+    tut2Title: 'API-Schlüssel hinzufügen',
+    tut2Lead: 'Der Schlüssel lässt die KI für dich arbeiten. Bei Google AI Studio kostenlos:',
+    tut2Steps: '<li>Öffne <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</li>' +
+      '<li>Tippe auf „Create API key“ und melde dich mit deinem Google-Konto an.</li>' +
+      '<li>Kopiere den Schlüssel, der mit <b>AIza…</b> beginnt.</li>',
+    tut2Btn: 'Schlüsselseite öffnen',
+    tut2Field: 'Schlüssel hier einfügen',
+    tut2Hint: 'Der Schlüssel wird nur auf diesem Handy gespeichert.',
+    tut2Alt: 'Anderer Anbieter?',
+    tut2AltBtn: 'Aus der Liste wählen',
+    tut3Title: 'Modell wählen',
+    tut3Lead: 'Diese Modelle kannst du mit deinem Schlüssel nutzen. Ein schnelles kostenloses ist ein guter Start.',
+    tut3Fetch: 'Modelle laden',
+    tut3Hint: 'Kein Internet? Du kannst mit dem Standardmodell fortfahren.',
+    tut3Field: 'Modell',
+    tut4Title: 'Alles bereit',
+    tut4Lead: 'Soll die Assistenten-Kugel auf dem Bildschirm bleiben? Jederzeit unter Einstellungen → Assistent änderbar.',
+    tut4Switch: 'Assistenten-Taste auf dem Home-Bildschirm',
+    tut4SwitchSub: 'Die App schließt, die Kugel bleibt auf dem Home-Bildschirm',
+    tut4Tip: 'Tipp: „Zum Startbildschirm hinzufügen“ im Browsermenü öffnet sie wie eine App.',
+    next: 'Weiter',
+    start: 'Start',
+    skip: 'Erstmal überspringen',
+    keyOnlyDevice: 'Der Schlüssel wird nur auf diesem Handy gespeichert.',
+    keyAdded: '{p}-Schlüssel hinzugefügt.',
+    needKey: 'Füge zuerst in Schritt 2 einen Schlüssel ein.',
+    modelsLoading: 'Modelle werden geladen…',
+    modelsFound: '{n} Modelle gefunden.',
+    modelsFallback: 'Liste nicht abrufbar; das Standardmodell ist gewählt.',
+    ready: 'Fertig. Frag mich etwas.',
+    noKeyToast: 'Füge unter Einstellungen → API einen Schlüssel hinzu.'
+  },
+  ru: {
+    langTitle: 'Выберите язык',
+    langLead: 'Инструкция и ответы будут на этом языке. Позже его можно сменить в настройках.',
+    langRow: 'Язык',
+    langRowSub: 'Язык инструкции и ответов',
+    langCancel: 'Отмена',
+    tut1Title: 'Добро пожаловать в PRIME AI',
+    tut1Lead: 'ИИ-ассистент, работающий на вашем телефоне. Готов за три шага:',
+    tut1List: '<li><b>Свой ключ</b> — достаточно бесплатного ключа Gemini.</li>' +
+      '<li><b>Всегда рядом</b> — говорите с шаром на экране.</li>' +
+      '<li><b>Приватно</b> — чаты не покидают устройство.</li>',
+    tut2Title: 'Добавьте API-ключ',
+    tut2Lead: 'Ключ позволяет ИИ работать за вас. В Google AI Studio он бесплатный:',
+    tut2Steps: '<li>Откройте <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>.</li>' +
+      '<li>Нажмите «Create API key» и войдите в аккаунт Google.</li>' +
+      '<li>Скопируйте ключ, начинающийся с <b>AIza…</b>.</li>',
+    tut2Btn: 'Открыть страницу ключа',
+    tut2Field: 'Вставьте ключ сюда',
+    tut2Hint: 'Ключ хранится только на этом телефоне.',
+    tut2Alt: 'Другой провайдер?',
+    tut2AltBtn: 'Выбрать из списка',
+    tut3Title: 'Выберите модель',
+    tut3Lead: 'Здесь модели, доступные с вашим ключом. Быстрая бесплатная — хороший старт.',
+    tut3Fetch: 'Загрузить модели',
+    tut3Hint: 'Нет интернета? Можно продолжить с моделью по умолчанию.',
+    tut3Field: 'Модель',
+    tut4Title: 'Всё готово',
+    tut4Lead: 'Оставить шар ассистента на экране? Это можно изменить в Настройки → Ассистент.',
+    tut4Switch: 'Клавиша ассистента на главном экране',
+    tut4SwitchSub: 'Приложение закроется, шар останется на главном экране',
+    tut4Tip: 'Совет: «Добавить на главный экран» в меню браузера открывает её как приложение.',
+    next: 'Далее',
+    start: 'Начать',
+    skip: 'Пропустить',
+    keyOnlyDevice: 'Ключ хранится только на этом телефоне.',
+    keyAdded: 'Ключ {p} добавлен.',
+    needKey: 'Сначала вставьте ключ на шаге 2.',
+    modelsLoading: 'Загружаем модели…',
+    modelsFound: 'Найдено моделей: {n}.',
+    modelsFallback: 'Список не загрузился; выбрана модель по умолчанию.',
+    ready: 'Готово. Спросите что угодно.',
+    noKeyToast: 'Добавьте ключ в Настройки → API, чтобы начать.'
+  },
+  ja: {
+    langTitle: '言語を選択',
+    langLead: 'ガイドと返答はこの言語になります。あとで設定から変更できます。',
+    langRow: '言語',
+    langRowSub: 'ガイドと返答の言語',
+    langCancel: 'キャンセル',
+    tut1Title: 'PRIME AI へようこそ',
+    tut1Lead: 'スマホで動くAIアシスタント。3ステップで準備完了：',
+    tut1List: '<li><b>自分のキー</b> — 無料のGeminiキーで十分です。</li>' +
+      '<li><b>いつも手元に</b> — 画面のオーブに話しかけてください。</li>' +
+      '<li><b>プライベート</b> — チャットは端末から出ません。</li>',
+    tut2Title: 'APIキーを追加',
+    tut2Lead: 'キーがあるとAIがあなたの代わりに動きます。Google AI Studioなら無料：',
+    tut2Steps: '<li><a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a> を開きます。</li>' +
+      '<li>「Create API key」をタップし、Googleアカウントでログインします。</li>' +
+      '<li><b>AIza…</b> で始まるキーをコピーします。</li>',
+    tut2Btn: 'キーのページを開く',
+    tut2Field: 'ここにキーを貼り付け',
+    tut2Hint: 'キーはこのスマホにだけ保存されます。',
+    tut2Alt: '別のプロバイダーを使いますか？',
+    tut2AltBtn: '一覧から選ぶ',
+    tut3Title: 'モデルを選択',
+    tut3Lead: 'キーで使えるモデルが表示されます。速くて無料のものが始めやすいです。',
+    tut3Fetch: 'モデルを取得',
+    tut3Hint: 'ネットがない場合は既定のモデルで続けられます。',
+    tut3Field: 'モデル',
+    tut4Title: '準備完了',
+    tut4Lead: 'アシスタントのオーブを画面に残しますか？ 設定 → アシスタント でいつでも変更できます。',
+    tut4Switch: 'ホーム画面にアシスタントキーを置く',
+    tut4SwitchSub: 'アプリは閉じ、オーブはホーム画面に残ります',
+    tut4Tip: 'ヒント：ブラウザメニューの「ホーム画面に追加」でアプリのように開けます。',
+    next: '次へ',
+    start: '開始',
+    skip: '今はスキップ',
+    keyOnlyDevice: 'キーはこのスマホにだけ保存されます。',
+    keyAdded: '{p} のキーを追加しました。',
+    needKey: '先にステップ2でキーを貼り付けてください。',
+    modelsLoading: 'モデルを取得中…',
+    modelsFound: '{n} 件のモデルが見つかりました。',
+    modelsFallback: '一覧を取得できませんでした。既定のモデルを選びました。',
+    ready: '準備できました。何でも聞いてください。',
+    noKeyToast: '始めるには 設定 → API でキーを追加してください。'
+  }
+};
+
+/* Ekranda seçili dil; henüz seçilmediyse telefonun dili. */
+function detectLang() {
+  const list = (navigator.languages && navigator.languages.length)
+    ? navigator.languages
+    : [navigator.language || ''];
+  for (const tag of list) {
+    const code = String(tag || '').toLowerCase().slice(0, 2);
+    if (MOB_I18N[code]) return code;
+  }
+  return 'en';
+}
+
+function mobLang() {
+  return MOB_I18N[state.lang] ? state.lang : detectLang();
+}
+
+function T(key, vars) {
+  const pack = MOB_I18N[mobLang()] || MOB_I18N.tr;
+  const out = pack[key] != null ? pack[key] : (MOB_I18N.tr[key] || '');
+  if (!vars) return out;
+  return String(out).replace(/\{(\w+)\}/g, (m, k) => (vars[k] != null ? String(vars[k]) : m));
+}
+
 const DEF = {
-  v: 2,
+  v: 4,
   name: '',
   theme: 'dark',
   accent: 'kirmizi',
@@ -98,6 +346,8 @@ const DEF = {
   activeSid: null,
   chats: [],
   activeChatId: null,
+  lang: '',
+  langDone: false,
   tutorialDone: false
 };
 
@@ -131,6 +381,12 @@ function loadState() {
     if (oldVersion < 3) {
       s.assistantKey = s.assistantKey === true;
       delete s.assistantOn;
+    }
+    /* 3 → 4: dil ekranı. Rehberi bitirmiş olanlar bir daha görmez; henüz
+       seçim yapmamış olanların dili yanıt dilinden alınır. */
+    if (oldVersion < 4) {
+      if (s.tutorialDone) s.langDone = true;
+      if (!MOB_I18N[s.lang]) s.lang = MOB_I18N[s.replyLang] ? s.replyLang : 'tr';
     }
     if (oldVersion < DEF.v) {
       s.v = DEF.v;
@@ -1090,6 +1346,7 @@ function closeSettings() {
 }
 
 function syncSettingsUI() {
+  applyMobLang();
   $('nameInput').value = state.name || '';
   $('profileAvatar').textContent = initialOf(state.name);
   $('drawerAvatar').textContent = initialOf(state.name);
@@ -1412,29 +1669,96 @@ function accentPair(id) {
   return map[id] || map.mor;
 }
 
+/* ----------------------------- Dil seçimi -----------------------------
+   İlk kurulumda rehberden önce açılır; Ayarlar → Dil ile yeniden açılabilir. */
+let langFirstRun = false;
+
+function renderLangList() {
+  const wrap = $('langList');
+  wrap.innerHTML = '';
+  for (const code of MOB_LANG_LIST) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'lang-item';
+    b.dataset.lang = code;
+    b.lang = code;
+    b.innerHTML = '<span class="lang-name">' + esc(LANG_NAMES[code]) + '</span>' +
+      '<span class="lang-code">' + LANG_CODE_LABEL[code] + '</span>' +
+      '<svg class="lang-check" viewBox="0 0 24 24" aria-hidden="true"><path d="m5 13 4 4L19 7" /></svg>';
+    b.addEventListener('click', () => chooseLang(code));
+    wrap.appendChild(b);
+  }
+}
+
+function openLangScreen(firstRun) {
+  langFirstRun = !!firstRun;
+  closeDrawer();
+  $('settings').hidden = true;
+  $('tutorial').hidden = true;
+  $('langCancel').hidden = langFirstRun;
+  renderLangList();
+  applyMobLang();
+  $('langScreen').hidden = false;
+}
+
+function closeLangScreen() { $('langScreen').hidden = true; }
+
+function chooseLang(code) {
+  if (MOB_LANG_LIST.indexOf(code) < 0) return;
+  const firstRun = langFirstRun;
+  langFirstRun = false;
+  state.lang = code;
+  state.replyLang = code;
+  state.langDone = true;
+  saveState();
+  $('replyLang').value = code;
+  applyMobLang();
+  closeLangScreen();
+  if (firstRun) { openTutorial(true, 2); return; }
+  openSettings();
+}
+
+/* Rehber ve etiketler seçilen dile çevrilir. */
+function applyMobLang() {
+  const code = mobLang();
+  document.documentElement.lang = code;
+  document.querySelectorAll('[data-t]').forEach((el) => { el.textContent = T(el.dataset.t); });
+  document.querySelectorAll('[data-th]').forEach((el) => { el.innerHTML = T(el.dataset.th); });
+  $('langTitle').textContent = T('langTitle');
+  $('langLead').textContent = T('langLead');
+  $('langCancel').textContent = T('langCancel');
+  $('langValue').textContent = LANG_NAMES[state.lang] || LANG_NAMES[code];
+  document.querySelectorAll('#langList [data-lang]').forEach((b) => {
+    b.classList.toggle('active', b.dataset.lang === (state.lang || code));
+  });
+  setTutStep(tutStep);
+}
+
 /* ----------------------------- İlk açılış rehberi ----------------------------- */
 function setTutStep(n) {
   tutStep = Math.max(1, Math.min(4, n));
   document.querySelectorAll('.tut-step').forEach((s) => { s.hidden = Number(s.dataset.step) !== tutStep; });
   document.querySelectorAll('#tutDots i').forEach((d, i) => d.classList.toggle('on', i === tutStep - 1));
-  $('tutNext').textContent = tutStep === 4 ? 'Başla' : 'Devam';
+  $('tutNext').textContent = tutStep === 4 ? T('start') : T('next');
   $('tutSkip').hidden = tutStep === 4;
   document.querySelector('.tut-body').scrollTop = 0;
 }
 
-function openTutorial(force) {
+function openTutorial(force, start) {
   closeDrawer();
   $('settings').hidden = true;
+  $('langScreen').hidden = true;
   $('tutorial').hidden = false;
+  applyMobLang();
   tutSlot = state.apis[0] || null;
   $('tutKey').value = '';
-  $('tutKeyMsg').textContent = 'Anahtar yalnızca bu telefonda saklanır.';
+  $('tutKeyMsg').textContent = T('keyOnlyDevice');
   $('tutKeyMsg').className = 'hint';
   $('tutModelField').hidden = true;
-  $('tutFetchMsg').textContent = 'İnternet yoksa varsayılan modelle devam edebilirsin.';
+  $('tutFetchMsg').textContent = T('tut3Hint');
   $('tutFetchMsg').className = 'hint';
   $('tutAssistant').checked = !!state.assistantKey;
-  setTutStep(1);
+  setTutStep(start || 1);
   if (!force && state.tutorialDone) closeTutorial();
 }
 
@@ -1453,7 +1777,7 @@ function finishTutorial() {
   const on = $('tutAssistant').checked;
   if (on !== state.assistantKey) setAssistantKey(on);
   else if (on) applyAssistantKey();
-  toast('Hazır. Bir şey sorabilirsin.');
+  toast(T('ready'));
 }
 
 async function tutorialNext() {
@@ -1468,7 +1792,7 @@ async function tutorialNext() {
       saveState();
       renderApiList();
       renderModelChip();
-      $('tutKeyMsg').textContent = PROVIDERS[provider].label + ' anahtarı eklendi.';
+      $('tutKeyMsg').textContent = T('keyAdded', { p: PROVIDERS[provider].label });
       $('tutKeyMsg').className = 'hint good';
       $('tutFetch').disabled = false;
     }
@@ -1505,12 +1829,12 @@ function wireTutorial() {
 
   $('tutFetch').addEventListener('click', async () => {
     if (!tutSlot) {
-      $('tutFetchMsg').textContent = 'Önce 2. adımda anahtar yapıştır.';
+      $('tutFetchMsg').textContent = T('needKey');
       $('tutFetchMsg').className = 'hint bad';
       return;
     }
     $('tutFetch').disabled = true;
-    $('tutFetchMsg').textContent = 'Modeller getiriliyor…';
+    $('tutFetchMsg').textContent = T('modelsLoading');
     try {
       const models = await fetchModels(tutSlot.provider, tutSlot.key);
       const sel = $('tutModel');
@@ -1523,7 +1847,7 @@ function wireTutorial() {
       }
       if (tutSlot.model && models.includes(tutSlot.model)) sel.value = tutSlot.model;
       $('tutModelField').hidden = false;
-      $('tutFetchMsg').textContent = models.length + ' model bulundu.';
+      $('tutFetchMsg').textContent = T('modelsFound', { n: models.length });
       $('tutFetchMsg').className = 'hint good';
     } catch (err) {
       const cfg = PROVIDERS[tutSlot.provider];
@@ -1531,7 +1855,7 @@ function wireTutorial() {
         const sel = $('tutModel');
         sel.innerHTML = '<option value="' + esc(cfg.defaultModel) + '">' + esc(cfg.defaultModel) + '</option>';
         $('tutModelField').hidden = false;
-        $('tutFetchMsg').textContent = 'Liste alınamadı; varsayılan model seçildi.';
+        $('tutFetchMsg').textContent = T('modelsFallback');
         $('tutFetchMsg').className = 'hint';
       } else {
         $('tutFetchMsg').textContent = String((err && err.message) || err);
@@ -1564,6 +1888,8 @@ function wireChrome() {
   });
   $('avatarBtn').addEventListener('click', openSettings);
   $('settingsBack').addEventListener('click', closeSettings);
+  $('langRow').addEventListener('click', () => openLangScreen(false));
+  $('langCancel').addEventListener('click', () => { closeLangScreen(); openSettings(); });
 
   $('composer').addEventListener('submit', (e) => {
     e.preventDefault();
@@ -2034,6 +2360,11 @@ function syncAssistantKey() {
 /* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
 window.__primeBack = function () {
   if (!$('updModal').hidden) { closeUpdateCard(); return true; }
+  if (!$('langScreen').hidden) {
+    /* İlk kurulumda dil seçilmeden geçilmez. */
+    if (!langFirstRun) { closeLangScreen(); openSettings(); }
+    return true;
+  }
   if (!$('drawer').hidden) { closeDrawer(); return true; }
   if (!$('settings').hidden) { closeSettings(); return true; }
   if (!$('tutorial').hidden) { closeTutorial(); return true; }
@@ -2081,8 +2412,9 @@ function boot() {
   initUpdater();
 
   setTimeout(() => {
+    if (!state.langDone || !state.lang) { openLangScreen(true); return; }
     if (!state.tutorialDone) openTutorial(true);
-    else if (!slotReady(activeSlot())) toast('Başlamak için Ayarlar → API bölümünden anahtar ekle.');
+    else if (!slotReady(activeSlot())) toast(T('noKeyToast'));
   }, 350);
 }
 

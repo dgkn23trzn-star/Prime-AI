@@ -13,7 +13,7 @@ statik sunucuya koyup açmak yeterlidir.
 
 ## Android uygulaması (APK)
 
-Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.1.0.apk**.
+Hazır APK: release sayfasındaki **PRIME-AI-Mobil-1.2.0.apk**.
 
 1. Dosyayı telefona indir.
 2. Dosyayı aç; Android “bilinmeyen kaynaklara izin ver” derse izin ver.
@@ -50,10 +50,14 @@ CORS nedeniyle isteği reddedebilir; sunucu üzerinden açmak daha güvenilir.
 
 ## İlk açılış
 
-İlk yüklemede 4 adımlı **API rehberi** açılır ve bir daha kendiliğinden
-görünmez:
+İlk yüklemede önce **dil ekranı** gelir: Türkçe, English, Deutsch, Русский,
+日本語. Seçilen dil hem API rehberinin metinlerini hem yanıt dilini belirler;
+sonradan **Ayarlar → Dil** ile değiştirilebilir.
 
-1. Hoş geldin.
+Dil seçilince 4 adımlı **API rehberi** açılır (anahtar adımıyla başlar) ve bir
+daha kendiliğinden görünmez:
+
+1. Hoş geldin (rehber sonradan açıldığında görünür).
 2. API anahtarını yapıştır — ücretsiz **Google Gemini** anahtarı için
    [aistudio.google.com/apikey](https://aistudio.google.com/apikey).
 3. Kullanılabilir modelleri getir, birini seç.
