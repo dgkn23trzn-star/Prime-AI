@@ -5,7 +5,7 @@
    ============================================================ */
 'use strict';
 
-const VERSION = '1.0.1';
+const VERSION = '1.1.0';
 const STORE_KEY = 'primeai.mobil.v1';
 
 /* ----------------------------- Sağlayıcılar ----------------------------- */
@@ -1636,6 +1636,340 @@ function inApp() {
   catch { return false; }
 }
 
+/* ------------------------------ Güncelleme ------------------------------ */
+/* Yeni sürüm bilgisi GitHub'daki update.json dosyasından okunur. Uygulama
+   kabuğunda APK, Android tarafında indirilir ve kurulum ekranı açılır;
+   kurulum bitince yeni sürüm açılır. Tarayıcıda/PWA'da güncelleme düğmesi
+   APK bağlantısını açar. */
+
+const UPDATE_FEED = 'https://raw.githubusercontent.com/dgkn23trzn-star/Prime-AI/main/update.json';
+
+let updInfo = null;
+let updBusy = false;
+let updPhase = 'idle';
+let updCheckedAt = 0;
+let updTimer = null;
+
+function cmpVersion(a, b) {
+  const parts = (value) => String(value == null ? '' : value)
+    .trim().replace(/^v/i, '').split('-')[0].split('.')
+    .map((part) => { const n = parseInt(part, 10); return Number.isFinite(n) && n > 0 ? n : 0; });
+  const left = parts(a);
+  const right = parts(b);
+  const len = Math.max(left.length, right.length);
+  for (let i = 0; i < len; i += 1) {
+    const x = left[i] || 0;
+    const y = right[i] || 0;
+    if (x !== y) return x > y ? 1 : -1;
+  }
+  return 0;
+}
+
+/* Yalnızca bu deponun https adresleri kabul edilir. */
+function safeUpdateUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    if (url.protocol !== 'https:') return '';
+    if (!/(^|\.)github\.com$/i.test(url.hostname)) return '';
+    return url.toString();
+  } catch {
+    return '';
+  }
+}
+
+function updStatusText(text, isError) {
+  const node = $('updStatus');
+  if (!node) return;
+  if (!text) {
+    node.hidden = true;
+    node.textContent = '';
+    node.classList.remove('err');
+    return;
+  }
+  node.hidden = false;
+  node.textContent = text;
+  node.classList.toggle('err', !!isError);
+}
+
+function updSetProgress(pct) {
+  const value = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+  const bar = $('updBar');
+  if (bar) bar.style.width = value + '%';
+  const label = $('updPct');
+  if (label) label.textContent = '%' + value;
+}
+
+function updMegabytes(bytes) {
+  return (Math.max(0, Number(bytes) || 0) / 1048576).toFixed(1) + ' MB';
+}
+
+function updResetCard() {
+  updBusy = false;
+  updPhase = 'idle';
+  if ($('updProgress')) $('updProgress').hidden = true;
+  updSetProgress(0);
+  updStatusText('');
+  const now = $('updNow');
+  if (now) { now.disabled = false; now.textContent = 'Güncelle'; }
+  const later = $('updLater');
+  if (later) { later.disabled = false; later.hidden = false; }
+}
+
+function updPollStop() {
+  if (updTimer) { clearInterval(updTimer); updTimer = null; }
+}
+
+function closeUpdateCard() {
+  const modal = $('updModal');
+  if (!modal) return;
+  modal.hidden = true;
+}
+
+function showUpdateCard(info) {
+  if (!info || !info.hasUpdate) return;
+  updInfo = info;
+  updResetCard();
+  const version = $('updVer');
+  if (version) version.textContent = info.latest || '';
+  const notes = Array.isArray(info.notes) ? info.notes.slice(0, 4) : [];
+  const list = $('updNotes');
+  if (list) {
+    list.innerHTML = '';
+    notes.forEach((note) => {
+      const li = document.createElement('li');
+      li.textContent = note;
+      list.appendChild(li);
+    });
+    list.hidden = notes.length === 0;
+  }
+  const modal = $('updModal');
+  if (modal) modal.hidden = false;
+}
+
+function updateBridge() {
+  return inApp() ? window.PrimeAndroid : null;
+}
+
+function updateStateOf() {
+  const bridge = updateBridge();
+  if (!bridge || typeof bridge.updateState !== 'function') return null;
+  try { return JSON.parse(String(bridge.updateState() || '')); } catch { return null; }
+}
+
+/* Android tarafındaki durumu arayüze yansıtır. Kurulum izni yoksa ayarlar
+   açılır; izin verilince bir sonraki yoklamada kurulum kendiliğinden başlar. */
+function updHandleState(state) {
+  if (!state) return;
+  const now = $('updNow');
+  const later = $('updLater');
+  const progress = $('updProgress');
+  const phase = String(state.state || '');
+
+  if (phase === 'downloading') {
+    updBusy = true;
+    updPhase = 'downloading';
+    if (progress) progress.hidden = false;
+    if (now) { now.disabled = true; now.textContent = 'İndiriliyor…'; }
+    if (later) later.disabled = false;
+    updSetProgress(state.pct);
+    updStatusText(state.total
+      ? 'İndiriliyor: ' + updMegabytes(state.received) + ' / ' + updMegabytes(state.total)
+      : 'APK indiriliyor…');
+    return;
+  }
+
+  if (phase === 'ready') {
+    updBusy = true;
+    updSetProgress(100);
+    if (now) { now.disabled = true; now.textContent = 'Kurulum açılıyor…'; }
+    if (later) later.disabled = false;
+    updStatusText('İndirme tamamlandı, kurulum ekranı açılıyor…');
+    if (updPhase !== 'installing') {
+      updPhase = 'installing';
+      const bridge = updateBridge();
+      let next = null;
+      try { next = JSON.parse(String(bridge.installUpdate() || '')); } catch { next = null; }
+      if (next) updHandleState(next);
+    }
+    return;
+  }
+
+  if (phase === 'needs_permission') {
+    updBusy = true;
+    updPhase = 'permission';
+    if (now) { now.disabled = false; now.textContent = 'İzin ver'; }
+    if (later) later.disabled = false;
+    updStatusText('Kurulum için izin gerekiyor: açılan ayarda PRIME AI\'ya izin ver, sonra bu ekrana dön.');
+    return;
+  }
+
+  if (phase === 'installing') {
+    updBusy = true;
+    updPhase = 'installing';
+    if (now) { now.disabled = true; now.textContent = 'Kurulum ekranı açık…'; }
+    if (later) later.disabled = false;
+    updStatusText('Kurulum ekranında “Kur”a dokun. Bitince “Aç” yeni sürümü başlatır.');
+    return;
+  }
+
+  if (phase === 'error') {
+    updBusy = false;
+    updPhase = 'error';
+    updPollStop();
+    if (now) { now.disabled = false; now.textContent = 'Tekrar dene'; }
+    if (later) later.disabled = false;
+    updStatusText('Güncelleme indirilemedi: ' + (state.error || 'bilinmeyen hata') + '.', true);
+  }
+}
+
+function updPollStart() {
+  updPollStop();
+  const tick = () => {
+    const state = updateStateOf();
+    if (!state) { updPollStop(); return; }
+
+    /* İzin verildi: kurulum kendiliğinden açılır. */
+    if (state.state === 'needs_permission' && state.canInstall) {
+      const bridge = updateBridge();
+      let next = null;
+      try { next = JSON.parse(String(bridge.installUpdate() || '')); } catch { next = null; }
+      updPollStop();
+      if (next) updHandleState(next);
+      return;
+    }
+
+    updHandleState(state);
+    if (state.state === 'error' || state.state === 'installing') updPollStop();
+  };
+  tick();
+  updTimer = setInterval(tick, 800);
+}
+
+function startAppUpdate() {
+  if (!updInfo) return;
+  const bridge = updateBridge();
+  const url = safeUpdateUrl(updInfo.url);
+
+  /* Android yoksa (PWA/tarayıcı): APK bağlantısı açılır. */
+  if (!bridge || typeof bridge.downloadUpdate !== 'function') {
+    if (!url) { updStatusText('İndirme adresi bulunamadı.', true); return; }
+    closeUpdateCard();
+    toast('APK indiriliyor. Kurulum bitince yeni sürümü aç.');
+    try { window.open(url, '_blank', 'noopener'); } catch { location.href = url; }
+    return;
+  }
+
+  if (updBusy) {
+    /* "İzin ver" durumunda düğme ayarları açar. */
+    if (updPhase === 'permission' && typeof bridge.openUpdateSettings === 'function') {
+      try { bridge.openUpdateSettings(); } catch { /* yok */ }
+    }
+    return;
+  }
+
+  if (!url) { updStatusText('İndirme adresi bulunamadı.', true); return; }
+
+  const now = $('updNow');
+  const later = $('updLater');
+  updBusy = true;
+  updPhase = 'downloading';
+  if (now) { now.disabled = true; now.textContent = 'İndiriliyor…'; }
+  if (later) later.disabled = true;
+  if ($('updProgress')) $('updProgress').hidden = false;
+  updSetProgress(0);
+  updStatusText('APK indiriliyor…');
+
+  const fileName = url.split('/').pop() || 'PRIME-AI-Mobil.apk';
+  let state = null;
+  try { state = JSON.parse(String(bridge.downloadUpdate(url, fileName) || '')); } catch { state = null; }
+  if (state && state.state === 'error') {
+    updHandleState(state);
+    return;
+  }
+  updPollStart();
+}
+
+async function checkAppUpdate(manual) {
+  if (updBusy) {
+    if (manual) toast('Güncelleme zaten sürüyor.');
+    return null;
+  }
+  if (!manual && Date.now() - updCheckedAt < 20000) return null;
+  updCheckedAt = Date.now();
+  const sub = $('updCheckSub');
+  if (manual && sub) sub.textContent = 'Denetleniyor…';
+
+  let info = null;
+  try {
+    const res = await fetch(UPDATE_FEED + '?t=' + Date.now(), { cache: 'no-store' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const feed = await res.json();
+    const entry = feed && feed.mobile;
+    if (!entry || !entry.version) throw new Error('sürüm bilgisi yok');
+    const latest = String(entry.version);
+    info = {
+      ok: true,
+      current: VERSION,
+      latest,
+      hasUpdate: cmpVersion(latest, VERSION) > 0,
+      notes: Array.isArray(entry.notes) ? entry.notes.map(String).slice(0, 4) : [],
+      url: safeUpdateUrl(entry.url),
+      page: safeUpdateUrl(entry.page)
+    };
+  } catch (err) {
+    info = { ok: false, error: String((err && err.message) || err) };
+  }
+
+  if (sub) {
+    sub.textContent = info.ok
+      ? (info.hasUpdate ? 'Yeni sürüm var: ' + info.latest : 'En güncel sürümdesin · ' + VERSION)
+      : 'Denetlenemedi · bağlantını kontrol et';
+  }
+  if (info.ok && info.hasUpdate) {
+    showUpdateCard(info);
+    if (manual) toast('Yeni sürüm var: ' + info.latest);
+  } else if (manual) {
+    toast(info.ok ? 'En güncel sürümü kullanıyorsun (' + VERSION + ').' : 'Güncelleme denetlenemedi.');
+  }
+  return info;
+}
+
+function initUpdater() {
+  const now = $('updNow');
+  if (now) now.addEventListener('click', startAppUpdate);
+  const later = $('updLater');
+  if (later) later.addEventListener('click', closeUpdateCard);
+  const checkRow = $('updCheckRow');
+  if (checkRow) checkRow.addEventListener('click', () => { checkAppUpdate(true); });
+
+  /* İzin ekranından ya da kurulum ekranından dönünce durum tazelenir. */
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) return;
+    if (updPhase === 'permission') {
+      const state = updateStateOf();
+      if (state) {
+        if (state.canInstall && state.state === 'needs_permission') updPollStart();
+        else updHandleState(state);
+      }
+      return;
+    }
+    if (updPhase === 'installing') {
+      setTimeout(() => {
+        if (updPhase !== 'installing') return;
+        const now = $('updNow');
+        updBusy = false;
+        updPhase = 'idle';
+        if (now) { now.disabled = false; now.textContent = 'Tekrar dene'; }
+        if ($('updLater')) $('updLater').disabled = false;
+        updStatusText('Kurulum tamamlanmadıysa “Tekrar dene”ye dokunabilirsin.');
+      }, 2500);
+    }
+  });
+
+  setTimeout(() => { checkAppUpdate(false); }, 4200);
+  setInterval(() => { checkAppUpdate(false); }, 6 * 60 * 60 * 1000);
+}
+
 /* ------------------------- Asistan tuşu (Android) ------------------------- */
 /* Ayarlardaki anahtar Android kabuğuna haber verir: uygulama kapanır, top ana
    ekranda kalır ve oradan soru sorulur. Tarayıcıda yalnızca ayar saklanır. */
@@ -1699,6 +2033,7 @@ function syncAssistantKey() {
 
 /* Android geri tuşu: açık sayfa/panel varsa onu kapatır. */
 window.__primeBack = function () {
+  if (!$('updModal').hidden) { closeUpdateCard(); return true; }
   if (!$('drawer').hidden) { closeDrawer(); return true; }
   if (!$('settings').hidden) { closeSettings(); return true; }
   if (!$('tutorial').hidden) { closeTutorial(); return true; }
@@ -1743,6 +2078,7 @@ function boot() {
   }
 
   registerSW();
+  initUpdater();
 
   setTimeout(() => {
     if (!state.tutorialDone) openTutorial(true);

@@ -924,7 +924,7 @@
         <span class="about-logo" id="aboutLogoSlot"></span>
         <div>
           <h2 id="aboutTitle">PRIME AI</h2>
-          <p class="modal-sub">Sürüm 1.27.0 · Masaüstü</p>
+          <p class="modal-sub" id="aboutVersion">Sürüm 1.29.0 · Masaüstü</p>
         </div>
       </div>
       <button class="icon-btn" id="closeAbout" aria-label="Kapat">
@@ -951,6 +951,7 @@
       </ul>
     </div>
     <div class="modal-foot">
+      <button class="update-link" id="aboutCheckUpdate" type="button">Güncellemeleri kontrol et</button>
       <div class="foot-right">
         <button class="btn btn-primary" id="closeAboutBtn">Anladım</button>
       </div>
@@ -991,6 +992,45 @@
     <button type="button" class="lb-btn" id="lbNext" title="Sonraki fotoğraf (→)" aria-label="Sonraki fotoğraf">
       <svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
     </button>
+  </div>
+</div>
+
+<!-- =========================================================
+     GÜNCELLEME
+     Yeni sürüm çıkınca ekranın tam ortasında açılır; arkadaki
+     her şey bulanıklaşır. "Şimdi güncelle" indirir, kurar ve
+     uygulamayı yeniden başlatır.
+     ========================================================= -->
+<div class="update-modal" id="updateModal" aria-hidden="true">
+  <div class="update-veil"></div>
+  <div class="update-card" role="dialog" aria-modal="true" aria-labelledby="updateTitle" aria-describedby="updateLead">
+    <span class="update-glow" aria-hidden="true"></span>
+    <div class="update-head">
+      <span class="update-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 11 5 5 5-5"/><path d="M4 20h16"/></svg>
+      </span>
+      <div class="update-headline">
+        <span class="update-kicker">Güncelleme hazır</span>
+        <h2 id="updateTitle">PRIME AI yeni sürüm</h2>
+      </div>
+    </div>
+    <div class="update-versions">
+      <span class="update-pill" id="updateFrom">1.29.0</span>
+      <svg class="update-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      <span class="update-pill is-new" id="updateTo">1.30.0</span>
+    </div>
+    <p class="update-lead" id="updateLead">Yeni sürüm hazır. Güncellediğinde uygulama kendiliğinden yeniden açılır.</p>
+    <ul class="update-notes" id="updateNotes"></ul>
+    <div class="update-progress" id="updateProgress" hidden>
+      <div class="update-track"><i id="updateBar"></i></div>
+      <span class="update-pct" id="updatePct">%0</span>
+    </div>
+    <p class="update-status" id="updateStatus" hidden></p>
+    <div class="update-actions">
+      <button class="btn btn-primary" id="updateNow" type="button">Şimdi güncelle</button>
+      <button class="btn" id="updateLater" type="button">Daha sonra</button>
+    </div>
+    <p class="update-foot">Sohbetlerin ve API anahtarın kalır; güncelleme bitince uygulama yeniden başlar.</p>
   </div>
 </div>
 

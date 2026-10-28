@@ -6,7 +6,7 @@ Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü
 
 ## Kurulum (Windows .exe)
 
-`dist/PRIME-AI-Setup-1.28.0.exe` dosyasına çift tıklayın ve kurulumu izleyin. Masaüstü ve başlangıç menüsüne **PRIME AI** kısayolu eklenir; exe simgesi uygulamanın logosudur.
+`dist/PRIME-AI-Setup-1.29.0.exe` dosyasına çift tıklayın ve kurulumu izleyin. Masaüstü ve başlangıç menüsüne **PRIME AI** kısayolu eklenir; exe simgesi uygulamanın logosudur.
 
 Masaüstündeki kısayol **uygulamayı** açar (tarayıcıyı değil): kurulum masaüstüne `.lnk` kısayolu koyar.
 
@@ -38,6 +38,29 @@ npx electron scripts/smoke.js   # görünmez pencerede açılış testi
 npm start           # geliştirme modunda çalıştır
 ```
 
+### Güncellemeler
+
+Uygulama açılıştan birkaç saniye sonra (ve günde birkaç kez) GitHub'daki
+[`update.json`](update.json) dosyasını okur. Yeni sürüm varsa **ekranın tam ortasında,
+arkası bulanık** bir pencere açılır: sürüm numaraları, yenilikler ve **Şimdi güncelle**
+düğmesi görünür. Düğmeye basınca kurulum dosyası arka planda indirilir (yüzde gösterilir),
+uygulama kapanır, sessiz kurulum yapılır ve yeni sürüm kendiliğinden açılır. İndirilemeyen
+durumlarda pencere GitHub indirme sayfasını açmayı önerir. **Hakkında → Güncellemeleri
+kontrol et** ile elle de denetlenebilir.
+
+**Yeni sürüm yayınlarken** sıra şudur:
+
+1. `package.json` → `version` (masaüstü) ve `prime-ai-mobil/mobile.js` → `VERSION`,
+   `android/app/build.gradle` → `versionName` / `versionCode` artırılır.
+2. `npm run dist` ve APK derlenir; GitHub'da `v<yeni sürüm>` ve `mobil-v<yeni sürüm>`
+   etiketleriyle release oluşturulur (Setup exe + APK yüklenir).
+3. [`update.json`](update.json) içindeki `desktop.version` / `mobile.version`, `url`,
+   `page` ve `notes` alanları yeni release'e göre güncellenir; bu dosya `main`e gider.
+
+Eski sürümlerdeki kullanıcılar bir sonraki açılışta güncelleme penceresini görür.
+Adresler yalnızca bu deponun `https://github.com/...` bağlantılarına izin verir ve indirme
+`.exe` / `.apk` değilse reddedilir.
+
 ## Tarayıcıda çalıştırma
 
 ```bash
@@ -52,12 +75,12 @@ python -m http.server 5173
 `prime-ai-mobil/` klasörü telefon için ayrı, sunucusuz bir uygulamadır. İki şekilde kullanılır:
 
 - **Android uygulaması (APK):** doğrudan indir →
-  **[PRIME-AI-Mobil-1.0.1.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.0.1/PRIME-AI-Mobil-1.0.1.apk)**
-  (327 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
+  **[PRIME-AI-Mobil-1.1.0.apk](https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.1.0/PRIME-AI-Mobil-1.1.0.apk)**
+  (318 KB). Dosyayı telefonda açıp kurun; **PRIME AI** simgesi diğer uygulamaların yanına eklenir,
   tarayıcı açılmaz. Kurulumda “bilinmeyen kaynaklara izin ver” isteyebilir. Release sayfasının
   dosya listesi boş görünürse sayfayı yenileyin ya da bu bağlantıyı kullanın. Kaynak ve derleme
   notları [`android/`](android/) klasöründe.
-- **Web/PWA:** `PRIME-AI-Mobil-1.0.1.zip` içindeki klasörü bir statik barındırmaya koyup
+- **Web/PWA:** `PRIME-AI-Mobil-1.1.0.zip` içindeki klasörü bir statik barındırmaya koyup
   telefonda açın; tarayıcı menüsünden **Ana ekrana ekle** denince uygulama gibi tam ekran açılır.
 
 - **Gemini tarzı arayüz:** sade sohbet ekranı, alt yazma çubuğu, sohbet çekmecesi.
@@ -70,7 +93,13 @@ python -m http.server 5173
 - **Mobil ayarlar:** tema, vurgu rengi, yanıt dili, kısa yanıtlar, yaratıcılık, tuş sesi,
   API anahtarı yönetimi ve bağlantı testi.
 
-İndirme sayfası: [PRIME AI Mobil 1.0.1](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.0.1)
+- **Uygulama içi güncelleme:** yeni sürüm çıkınca **ekranın ortasında, arkası bulanık** bir
+  pencere açılır. **Güncelle** APK'yı uygulamanın içinde indirir (yüzde gösterir), kurulum
+  ekranını açar ve yeni sürüm kurulunca açılır. Gerekirse “bilinmeyen kaynaklardan kurulum”
+  izni istenir. **Daha sonra** ile kapatılabilir; **Ayarlar → Hakkında → Güncellemeyi denetle**
+  ile elle de bakılır.
+
+İndirme sayfası: [PRIME AI Mobil 1.1.0](https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.1.0)
 
 Ayrıntılar: [`prime-ai-mobil/README.md`](prime-ai-mobil/README.md)
 

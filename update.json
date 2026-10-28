@@ -1,0 +1,25 @@
+{
+  "schema": 1,
+  "desktop": {
+    "version": "1.29.0",
+    "date": "2026-10-28",
+    "notes": [
+      "Güncelleme denetimi: yeni sürüm çıkınca uygulama kendiliğinden haber verir.",
+      "Yeni sürüm ortada, bulanık zeminli bir pencerede gösterilir.",
+      "Güncelle düğmesi kurulumu arka planda yapar ve uygulamayı yeniden açar."
+    ],
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.0/PRIME-AI-Setup-1.29.0.exe",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/v1.29.0"
+  },
+  "mobile": {
+    "version": "1.1.0",
+    "date": "2026-10-28",
+    "notes": [
+      "Yeni sürüm çıkınca uygulama tek dokunuşla güncellenir.",
+      "APK uygulamanın içinde indirilir, kurulum bitince yeni sürüm açılır.",
+      "Güncelleme penceresi mobil arayüze göre tasarlandı."
+    ],
+    "url": "https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.1.0/PRIME-AI-Mobil-1.1.0.apk",
+    "page": "https://github.com/dgkn23trzn-star/Prime-AI/releases/tag/mobil-v1.1.0"
+  }
+}

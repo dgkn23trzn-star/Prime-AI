@@ -246,8 +246,12 @@ try {
     <p class="group-label">Hakkında</p>
     <div class="card">
       <div class="row">
-        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.0.0</span></div>
+        <div class="row-text"><strong>PRIME AI Mobil</strong><span id="versionText">Sürüm 1.1.0</span></div>
       </div>
+      <button class="row link-row" id="updCheckRow">
+        <div class="row-text"><strong>Güncellemeyi denetle</strong><span id="updCheckSub">Yeni sürüm var mı diye bakar</span></div>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
+      </button>
       <button class="row link-row" id="tutorialAgain">
         <div class="row-text"><strong>API rehberi</strong><span>Kurulum adımlarını yeniden göster</span></div>
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
@@ -330,6 +334,34 @@ try {
     <button class="filled-btn" id="tutNext">Devam</button>
   </footer>
 </section>
+
+<!-- =========================================================
+     GÜNCELLEME
+     Yeni sürüm çıkınca ekranın tam ortasında açılır; arkadaki
+     her şey bulanıklaşır. "Güncelle" APK'yı indirir, kurulum
+     ekranını açar; kurulum bitince yeni sürüm açılır.
+     ========================================================= -->
+<div class="upd" id="updModal" hidden>
+  <div class="upd-veil"></div>
+  <div class="upd-card" role="dialog" aria-modal="true" aria-labelledby="updTitle">
+    <span class="upd-glow" aria-hidden="true"></span>
+    <span class="upd-mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24"><path d="M12 3v12" /><path d="m7 11 5 5 5-5" /><path d="M4 20h16" /></svg>
+    </span>
+    <p class="upd-kicker">Güncelleme hazır</p>
+    <h2 id="updTitle">PRIME AI <span id="updVer">1.1.0</span></h2>
+    <p class="upd-lead">Yeni sürüm hazır. Güncelle dediğinde uygulama kendiliğinden yenilenir.</p>
+    <ul class="upd-notes" id="updNotes"></ul>
+    <div class="upd-progress" id="updProgress" hidden>
+      <div class="upd-track"><i id="updBar"></i></div>
+      <span class="upd-pct" id="updPct">%0</span>
+    </div>
+    <p class="upd-status" id="updStatus" hidden></p>
+    <button class="upd-primary" id="updNow" type="button">Güncelle</button>
+    <button class="upd-later" id="updLater" type="button">Daha sonra</button>
+    <p class="upd-foot" id="updFoot">Sohbetlerin ve API anahtarın kalır. Kurulum bitince yeni sürüm açılır.</p>
+  </div>
+</div>
 
 <div class="toast-wrap" id="toastWrap"></div>
 

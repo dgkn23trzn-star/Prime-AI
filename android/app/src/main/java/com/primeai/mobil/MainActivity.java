@@ -9,6 +9,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.Settings;
 import android.view.View;
 import android.view.Window;
@@ -25,8 +26,12 @@ import android.widget.Toast;
 import org.json.JSONObject;
 
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,6 +50,15 @@ public class MainActivity extends Activity {
     private ValueCallback<Uri[]> pendingFiles;
     /* Ekranda gösterme izni verilince asistan kendiliğinden açılsın. */
     private boolean assistantPending = false;
+
+    /* Güncelleme: APK arka planda indirilir, sonra kurulum ekranı açılır. */
+    private volatile String updState = "idle";   // idle | downloading | ready | needs_permission | installing | error
+    private volatile int updPct = 0;
+    private volatile long updReceived = 0;
+    private volatile long updTotal = 0;
+    private volatile String updError = "";
+    private volatile File updFile = null;
+    private volatile boolean updDownloading = false;
 
     @SuppressLint("SetJavaScriptEnabled")
     @Override
@@ -210,6 +224,74 @@ public class MainActivity extends Activity {
             return assistantState();
         }
 
+        /* ------------------------- güncelleme (APK) ------------------------- */
+
+        /** İndirme/kurulum durumu: { state, pct, received, total, error, canInstall } */
+        @JavascriptInterface
+        public String updateState() {
+            return updateStateJson().toString();
+        }
+
+        /** APK'yı arka planda indirir; ilerleme updateState() ile okunur. */
+        @JavascriptInterface
+        public String downloadUpdate(final String url, final String name) {
+            if (updDownloading) return updateStateJson().toString();
+            if (url == null || !url.startsWith("https://")) {
+                updState = "error";
+                updError = "indirme adresi geçersiz";
+                return updateStateJson().toString();
+            }
+            updDownloading = true;
+            updState = "downloading";
+            updPct = 0;
+            updReceived = 0;
+            updTotal = 0;
+            updError = "";
+            final String fileName = (name == null || name.trim().isEmpty()
+                    ? "PRIME-AI-Mobil.apk"
+                    : name.trim()).replaceAll("[^A-Za-z0-9._-]", "_");
+            new Thread(new Runnable() {
+                @Override
+                public void run() { downloadApk(url, fileName); }
+            }, "prime-update").start();
+            return updateStateJson().toString();
+        }
+
+        /** İndirilen APK'yı kurar; izin yoksa ayarları açar ve needs_permission döner. */
+        @JavascriptInterface
+        public String installUpdate() {
+            final File apk = updFile;
+            if (apk == null || !apk.exists()) {
+                updState = "error";
+                updError = "indirilen dosya yok";
+                return updateStateJson().toString();
+            }
+            if (!canInstallPackages()) {
+                updState = "needs_permission";
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() { openInstallSettings(); }
+                });
+                return updateStateJson().toString();
+            }
+            updState = "installing";
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { launchInstaller(apk); }
+            });
+            return updateStateJson().toString();
+        }
+
+        /** Kurulum izni ayarlarını açar. */
+        @JavascriptInterface
+        public String openUpdateSettings() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { openInstallSettings(); }
+            });
+            return updateStateJson().toString();
+        }
+
         @JavascriptInterface
         public void setDark(final boolean dark) {
             runOnUiThread(() -> {
@@ -232,6 +314,130 @@ public class MainActivity extends Activity {
                 }
                 decor.setSystemUiVisibility(flags);
             });
+        }
+    }
+
+    /* ------------------------- güncelleme yardımcıları ------------------------- */
+
+    private JSONObject updateStateJson() {
+        JSONObject o = new JSONObject();
+        try {
+            o.put("state", updState);
+            o.put("pct", updPct);
+            o.put("received", updReceived);
+            o.put("total", updTotal);
+            o.put("error", updError);
+            o.put("canInstall", canInstallPackages());
+        } catch (Exception ignored) { }
+        return o;
+    }
+
+    /** Android 8+: bilinmeyen kaynaklardan kurulum izni verilmiş mi. */
+    private boolean canInstallPackages() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return true;
+        return getPackageManager().canRequestPackageInstalls();
+    }
+
+    private void openInstallSettings() {
+        try {
+            Intent i = new Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:" + getPackageName()));
+            startActivity(i);
+            Toast.makeText(this, "PRIME AI'ya bu kaynaktan uygulama kurma izni ver.", Toast.LENGTH_LONG).show();
+        } catch (Exception e) {
+            try {
+                startActivity(new Intent(Settings.ACTION_SECURITY_SETTINGS));
+            } catch (Exception ignored) {
+                Toast.makeText(this, "Kurulum izni ayarları açılamadı.", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /** APK'yı kendi ContentProvider'ımız üzerinden kurulum ekranına verir. */
+    private void launchInstaller(File apk) {
+        try {
+            Uri uri = UpdateProvider.uriFor(this, apk);
+            Intent i = new Intent(Intent.ACTION_VIEW);
+            i.setDataAndType(uri, "application/vnd.android.package-archive");
+            i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(i);
+        } catch (Exception e) {
+            updState = "error";
+            updError = "kurulum açılamadı: " + e.getMessage();
+        }
+    }
+
+    /** APK'yı indirir; yönlendirmeleri izler, ilerlemeyi alanlara yazar. */
+    private void downloadApk(String url, String fileName) {
+        File dir = getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+        if (dir == null) dir = new File(getFilesDir(), "updates");
+        if (!dir.exists()) dir.mkdirs();
+        File target = new File(dir, fileName);
+        File part = new File(dir, fileName + ".part");
+        HttpURLConnection conn = null;
+        try {
+            URL next = new URL(url);
+            for (int hop = 0; hop < 6; hop++) {
+                HttpURLConnection c = (HttpURLConnection) next.openConnection();
+                c.setInstanceFollowRedirects(false);
+                c.setConnectTimeout(20000);
+                c.setReadTimeout(30000);
+                c.setRequestProperty("User-Agent", "PRIME-AI-Mobile");
+                int code = c.getResponseCode();
+                if (code == 301 || code == 302 || code == 303 || code == 307 || code == 308) {
+                    String location = c.getHeaderField("Location");
+                    c.disconnect();
+                    if (location == null) throw new IOException("yönlendirme adresi yok");
+                    next = new URL(next, location);
+                    continue;
+                }
+                if (code != 200) {
+                    c.disconnect();
+                    throw new IOException("HTTP " + code);
+                }
+                conn = c;
+                break;
+            }
+            if (conn == null) throw new IOException("bağlantı kurulamadı");
+
+            long total = conn.getContentLengthLong();
+            updTotal = total > 0 ? total : 0;
+            if (target.exists()) target.delete();
+            if (part.exists()) part.delete();
+
+            InputStream in = conn.getInputStream();
+            FileOutputStream out = new FileOutputStream(part);
+            byte[] buffer = new byte[64 * 1024];
+            long received = 0;
+            int read;
+            long last = 0;
+            while ((read = in.read(buffer)) != -1) {
+                out.write(buffer, 0, read);
+                received += read;
+                updReceived = received;
+                long now = System.currentTimeMillis();
+                if (now - last > 150) {
+                    last = now;
+                    updPct = updTotal > 0 ? (int) Math.min(100, received * 100 / updTotal) : 0;
+                }
+            }
+            out.flush();
+            out.close();
+            in.close();
+
+            if (received < 100 * 1024) throw new IOException("indirilen dosya eksik görünüyor");
+            if (!part.renameTo(target)) throw new IOException("dosya taşınamadı");
+            updPct = 100;
+            updReceived = received;
+            updTotal = received;
+            updFile = target;
+            updState = "ready";
+        } catch (Exception e) {
+            updState = "error";
+            updError = String.valueOf(e.getMessage() == null ? e.getClass().getSimpleName() : e.getMessage());
+            part.delete();
+        } finally {
+            if (conn != null) conn.disconnect();
+            updDownloading = false;
         }
     }
 

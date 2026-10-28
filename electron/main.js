@@ -13,6 +13,7 @@ const fsSync = require('node:fs');
 const { pathToFileURL } = require('node:url');
 const { execFile } = require('node:child_process');
 const { findVideo } = require('./youtube');
+const { checkForUpdate, downloadUpdate, installUpdate } = require('./update');
 
 const ROOT = path.join(__dirname, '..');
 const HOST = 'prime';
@@ -23,6 +24,36 @@ protocol.registerSchemesAsPrivileged([
     privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, stream: true }
   }
 ]);
+
+/* ------------------------------ güncelleme ------------------------------ */
+/* Sürüm bilgisi GitHub'daki update.json'dan okunur. Yeni sürüm varsa arayüz
+   ortada bulanık zeminli bir pencere açar; "Güncelle" denince kurulum dosyası
+   arka planda indirilir, sessizce kurulur ve uygulama yeniden başlar. */
+let updateInstalling = false;
+
+ipcMain.handle('update:check', async () => checkForUpdate(app.getVersion()));
+
+ipcMain.handle('update:install', async (event, data) => {
+  if (updateInstalling) return { ok: false, error: 'güncelleme zaten sürüyor' };
+  updateInstalling = true;
+  const sender = event.sender;
+  const dir = path.join(app.getPath('temp'), 'prime-ai-update');
+  const result = await downloadUpdate(String((data && data.url) || ''), dir, (progress) => {
+    if (sender && !sender.isDestroyed()) sender.send('update:progress', progress);
+  });
+  if (!result.ok) {
+    updateInstalling = false;
+    return result;
+  }
+  const started = installUpdate(result.file);
+  if (!started.ok) {
+    updateInstalling = false;
+    return started;
+  }
+  /* Kurulum, bu sürecin kapanmasını bekliyor; kısa süre sonra çıkılır. */
+  setTimeout(() => app.quit(), 1200);
+  return { ok: true, bytes: result.bytes };
+});
 
 /* --------------------------- gerçek video arama --------------------------- */
 /* Konu için YouTube'dan gerçek bir video seçilir. Anahtar gerekmez;

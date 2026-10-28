@@ -1309,3 +1309,129 @@ body.cam-alarm-on { animation: camBodyFlash .5s steps(1,end) infinite; }
 /* Yokluk kayıtları: insan olmayan kareler nötr/amber çerçeveyle ayrılır. */
 .cam-shot-item.absence { border-color: #b45309; box-shadow: 0 0 12px rgba(180, 83, 9, .35); }
 .cam-shot-item.absence .cam-shot-time { background: rgba(120, 53, 15, .72); }
+
+/* ======================================================================
+   GÜNCELLEME — ortada, bulanık zeminli pencere
+   Yeni sürüm çıkınca açılır. Kart, seçili vurgu rengiyle parlar; arkadaki
+   uygulama bulanıklaşır ki dikkat doğrudan güncellemeye gelsin.
+   ====================================================================== */
+.update-modal {
+  position: fixed; inset: 0; z-index: 90;
+  display: none; align-items: center; justify-content: center;
+  padding: 24px;
+}
+.update-modal.open { display: flex; }
+.update-veil {
+  position: absolute; inset: 0;
+  background: rgba(4, 4, 7, .58);
+  backdrop-filter: blur(18px) saturate(125%);
+  -webkit-backdrop-filter: blur(18px) saturate(125%);
+  animation: updVeil .26s ease both;
+}
+[data-theme="light"] .update-veil { background: rgba(240, 240, 246, .6); }
+.update-card {
+  position: relative; overflow: hidden;
+  width: min(486px, 100%); max-height: 88vh; overflow-y: auto;
+  display: flex; flex-direction: column; gap: 15px;
+  padding: 26px 26px 22px;
+  border-radius: 26px;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--surface-2) 94%, var(--accent) 6%),
+    var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  box-shadow: var(--shadow-xl),
+              0 0 0 1px rgba(255, 255, 255, .035) inset,
+              0 24px 70px color-mix(in srgb, var(--accent) 22%, transparent);
+  animation: updIn .38s cubic-bezier(.2, .9, .3, 1.06) both;
+}
+.update-glow {
+  position: absolute; top: -140px; right: -110px;
+  width: 320px; height: 320px; border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 46%, transparent), transparent 68%);
+  filter: blur(12px); pointer-events: none;
+  animation: updGlow 5.5s ease-in-out infinite alternate;
+}
+.update-head { display: flex; align-items: center; gap: 14px; position: relative; }
+.update-icon {
+  width: 52px; height: 52px; border-radius: 16px; flex: 0 0 auto;
+  display: grid; place-items: center; color: #fff;
+  background: var(--grad);
+  box-shadow: 0 10px 26px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+.update-icon svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2;
+  stroke-linecap: round; stroke-linejoin: round; }
+.update-headline { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.update-kicker {
+  font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.update-headline h2 { margin: 0; font-size: 20px; font-weight: 650; letter-spacing: -.3px; color: var(--text-strong); }
+.update-versions { display: flex; align-items: center; gap: 10px; position: relative; }
+.update-pill {
+  padding: 5px 12px; border-radius: 999px;
+  font-size: 12.5px; font-weight: 650; letter-spacing: .01em;
+  color: var(--text-3); border: 1px solid var(--border); background: var(--surface-3);
+}
+.update-pill.is-new {
+  color: #fff; border-color: transparent; background: var(--grad);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--accent) 34%, transparent);
+}
+.update-arrow { width: 18px; height: 18px; color: var(--text-3); fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.update-lead { margin: 0; font-size: 13.5px; line-height: 1.55; color: var(--text-2); position: relative; }
+.update-notes {
+  margin: 0; padding: 13px 15px 13px 30px; position: relative;
+  border-radius: 16px; background: color-mix(in srgb, var(--surface-3) 70%, transparent);
+  border: 1px solid var(--border-soft);
+  display: flex; flex-direction: column; gap: 7px;
+  font-size: 13px; line-height: 1.45; color: var(--text-2);
+}
+.update-notes[hidden] { display: none; }
+.update-notes li::marker { color: var(--accent-2); }
+.update-progress { display: flex; align-items: center; gap: 10px; position: relative; }
+.update-progress[hidden] { display: none; }
+.update-track {
+  flex: 1; height: 8px; border-radius: 999px; overflow: hidden;
+  background: var(--surface-3); border: 1px solid var(--border-soft);
+}
+.update-track i {
+  display: block; height: 100%; width: 0%;
+  border-radius: 999px; background: var(--grad);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 55%, transparent);
+  transition: width .2s ease;
+}
+.update-pct { font-size: 12px; font-weight: 650; color: var(--text-2); min-width: 38px; text-align: right; }
+.update-status { margin: 0; font-size: 12.5px; line-height: 1.5; color: var(--text-2); position: relative; }
+.update-status[hidden] { display: none; }
+.update-status.err { color: var(--err-bright); }
+.update-actions { display: flex; align-items: center; gap: 10px; position: relative; }
+.update-actions .btn { flex: 1; justify-content: center; padding: 11px 18px; font-weight: 600; }
+.update-actions .btn-primary { box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 32%, transparent); }
+.update-actions .btn[disabled] { opacity: .55; cursor: default; }
+.update-foot { margin: 0; font-size: 11.5px; line-height: 1.5; color: var(--text-3); text-align: center; position: relative; }
+.update-link {
+  background: none; border: 0; padding: 0;
+  font-size: 12.5px; color: var(--text-3); cursor: pointer;
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.update-link:hover { color: var(--accent); }
+
+@keyframes updVeil { from { opacity: 0; } }
+@keyframes updIn {
+  from { opacity: 0; transform: translateY(14px) scale(.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes updGlow {
+  from { opacity: .55; transform: translate3d(0, 0, 0) scale(.95); }
+  to { opacity: .85; transform: translate3d(-18px, 12px, 0) scale(1.08); }
+}
+@media (max-width: 520px) {
+  .update-modal { padding: 14px; }
+  .update-card { padding: 22px 18px 18px; border-radius: 22px; gap: 13px; }
+  .update-headline h2 { font-size: 18px; }
+  .update-actions { flex-direction: column-reverse; }
+  .update-actions .btn { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .update-veil, .update-card, .update-glow { animation: none; }
+}

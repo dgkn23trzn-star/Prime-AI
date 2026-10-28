@@ -25,6 +25,11 @@ contextBridge.exposeInMainWorld('PRIME_DESKTOP', {
   platform: process.platform,
   version,
 
+  /* Güncelleme: sürüm denetimi, arka planda indirme ve sessiz kurulum. */
+  checkUpdate: () => ipcRenderer.invoke('update:check'),
+  installUpdate: (url) => ipcRenderer.invoke('update:install', { url: String(url || '') }),
+  onUpdateProgress: (cb) => on('update:progress', cb),
+
   /* Konuyla ilgili gerçek videoyu bulur: { ok, video: {url,title,channel,thumb,...} }
      Arayüz dili verilir; video dili zorunlu değildir. */
   findVideo: (query, lang) => ipcRenderer.invoke('video:find', query, { lang }),

@@ -7606,11 +7606,217 @@ function startApp() {
   $('input').focus();
 }
 
+/* ============================== GÜNCELLEME ============================== */
+/* Yeni sürüm bilgisi GitHub'daki update.json dosyasından gelir; karşılaştırma,
+   indirme ve kurulum ana süreçte yapılır (renderer dosya indiremez). Burada
+   yalnızca ortada, bulanık zeminli pencere yönetilir: indirme yüzdesi,
+   "Yeniden başlıyor…" durumu ve hata mesajları. */
+
+let updateInfo = null;
+let updateBusy = false;
+let updateFinished = false;
+let updateCheckedAt = 0;
+
+function updateStatus(text, isError) {
+  const node = $('updateStatus');
+  if (!node) return;
+  if (!text) {
+    node.hidden = true;
+    node.textContent = '';
+    node.classList.remove('err');
+    return;
+  }
+  node.hidden = false;
+  node.textContent = text;
+  node.classList.toggle('err', !!isError);
+}
+
+function updateSetProgress(pct) {
+  const value = Math.max(0, Math.min(100, Math.round(Number(pct) || 0)));
+  const bar = $('updateBar');
+  if (bar) bar.style.width = value + '%';
+  const label = $('updatePct');
+  if (label) label.textContent = '%' + value;
+}
+
+function updateReset() {
+  updateBusy = false;
+  updateFinished = false;
+  if ($('updateProgress')) $('updateProgress').hidden = true;
+  updateSetProgress(0);
+  updateStatus('');
+  const now = $('updateNow');
+  if (now) {
+    now.disabled = false;
+    now.textContent = 'Şimdi güncelle';
+  }
+  const later = $('updateLater');
+  if (later) {
+    later.disabled = false;
+    later.hidden = false;
+    later.textContent = 'Daha sonra';
+    later.onclick = hideUpdateCard;
+  }
+}
+
+function hideUpdateCard() {
+  const modal = $('updateModal');
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+}
+
+function showUpdateCard(info) {
+  if (!info || !info.hasUpdate) return;
+  updateInfo = info;
+  updateReset();
+  $('updateFrom').textContent = info.current || '—';
+  $('updateTo').textContent = info.latest || '—';
+  $('updateTitle').textContent = 'PRIME AI ' + (info.latest || '') + ' hazır';
+  const list = $('updateNotes');
+  const notes = Array.isArray(info.notes) ? info.notes.slice(0, 5) : [];
+  list.innerHTML = '';
+  notes.forEach((note) => {
+    const li = document.createElement('li');
+    li.textContent = note;
+    list.appendChild(li);
+  });
+  list.hidden = notes.length === 0;
+  const modal = $('updateModal');
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    const button = $('updateNow');
+    if (button && !button.disabled) button.focus();
+  }, 30);
+  logInfo('Güncelleme: ' + (info.current || '?') + ' → ' + (info.latest || '?') + ' hazır.');
+}
+
+function formatMegabytes(bytes) {
+  return (Math.max(0, Number(bytes) || 0) / 1048576).toFixed(1) + ' MB';
+}
+
+async function startUpdate() {
+  const bridge = desktop();
+  if (!updateInfo || !bridge || typeof bridge.installUpdate !== 'function' || updateBusy) return;
+  if (!updateInfo.url) {
+    updateStatus('İndirme adresi bulunamadı. Güncellemeyi GitHub sayfasından kurabilirsin.', true);
+    return;
+  }
+
+  updateBusy = true;
+  const now = $('updateNow');
+  const later = $('updateLater');
+  now.disabled = true;
+  later.disabled = true;
+  now.textContent = 'İndiriliyor…';
+  $('updateProgress').hidden = false;
+  updateSetProgress(0);
+  updateStatus('Kurulum dosyası indiriliyor…');
+
+  const result = await bridge.installUpdate(updateInfo.url);
+  if (!result || !result.ok) {
+    updateBusy = false;
+    now.disabled = false;
+    now.textContent = 'Tekrar dene';
+    const page = updateInfo.page;
+    updateStatus('Güncelleme kurulamadı: ' + ((result && result.error) || 'bilinmeyen hata') + '.' +
+      (page ? ' İstersen indirme sayfasından elle kurabilirsin.' : ''), true);
+    if (page) {
+      later.disabled = false;
+      later.textContent = 'İndirme sayfası';
+      later.onclick = () => {
+        if (typeof bridge.openExternalUrl === 'function') bridge.openExternalUrl(page);
+        else window.open(page, '_blank', 'noopener');
+      };
+    }
+    logWarn('Güncelleme kurulamadı: ' + ((result && result.error) || 'bilinmeyen hata'));
+    return;
+  }
+
+  updateFinished = true;
+  updateSetProgress(100);
+  now.textContent = 'Yeniden başlıyor…';
+  updateStatus('Kurulum başladı. Uygulama kapanıp yeni sürümle yeniden açılacak.');
+  logInfo('Güncelleme indirildi, kurulum başlatıldı.');
+}
+
+async function checkForUpdates(manual) {
+  const bridge = desktop();
+  if (!bridge || typeof bridge.checkUpdate !== 'function') {
+    if (manual) toast('Güncelleme yalnızca masaüstü uygulamasında denetlenir.', true);
+    return { ok: false, error: 'not-desktop' };
+  }
+  if (updateBusy) return { ok: false, error: 'busy' };
+  if (!manual && Date.now() - updateCheckedAt < 20000) return { ok: false, error: 'too-soon' };
+  updateCheckedAt = Date.now();
+  if (manual) toast('Güncellemeler kontrol ediliyor…');
+
+  let info = null;
+  try {
+    info = await bridge.checkUpdate();
+  } catch (err) {
+    info = { ok: false, error: String((err && err.message) || err) };
+  }
+  if (!info || !info.ok) {
+    if (manual) toast('Güncelleme kontrol edilemedi: ' + ((info && info.error) || 'bağlantı yok'), true);
+    return info || { ok: false, error: 'unknown' };
+  }
+  if (info.hasUpdate) {
+    showUpdateCard(info);
+    if (manual) toast('Yeni sürüm var: ' + info.latest);
+  } else if (manual) {
+    toast('En güncel sürümü kullanıyorsun (' + (info.current || '') + ').');
+  }
+  return info;
+}
+
+function initUpdater() {
+  const bridge = desktop();
+  const versionNode = $('aboutVersion');
+  if (versionNode) {
+    versionNode.textContent = 'Sürüm ' + ((bridge && bridge.version) || '1.29.0') +
+      (bridge ? ' · Masaüstü' : ' · Tarayıcı');
+  }
+
+  if ($('updateNow')) $('updateNow').onclick = startUpdate;
+  updateReset();
+
+  const checkButton = $('aboutCheckUpdate');
+  if (checkButton) checkButton.onclick = () => { checkForUpdates(true); };
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key !== 'Escape' || updateBusy) return;
+    const modal = $('updateModal');
+    if (modal && modal.classList.contains('open')) hideUpdateCard();
+  });
+
+  if (!bridge || typeof bridge.checkUpdate !== 'function') return;
+
+  if (typeof bridge.onUpdateProgress === 'function') {
+    bridge.onUpdateProgress((progress) => {
+      if (!updateBusy || updateFinished || !progress) return;
+      $('updateProgress').hidden = false;
+      updateSetProgress(progress.pct);
+      if (progress.total) {
+        updateStatus('İndiriliyor: ' + formatMegabytes(progress.received) + ' / ' + formatMegabytes(progress.total));
+      } else if (progress.received) {
+        updateStatus('İndiriliyor: ' + formatMegabytes(progress.received));
+      }
+    });
+  }
+
+  /* Açılıştan kısa süre sonra ve günde birkaç kez sessizce denetlenir. */
+  setTimeout(() => { checkForUpdates(false); }, 2600);
+  setInterval(() => { checkForUpdates(false); }, 6 * 60 * 60 * 1000);
+}
+
 (function boot() {
   installLogging();
   bindConsole();
   bindBall();
   bindVoice();
+  initUpdater();
   initIntro();
   logInfo('PRIME AI başladı · ' + (desktop() ? 'masaüstü ' + desktop().version : 'tarayıcı') + ' · ' + location.origin);
   bindAuth();

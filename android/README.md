@@ -79,4 +79,21 @@ yüklemek için önce uygulamayı kaldırmanız gerekir.
 ## Sürüm bilgisi
 
 `app/build.gradle` içindeki `versionCode` ve `versionName` alanları; sürüm
-artırırken ikisini birlikte güncelleyin.
+artırırken ikisini birlikte güncelleyin. `prime-ai-mobil/mobile.js` içindeki
+`VERSION` da aynı numarayı göstermelidir; güncelleme penceresi bu ikisini
+karşılaştırır.
+
+## Uygulama içi güncelleme
+
+Web arayüzü yeni sürümü gördüğünde `PrimeAndroid` köprüsünden APK'yı indirir:
+
+- `downloadUpdate(url, ad)` — APK'yı `getExternalFilesDir(DOWNLOADS)` içine indirir;
+  yönlendirmeleri izler, ilerlemeyi alanlara yazar. Durum `updateState()` ile
+  JSON olarak okunur (`state`, `pct`, `received`, `total`, `error`, `canInstall`).
+- `installUpdate()` — indirilen APK'yı kurulum ekranına verir. Android 8+ için
+  “bilinmeyen kaynaklardan kurulum” izni yoksa ayarları açar ve `needs_permission` döner.
+- `openUpdateSettings()` — izin ayarını yeniden açar.
+
+APK, `UpdateProvider` (content://) üzerinden kurulum ekranına verilir; Android 7+
+`file://` adreslerini kurulum için kabul etmez. `REQUEST_INSTALL_PACKAGES` izni ve
+provider tanımı `AndroidManifest.xml` içindedir.
