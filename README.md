@@ -2,6 +2,12 @@
 
 Kendi API anahtarınızla çalışan yapay zeka sohbet uygulaması. **Masaüstü (.exe)**, **tarayıcı** ve **telefon** olarak çalışır.
 
+**🌐 Tanıtım sitesi (canlı):** [dgkn23trzn-star.github.io/Prime-AI](https://dgkn23trzn-star.github.io/Prime-AI/)
+
+Site kaynakları [`docs/`](docs/) klasöründedir (GitHub Pages bu klasörü yayınlar): siyah-kırmızı
+karanlık tema, ekran görüntüsü slider'ı, özellikler, nasıl çalışır, galeri ve Windows / Android /
+Web indirme bağlantıları.
+
 ---
 
 ## Kurulum (Windows .exe)
