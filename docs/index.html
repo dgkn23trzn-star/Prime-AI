@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Prime AI — Yapay zekâ destekli kişisel asistan</title>
-<meta name="description" content="Prime AI: siyah-kırmızı cyberpunk arayüzlü, hızlı ve gizliliğe saygılı yapay zekâ asistanı. Windows, Android ve Web için indir." />
+<title>Prime AI — AI-powered personal assistant</title>
+<meta name="description" content="Prime AI: a fast, privacy-respecting AI assistant with a black-and-red cyberpunk interface. Download for Windows, Android and the web." />
 <link rel="icon" href="assets/logo.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,23 +25,23 @@
 <!-- ============================ HEADER ============================ -->
 <header class="site-header" id="header">
   <div class="container nav-wrap">
-    <a class="brand" href="#top" aria-label="Prime AI ana sayfa">
-      <img src="assets/logo.png" alt="Prime AI logosu" class="brand-logo" />
+    <a class="brand" href="#top" aria-label="Prime AI home">
+      <img src="assets/logo.png" alt="Prime AI logo" class="brand-logo" />
       <span class="brand-name">PRIME<strong>AI</strong></span>
     </a>
 
     <!-- Tek indirme girişi: sağdaki menüde ayrıca “İndir” bağlantısı yok,
          böylece sayfada indirmeye götüren tek bir üst düğme var. -->
-    <a class="btn btn-red btn-sm nav-cta" href="#indir"><span class="cta-full">Prime AI İndir</span><span class="cta-short">İndir</span></a>
+    <a class="btn btn-red btn-sm nav-cta" href="#indir"><span class="cta-full">Download Prime AI</span><span class="cta-short">Download</span></a>
 
-    <nav class="nav-links" id="navLinks" aria-label="Ana menü">
-      <a href="#ozellikler">Özellikler</a>
-      <a href="#nasil">Nasıl Çalışır?</a>
+    <nav class="nav-links" id="navLinks" aria-label="Main menu">
+      <a href="#ozellikler">Features</a>
+      <a href="#nasil">How it works?</a>
       <a href="#api">API key</a>
-      <a href="#galeri">Galeri</a>
+      <a href="#galeri">Gallery</a>
     </nav>
 
-    <button class="nav-toggle" id="navToggle" aria-label="Menüyü aç/kapat" aria-expanded="false">
+    <button class="nav-toggle" id="navToggle" aria-label="Open / close menu" aria-expanded="false">
       <span></span><span></span><span></span>
     </button>
   </div>
@@ -54,61 +54,61 @@
 
   <div class="container hero-inner">
     <div class="hero-copy reveal">
-      <span class="badge">● ÇEVRİMİÇİ · YAPAY ZEKÂ ASİSTANI</span>
-      <h1>Sana özel <span class="grad">Prime AI</span><br />her cihazda, tek tıkla.</h1>
+      <span class="badge">● ONLINE · AI ASSISTANT</span>
+      <h1>Your own <span class="grad">Prime AI</span><br />one click, every device.</h1>
       <p class="lead">
-        Sohbet et, sesli konuş, kameranla göster — Prime AI anlasın. Kendi API
-        anahtarınla çalışır, sohbetlerin cihazından çıkmaz.
+        Chat, talk, or show it with your camera — Prime AI understands. It runs on
+        your own API key, so your chats never leave your device.
       </p>
 
       <div class="hero-actions">
         <a class="btn btn-red btn-lg" href="#indir">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 20h16"/></svg>
-          İndir
+          Download
         </a>
-        <a class="btn btn-ghost btn-lg" href="#nasil">Hemen Dene</a>
+        <a class="btn btn-ghost btn-lg" href="#nasil">Try it now</a>
       </div>
 
       <ul class="hero-stats">
-        <li><strong>4</strong><span>platform: Windows · Linux · Android · Web</span></li>
-        <li><strong>6</strong><span>AI sesi (3 kadın + 3 erkek)</span></li>
-        <li><strong>%100</strong><span>yerel: anahtarların senin cihazında</span></li>
+        <li><strong>4</strong><span>platforms: Windows · Linux · Android · Web</span></li>
+        <li><strong>6</strong><span>AI voices (3 female + 3 male)</span></li>
+        <li><strong>100%</strong><span>local: your keys stay on your device</span></li>
       </ul>
     </div>
 
     <!-- ---- Görsel slider ---- -->
-    <div class="hero-slider reveal" id="heroSlider" aria-roledescription="carousel" aria-label="Prime AI ekran görüntüleri">
+    <div class="hero-slider reveal" id="heroSlider" aria-roledescription="carousel" aria-label="Prime AI screenshots">
       <div class="slider-viewport">
         <div class="slider-track" id="sliderTrack">
           <figure class="slide is-active">
-            <img src="assets/guide/sohbet-en.png" alt="Prime AI sohbet ekranı" loading="eager" />
-            <figcaption>Sohbet ekranı — akışlı yanıtlar, model seçimi</figcaption>
+            <img src="assets/guide/sohbet-en.png" alt="Prime AI chat screen" loading="eager" />
+            <figcaption>Chat screen — streaming answers, model picker</figcaption>
           </figure>
           <figure class="slide">
-            <img src="assets/guide/api-form-en.png" alt="Prime AI API anahtarı ekleme ekranı" loading="lazy" />
-            <figcaption>API anahtarı — yapıştır, sağlayıcı kendiliğinden seçilir</figcaption>
+            <img src="assets/guide/api-form-en.png" alt="Prime AI add API key screen" loading="lazy" />
+            <figcaption>API key — paste it, the provider is detected for you</figcaption>
           </figure>
           <figure class="slide">
-            <img src="assets/ekran-masaustu.png" alt="Prime AI masaüstü asistan topu" loading="lazy" />
-            <figcaption>Masaüstü asistanı — her ekranda yanında</figcaption>
+            <img src="assets/ekran-masaustu.png" alt="Prime AI desktop assistant orb" loading="lazy" />
+            <figcaption>Desktop assistant — always by your side</figcaption>
           </figure>
         </div>
       </div>
 
-      <button class="slider-arrow prev" id="sliderPrev" aria-label="Önceki görsel">
+      <button class="slider-arrow prev" id="sliderPrev" aria-label="Previous image">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
       </button>
-      <button class="slider-arrow next" id="sliderNext" aria-label="Sonraki görsel">
+      <button class="slider-arrow next" id="sliderNext" aria-label="Next image">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
       </button>
-      <div class="slider-dots" id="sliderDots" role="tablist" aria-label="Slaytlar"></div>
+      <div class="slider-dots" id="sliderDots" role="tablist" aria-label="Slides"></div>
     </div>
   </div>
 
   <div class="marquee" aria-hidden="true">
     <div class="marquee-track">
-      <span>STREAMING YANIT</span><i>◆</i><span>SESLE SOHBET</span><i>◆</i><span>KAMERA İLE GÖRME</span><i>◆</i><span>NESNE BELLEĞİ</span><i>◆</i><span>KENDİ API ANAHTARIN</span><i>◆</i>
-      <span>STREAMING YANIT</span><i>◆</i><span>SESLE SOHBET</span><i>◆</i><span>KAMERA İLE GÖRME</span><i>◆</i><span>NESNE BELLEĞİ</span><i>◆</i><span>KENDİ API ANAHTARIN</span><i>◆</i>
+      <span>STREAMING ANSWERS</span><i>◆</i><span>VOICE CHAT</span><i>◆</i><span>SEE WITH THE CAMERA</span><i>◆</i><span>OBJECT MEMORY</span><i>◆</i><span>YOUR OWN API KEY</span><i>◆</i>
+      <span>STREAMING ANSWERS</span><i>◆</i><span>VOICE CHAT</span><i>◆</i><span>SEE WITH THE CAMERA</span><i>◆</i><span>OBJECT MEMORY</span><i>◆</i><span>YOUR OWN API KEY</span><i>◆</i>
     </div>
   </div>
 </section>
@@ -117,46 +117,46 @@
 <section class="section" id="ozellikler">
   <div class="container">
     <header class="section-head reveal">
-      <span class="kicker">ÖZELLİKLER</span>
-      <h2>Prime AI Nedir ve Neler Sunar?</h2>
-      <p>Hızlı, güçlü ve öğrenen bir asistan — kurulumdan sonra saniyeler içinde çalışır.</p>
+      <span class="kicker">FEATURES</span>
+      <h2>What is Prime AI and what does it offer?</h2>
+      <p>Fast, capable and always learning — up and running seconds after install.</p>
     </header>
 
     <div class="feature-grid">
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
-        <h3>Yüksek hız</h3>
-        <p>Yanıtlar akış hâlinde gelir; ne yazdığını gerçek zamanlı görürsün, bekleme hissi yok.</p>
+        <h3>Blazing fast</h3>
+        <p>Answers stream in as they are generated — you watch them appear in real time, with no waiting.</p>
       </article>
 
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3a4 4 0 0 1 4 4v1a4 4 0 0 1-1 8H9a4 4 0 0 1-1-8V7a4 4 0 0 1 4-4Z"/><path d="M12 16v5"/></svg></div>
-        <h3>Yapay zekâ gücü</h3>
-        <p>Gemini başta olmak üzere onlarca model; istediğin sağlayıcıyı ve modeli sen seçersin.</p>
+        <h3>AI power</h3>
+        <p>Dozens of models with Gemini leading the pack; you pick the provider and the model.</p>
       </article>
 
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 12h4l2 5 4-12 2 7h4"/></svg></div>
-        <h3>Sesli asistan</h3>
-        <p>3 kadın + 3 erkek AI sesi, hız ayarı ve araya girince susan akıllı dinleme.</p>
+        <h3>Voice assistant</h3>
+        <p>3 female + 3 male AI voices, speed control, and smart listening that goes quiet when you interrupt.</p>
       </article>
 
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></div>
-        <h3>Kamera ile görme</h3>
-        <p>Gösterdiğin nesneyi anlatır, rengini söyler; verdiğin adı hatırlar ve galeriye kaydeder.</p>
+        <h3>See through the camera</h3>
+        <p>It describes what you point it at and names its colour; it remembers the names you give and saves them to the gallery.</p>
       </article>
 
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.4-3 7.7-7 9-4-1.3-7-4.6-7-9V6l7-3Z"/><path d="M9 12l2.2 2.2L15.5 10"/></svg></div>
-        <h3>Gizlilik önce</h3>
-        <p>API anahtarın, sohbetlerin ve belleğin yalnızca cihazında tutulur; sunucuya bir şey gitmez.</p>
+        <h3>Privacy first</h3>
+        <p>Your API key, chats and memory stay on your device; nothing is sent off to a server.</p>
       </article>
 
       <article class="card reveal">
         <div class="icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="13" height="13" rx="2"/><rect x="17" y="9" width="4" height="11" rx="1.5"/></svg></div>
-        <h3>Her cihazda</h3>
-        <p>Windows kurulumu, Android APK ve Web/PWA — aynı arayüz, aynı ayarlar, aynı akış.</p>
+        <h3>On every device</h3>
+        <p>Windows installer, Android APK and web/PWA — same interface, same settings, same flow.</p>
       </article>
     </div>
   </div>
@@ -166,35 +166,35 @@
 <section class="section section-alt" id="nasil">
   <div class="container">
     <header class="section-head reveal">
-      <span class="kicker">NASIL ÇALIŞIR?</span>
-      <h2>Üç adımda hazır</h2>
-      <p>Kurulumdan ilk yanıta kadar bir dakikadan az sürer.</p>
+      <span class="kicker">HOW IT WORKS</span>
+      <h2>Ready in three steps</h2>
+      <p>Less than a minute from install to your first answer.</p>
     </header>
 
     <ol class="steps">
       <li class="step reveal">
         <span class="step-num">01</span>
         <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 20h16"/></svg></div>
-        <h3>İndir</h3>
-        <p>Windows kurulum dosyasını, Android APK'yı ya da Web paketini indir.</p>
+        <h3>Download</h3>
+        <p>Grab the Windows installer, the Android APK or the web package.</p>
       </li>
       <li class="step reveal">
         <span class="step-num">02</span>
         <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M5 7h14v12H5z"/><path d="M9 7V5h6v2"/><path d="M12 11v5m-2.5-2.5h5"/></svg></div>
-        <h3>Kur</h3>
-        <p>Rehber 4 adımda API anahtarını ve modelini ayarlar; dilini sen seçersin.</p>
+        <h3>Install</h3>
+        <p>The guide sets up your API key and model in 4 steps; you choose the language.</p>
       </li>
       <li class="step reveal">
         <span class="step-num">03</span>
         <div class="step-icon"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H8l-4 4z"/><path d="M8.5 10.5h7"/></svg></div>
-        <h3>Kullanmaya başla</h3>
-        <p>Yaz, konuş ya da kameranı göster. Prime AI gerisini halleder.</p>
+        <h3>Start using it</h3>
+        <p>Type, talk, or point your camera. Prime AI handles the rest.</p>
       </li>
     </ol>
 
     <div class="note reveal">
-      <strong>İpucu:</strong> Anahtarın yoksa ücretsiz Google Gemini anahtarı yeterlidir —
-      AI Studio'dan bir dakikada alabilirsin.
+      <strong>Tip:</strong> No key yet? A free Google Gemini key is enough —
+      you can get one from AI Studio in about a minute.
     </div>
   </div>
 </section>
@@ -277,18 +277,18 @@
 <section class="section" id="galeri">
   <div class="container">
     <header class="section-head reveal">
-      <span class="kicker">GALERİ</span>
-      <h2>Arayüzden kareler</h2>
-      <p>Büyütmek için görsele dokun.</p>
+      <span class="kicker">GALLERY</span>
+      <h2>Frames from the app</h2>
+      <p>Tap an image to enlarge it.</p>
     </header>
 
     <div class="gallery" id="gallery">
-      <button class="g-item reveal" data-full="assets/guide/sohbet-en.png"><img src="assets/guide/sohbet-en.png" alt="Sohbet ekranı" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/guide/ayarlar-en.png"><img src="assets/guide/ayarlar-en.png" alt="AI Key ayarları" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/guide/api-form-en.png"><img src="assets/guide/api-form-en.png" alt="Yeni API anahtarı formu" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/guide/asistan-ses-en.png"><img src="assets/guide/asistan-ses-en.png" alt="Asistan sesi ayarları" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/guide/app-ayarlar-en.png"><img src="assets/guide/app-ayarlar-en.png" alt="Mikrofon ve ses girişi ayarları" loading="lazy" /></button>
-      <button class="g-item reveal" data-full="assets/ekran-masaustu.png"><img src="assets/ekran-masaustu.png" alt="Masaüstü asistanı topu" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/sohbet-en.png"><img src="assets/guide/sohbet-en.png" alt="Chat screen" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/ayarlar-en.png"><img src="assets/guide/ayarlar-en.png" alt="AI Key settings" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/api-form-en.png"><img src="assets/guide/api-form-en.png" alt="New API key form" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/asistan-ses-en.png"><img src="assets/guide/asistan-ses-en.png" alt="Assistant voice settings" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/guide/app-ayarlar-en.png"><img src="assets/guide/app-ayarlar-en.png" alt="Microphone and audio input settings" loading="lazy" /></button>
+      <button class="g-item reveal" data-full="assets/ekran-masaustu.png"><img src="assets/ekran-masaustu.png" alt="Desktop assistant orb" loading="lazy" /></button>
     </div>
   </div>
 </section>
@@ -298,16 +298,16 @@
   <div class="cta-glow" aria-hidden="true"></div>
   <div class="container">
     <header class="section-head reveal">
-      <span class="kicker">İNDİR</span>
-      <h2>Prime AI'yı indir, hemen başla</h2>
-      <p>Kurulum ücretsiz. Seçtiğin platforma uygun paketi indir.</p>
+      <span class="kicker">DOWNLOAD</span>
+      <h2>Download Prime AI and start right away</h2>
+      <p>Free to install. Grab the build for your platform.</p>
     </header>
 
     <div class="dl-grid">
       <article class="dl-card reveal">
-        <span class="dl-tag">POPÜLER</span>
+        <span class="dl-tag">POPULAR</span>
         <div class="dl-icon dl-icon-brand">
-          <svg viewBox="0 0 24 24" role="img" aria-label="Windows logosu">
+          <svg viewBox="0 0 24 24" role="img" aria-label="Windows logo">
             <defs><linearGradient id="gradWin" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#ff3b47"/><stop offset="1" stop-color="#ff6a3d"/>
             </linearGradient></defs>
@@ -315,13 +315,13 @@
           </svg>
         </div>
         <h3>Windows</h3>
-        <p class="dl-meta">Kurulum dosyası · .exe · v1.29.1</p>
-        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-Setup-1.29.1.exe" target="_blank" rel="noopener">İndir</a>
+        <p class="dl-meta">Installer · .exe · v1.29.1</p>
+        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-Setup-1.29.1.exe" target="_blank" rel="noopener">Download</a>
       </article>
 
       <article class="dl-card reveal">
         <div class="dl-icon dl-icon-brand">
-          <svg viewBox="0 0 48 48" role="img" aria-label="Linux (Tux) logosu">
+          <svg viewBox="0 0 48 48" role="img" aria-label="Linux (Tux) logo">
             <defs><linearGradient id="gradTux" x1="0" y1="0" x2="1" y2="1">
               <stop offset="0" stop-color="#ff3b47"/><stop offset="1" stop-color="#ff6a3d"/>
             </linearGradient></defs>
@@ -346,27 +346,27 @@
           </svg>
         </div>
         <h3>Linux</h3>
-        <p class="dl-meta">tar.gz · x64 · v1.29.0 · aç ve çalıştır</p>
-        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-1.29.1-linux-x64.tar.gz" target="_blank" rel="noopener">İndir</a>
+        <p class="dl-meta">tar.gz · x64 · v1.29.0 · download and run</p>
+        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/v1.29.1/PRIME-AI-1.29.1-linux-x64.tar.gz" target="_blank" rel="noopener">Download</a>
       </article>
 
       <article class="dl-card reveal">
         <div class="dl-icon"><svg viewBox="0 0 24 24"><path d="M6 9h12v9a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z"/><path d="M8 9V6.5a4 4 0 0 1 8 0V9"/><path d="M9.5 13.5h.01M14.5 13.5h.01"/></svg></div>
         <h3>Android</h3>
-        <p class="dl-meta">APK · v1.6.1 · simge ana ekrana eklenir</p>
-        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.apk" target="_blank" rel="noopener">İndir</a>
+        <p class="dl-meta">APK · v1.6.1 · add its icon to your home screen</p>
+        <a class="btn btn-red" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.apk" target="_blank" rel="noopener">Download</a>
       </article>
 
       <article class="dl-card reveal">
         <div class="dl-icon"><svg viewBox="0 0 24 24"><path d="M3 6h18v11H3z"/><path d="M8 20h8"/><path d="M12 17v3"/></svg></div>
         <h3>Web / PWA</h3>
-        <p class="dl-meta">Zip paketi · indir, aç, “Ana ekrana ekle”</p>
-        <a class="btn btn-ghost" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.zip" target="_blank" rel="noopener">İndir</a>
+        <p class="dl-meta">Zip package · download, open, “Add to Home screen”</p>
+        <a class="btn btn-ghost" href="https://github.com/dgkn23trzn-star/Prime-AI/releases/download/mobil-v1.6.1/PRIME-AI-Mobil-1.6.1.zip" target="_blank" rel="noopener">Download</a>
       </article>
     </div>
 
     <p class="dl-note reveal">
-      Tüm sürümler ve kaynak kod <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener">GitHub deposunda</a>.
+      All releases and the source code are <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener">on GitHub</a>.
     </p>
   </div>
 </section>
@@ -379,42 +379,40 @@
         <img src="assets/logo.png" alt="" class="brand-logo" />
         <span class="brand-name">PRIME<strong>AI</strong></span>
       </a>
-      <p>Siyah-kırmızı temalı, gizliliğe saygılı yapay zekâ asistanı. Sohbetlerin yalnızca senin cihazında.</p>
+      <p>A black-and-red, privacy-respecting AI assistant. Your chats stay on your device.</p>
       <div class="social">
         <a href="https://github.com/dgkn23trzn-star/Prime-AI" target="_blank" rel="noopener" aria-label="GitHub">
           <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.7c-2.78.6-3.37-1.34-3.37-1.34-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.36 1.09 2.94.83.09-.65.35-1.09.63-1.34-2.22-.25-4.56-1.11-4.56-4.94 0-1.09.39-1.99 1.03-2.69-.1-.25-.45-1.27.1-2.65 0 0 .84-.27 2.75 1.03a9.5 9.5 0 0 1 5 0c1.91-1.3 2.75-1.03 2.75-1.03.55 1.38.2 2.4.1 2.65.64.7 1.03 1.6 1.03 2.69 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.86v2.76c0 .26.18.58.69.48A10 10 0 0 0 12 2Z"/></svg>
         </a>
-        <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener" aria-label="Sürümler">
+        <a href="https://github.com/dgkn23trzn-star/Prime-AI/releases" target="_blank" rel="noopener" aria-label="Releases">
           <svg viewBox="0 0 24 24"><path d="M12 3v10m0 0 4-4m-4 4-4-4M5 20h14"/></svg>
         </a>
       </div>
     </div>
 
-    <nav class="f-col" aria-label="Hızlı erişim">
-      <h4>Hızlı erişim</h4>
-      <a href="#ozellikler">Özellikler</a>
-      <a href="#nasil">Nasıl Çalışır?</a>
+    <nav class="f-col" aria-label="Quick links">
+      <h4>Quick links</h4>
+      <a href="#ozellikler">Features</a>
+      <a href="#nasil">How it works?</a>
       <a href="#api">API key</a>
-      <a href="#galeri">Galeri</a>
-      <a href="#indir">İndir</a>
+      <a href="#galeri">Gallery</a>
+      <a href="#indir">Download</a>
     </nav>
   </div>
 
   <div class="container footer-bottom">
-    <p>© <span id="year">2026</span> Prime AI. Tüm hakları saklıdır.</p>
-    <p class="fine">Prime AI hata yapabilir. Önemli bilgileri doğrulayın.</p>
+    <p>© <span id="year">2026</span> Prime AI. All rights reserved.</p>
+    <p class="fine">Prime AI can make mistakes. Verify important information.</p>
   </div>
 </footer>
 
 <!-- ============================ LIGHTBOX ============================ -->
 <div class="lightbox" id="lightbox" hidden>
-  <button class="lb-close" id="lbClose" aria-label="Kapat">✕</button>
-  <button class="lb-arrow prev" id="lbPrev" aria-label="Önceki">‹</button>
-  <img id="lbImg" src="" alt="Büyütülmüş görsel" />
-  <button class="lb-arrow next" id="lbNext" aria-label="Sonraki">›</button>
-</div>
-
-<button class="to-top" id="toTop" aria-label="Yukarı çık" hidden>
+  <button class="lb-close" id="lbClose" aria-label="Close">✕</button>
+  <button class="lb-arrow prev" id="lbPrev" aria-label="Previous">‹</button>
+  <img id="lbImg" src="" alt="Enlarged image" />
+  <button class="lb-arrow next" id="lbNext" aria-label="Next">›</button>
+</div>  <button class="to-top" id="toTop" aria-label="Back to top" hidden>
   <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20V5m0 0-6 6m6-6 6 6"/></svg>
 </button>
 
